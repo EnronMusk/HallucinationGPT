@@ -15,6 +15,8 @@ import {
 } from '.';
 import { mapToChatRequest } from './mappings';
 
+import {v4 as uuidv4} from 'uuid';
+
 export class CohereNetworkError extends Error {
   public status: number;
 
@@ -164,16 +166,17 @@ export class CohereClient {
     const requestBody = JSON.stringify({
       ...chatRequest,
     });
+    
     return await fetchEventSource(this.getEndpoint('chat-stream'), {
-      method: 'POST',
-      headers: { ...this.getHeaders(), ...headers },
-      body: requestBody,
-      signal,
-      onopen: onOpen,
-      onmessage: onMessage,
-      onclose: onClose,
-      onerror: onError,
-    });
+        method: 'POST',
+        headers: { ...this.getHeaders(), ...headers },
+        body: requestBody,
+        signal,
+        onopen: onOpen,
+        onmessage: onMessage,
+        onclose: onClose,
+        onerror: onError,
+      })
   }
 
   public async langchainChat({
@@ -214,7 +217,7 @@ export class CohereClient {
   }: {
     signal?: AbortSignal;
   }): Promise<ConversationWithoutMessages[]> {
-    const response = await this.fetch(`${this.getEndpoint('conversations')}/`, {
+    const response = await this.fetch(`${this.getEndpoint('conversations')}`, {
       method: 'GET',
       headers: this.getHeaders(),
       signal,
@@ -273,6 +276,14 @@ export class CohereClient {
     return body as {};
   }
 
+  //deletes annotations
+  public async deleteAnnotation(annotation_id: string ): Promise<void> {
+    const response = await this.fetch(`${this.getEndpoint('annotations')}/${annotation_id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+  }
+
   public async editConversation(
     request: UpdateConversation & { conversationId: string }
   ): Promise<Conversation> {
@@ -301,7 +312,7 @@ export class CohereClient {
   }
 
   public async listTools({ signal }: { signal?: AbortSignal }): Promise<Tool[]> {
-    const response = await this.fetch(`${this.getEndpoint('tools')}/`, {
+    const response = await this.fetch(`${this.getEndpoint('tools')}`, {
       method: 'GET',
       headers: this.getHeaders(),
       signal,
@@ -319,8 +330,42 @@ export class CohereClient {
     return body as Tool[];
   }
 
+  //
+
+
+  //For adding annotations!
+
+  //
+
+  public async annotate(
+    annotation_id: string,
+    annotationRequest: {
+      message_id: string,
+      htext: string,
+      annotation: string,
+      start: number,
+      end: number
+    }): Promise<void>  {
+    const endpoint = `${this.getEndpoint('annotations')}/${annotation_id}/add`;
+    const requestBody = {
+      message_id: annotationRequest.message_id,
+      htext: annotationRequest.htext,
+      annotation: annotationRequest.annotation,
+      start: annotationRequest.start,
+      end: annotationRequest.end
+    };
+  
+    const response = await this.fetch(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(requestBody),
+      headers: this.getHeaders(),
+    });
+
+    //const body = await response.json();
+  }
+
   public async listDeployments(): Promise<Deployment[]> {
-    const response = await this.fetch(`${this.getEndpoint('deployments')}/`, {
+    const response = await this.fetch(`${this.getEndpoint('deployments')}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -338,7 +383,7 @@ export class CohereClient {
   }
 
   public async listAllDeployments(): Promise<Deployment[]> {
-    const response = await this.fetch(`${this.getEndpoint('deployments')}/?all=1`, {
+    const response = await this.fetch(`${this.getEndpoint('deployments')}?all=1`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -382,15 +427,19 @@ export class CohereClient {
       | 'tools'
       | 'deployments'
       | 'experimental_features'
+      | 'annotations'
   ) {
-    return `${this.hostname}/${endpoint}`;
+    return `/api/${endpoint}`;
   }
 
   private getHeaders(omitContentType = false) {
     const headers: HeadersInit = {
       ...(omitContentType ? {} : { 'Content-Type': 'application/json' }),
-      'User-Id': 'user-id',
+      'User-Id': this.source, //pull the id from cookies or local storage in the init of the cohere client
+      //'User-Id' : uuidv4().toString() //generate a new user uuid for each session.
     };
     return headers;
   }
 }
+
+

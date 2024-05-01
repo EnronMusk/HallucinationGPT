@@ -1,5 +1,5 @@
 import { Transition } from '@headlessui/react';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState, useEffect } from 'react';
 
 import { CitationTextHighlighter } from '@/components/Citations/CitationTextHighlighter';
 import { DataTable } from '@/components/DataTable';
@@ -14,6 +14,7 @@ import {
   isErroredMessage,
   isFulfilledOrTypingMessage,
   isLoadingMessage,
+  BotState
 } from '@/types/message';
 import { cn } from '@/utils';
 
@@ -21,13 +22,13 @@ type Props = {
   isLast: boolean;
   message: ChatMessage;
   onRetry?: VoidFunction;
+  overrideText: string; //Used to override for highlights
 };
 
 const BOT_ERROR_MESSAGE = 'Unable to generate a response since an error was encountered. ';
 
-export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) => {
+export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry, overrideText }) => {
   const isUser = message.type === MessageType.USER;
-  const isWelcome = message.type === MessageType.WELCOME;
   const isLoading = isLoadingMessage(message);
   const isBotError = isErroredMessage(message);
   const isUserError = isUser && message.error;
@@ -53,7 +54,8 @@ export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) =>
   } else if (isUser) {
     content = (
       <>
-        <Markdown text={message.text} />
+        <Markdown text={overrideText} // ovverride with highlights to be used in the markdown renderer component
+         />
         {message.files && message.files.length > 0 && (
           <div className="flex flex-wrap gap-2 py-2">
             {message.files.map((file) => (
@@ -63,6 +65,15 @@ export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) =>
         )}
       </>
     );
+
+    // 
+
+
+    // THIS IS FOR STREAMING MESSAGES!
+
+
+    //
+
   } else if (isLoading) {
     const hasLoadingMessage = message.text.length > 0;
     content = (
@@ -99,15 +110,19 @@ export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) =>
       </>
     );
   } else {
+    // console.log("OVERRIDE", overrideText)
+    // (message.text === "") message.text : overrideText;
+    // console.log("NEWOVER", overrideText)
+    //message.annotations = {}
     const hasCitations =
       isTypingOrFulfilledMessage && message.citations && message.citations.length > 0;
     content = (
       <>
         <Markdown
           className={cn({
-            'text-volcanic-700': isWelcome || isAborted,
+            'text-volcanic-700': isAborted,
           })}
-          text={message.text}
+          text={overrideText} //put in texts with higlights for annotations
           customComponents={{
             img: MarkdownImage as any,
             cite: CitationTextHighlighter as any,
@@ -128,7 +143,7 @@ export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) =>
       </>
     );
   }
-
+ 
   return (
     <div className="flex w-full flex-col justify-center gap-y-1 py-1">
       <Text

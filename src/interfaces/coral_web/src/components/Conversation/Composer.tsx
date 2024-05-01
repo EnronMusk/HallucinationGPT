@@ -1,5 +1,5 @@
-import { ChangeEvent, useEffect, useRef } from 'react';
-
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Tool } from '@/cohere-client';
 import { ComposerFiles } from '@/components/Conversation/ComposerFiles';
 import { ComposerMenu } from '@/components/Conversation/ComposerMenu';
@@ -13,7 +13,7 @@ import { cn } from '@/utils';
 
 type Props = {
   isStreaming: boolean;
-  value: string;
+  valueInit: string;
   messages: ChatMessage[];
   streamingMessage: ChatMessage | null;
   onStop: VoidFunction;
@@ -23,34 +23,71 @@ type Props = {
 };
 
 const Composer: React.FC<Props> = ({
-  value,
   isStreaming,
+  valueInit,
   onSend,
-  onChange,
+  onChange, //ignore this method- its laggy 
   onStop,
   onUploadFile,
 }) => {
   const isReadyToReceiveMessage = !isStreaming;
-  const canSend = isReadyToReceiveMessage && value.trim().length > 0;
   const {
     settings: { isMobileConvListPanelOpen },
   } = useSettingsStore();
   const { uploadingFiles, composerFiles, deleteComposerFile, deleteUploadingFile } =
     useFileActions();
+
+  const [value, setValue] = useState('');
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(event.target.value);
+};
+
   const isDesktop = useIsDesktop();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const canSend = isReadyToReceiveMessage && value.trim().length > 0;
+
+  //For pre-made prompts, manually insert them.
+  if (textareaRef?.current && valueInit !== ""){
+    textareaRef.current.value = valueInit;
+    const textarea = textareaRef.current;
+
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+
+      // if the content overflows the max height, show the scrollbar
+      if (textarea.scrollHeight > textarea.clientHeight + 2) {
+        textarea.style.overflowY = 'scroll';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    
+  }
+
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       // Do expected default behaviour (add a newline inside of the textarea)
       if (e.shiftKey) return;
 
+      console.log(textareaRef.current?.value)
+      console.log(canSend)
+
+      let cref = textareaRef.current;
+
       e.preventDefault();
       if (canSend) {
-        onSend(undefined);
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
+        onSend(value);
+      } else if(textareaRef.current?.value != ""){ //manually check value in case of no update to the DOM.
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
+        onSend(textareaRef.current?.value);
       }
     }
   };
+
+
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -84,10 +121,20 @@ const Composer: React.FC<Props> = ({
     return () => clearTimeout(timer);
   }, [isMobileConvListPanelOpen, isDesktop, textareaRef.current]);
 
+  //for the send button only.
+  const handleSendClick = () => {
+    if (textareaRef.current && textareaRef.current.value.trim().length > 0) {
+      onSend(textareaRef.current.value);
+    } else {
+      onStop();
+    }
+  };
+
   return (
     <div className="flex w-full flex-col gap-y-2">
       <div className="flex items-end gap-x-2 md:gap-x-4">
-        <ComposerMenu onUploadFile={onUploadFile} />
+        {/**The icon below is right beside the text container, this is where we should put the submit to AHA button. */}
+        {/* {<Icon name='help' size='lg' kind='default' className='position-relative hover:' style={{bottom:'25%', transform:'translateY(-100%)'}} />} */}
         <div
           className={cn(
             'flex w-full items-end',
@@ -102,8 +149,8 @@ const Composer: React.FC<Props> = ({
               id={CHAT_COMPOSER_TEXTAREA_ID}
               dir="auto"
               ref={textareaRef}
-              value={value}
-              placeholder="Message..."
+              //value={value}
+              placeholder="Prompt here..."
               className={cn(
                 'min-h-[3rem] md:min-h-[4rem]',
                 'max-h-48 w-full flex-1 resize-none overflow-hidden',
@@ -118,7 +165,7 @@ const Composer: React.FC<Props> = ({
               )}
               rows={1}
               onKeyDown={handleKeyDown}
-              onChange={onChange}
+              onChange={handleChange}
             />
             <ComposerFiles
               uploadingFiles={uploadingFiles}
@@ -136,7 +183,7 @@ const Composer: React.FC<Props> = ({
               'border-secondary-400 bg-secondary-200 text-secondary-800 hover:bg-secondary-300'
             )}
             type="button"
-            onClick={() => (canSend ? onSend(undefined) : onStop())}
+            onClick={handleSendClick}
           >
             {isReadyToReceiveMessage ? <Icon name="arrow-right" /> : <Square />}
           </button>
@@ -160,4 +207,4 @@ const Square = () => (
   </svg>
 );
 
-export default Composer;
+export default React.memo(Composer);

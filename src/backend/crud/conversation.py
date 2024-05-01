@@ -41,6 +41,17 @@ def get_conversation(
         .first()
     )
 
+def extract_conversations(
+        db: Session
+) -> list[Conversation]:
+    
+    """
+    
+    Returns an array of all conversations in the database.
+    
+    """
+
+    return (db.query(Conversation).all())
 
 def get_conversations(
     db: Session, user_id: str, offset: int = 0, limit: int = 100
@@ -65,12 +76,11 @@ def get_conversations(
         .all()
     )
 
-
 def update_conversation(
     db: Session, conversation: Conversation, new_conversation: UpdateConversation
 ) -> Conversation:
     """
-    Update a conversation by ID.
+    Update a conversation by ID. (WITH COHERE BUGFIX)
 
     Args:
         db (Session): Database session.
@@ -80,8 +90,20 @@ def update_conversation(
     Returns:
         Conversation: Updated conversation.
     """
+    
+    # fix the stupid cohere chat history bug :(
+    #conversation = fixConversationOutOfOrder(conversation)
+    print('UPDATED CONVO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!')
+    for msg in conversation.messages:
+        print(msg.text[:20])
+        for a in msg.annotations:
+            print(a.htext[:20])
+
     for attr, value in new_conversation.model_dump().items():
         if value is not None:
+            print('attr', attr)
+            print('val',value)
             setattr(conversation, attr, value)
 
     db.commit()

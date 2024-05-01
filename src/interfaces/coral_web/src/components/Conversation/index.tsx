@@ -5,12 +5,13 @@ import { FILE_TOOL_CATEGORY, Tool } from '@/cohere-client';
 import Composer from '@/components/Conversation/Composer';
 import { Header } from '@/components/Conversation/Header';
 import MessagingContainer from '@/components/Conversation/MessagingContainer';
-import { StartOptionKey } from '@/components/Messages/Welcome/StartOptions';
 import { DragDropFileInput, Spinner } from '@/components/Shared';
 import { HotKeysProvider } from '@/components/Shared/HotKeys';
+import { PromptOption } from '@/components/StartModes';
 import { WelcomeGuideTooltip } from '@/components/WelcomeGuideTooltip';
 import { ACCEPTED_FILE_TYPES, ReservedClasses } from '@/constants';
 import { useChatHotKeys } from '@/hooks/actions';
+import { useFocusComposer } from '@/hooks/actions';
 import { useChat } from '@/hooks/chat';
 import { useFileActions, useFilesInConversation } from '@/hooks/files';
 import { WelcomeGuideStep, useWelcomeGuideState } from '@/hooks/ftux';
@@ -26,8 +27,10 @@ import {
 import { ChatMessage } from '@/types/message';
 import { cn } from '@/utils';
 
+import { appSSR } from '@/pages/_app'; //for db
+
 type Props = {
-  welcomeMessageEnabled?: boolean;
+  startOptionsEnabled?: boolean;
   conversationId?: string;
   history?: ChatMessage[];
 };
@@ -36,7 +39,7 @@ type Props = {
  * @description Renders the entire conversation pane, which includes the header, messages,
  * composer, and the citation panel.
  */
-const Conversation: React.FC<Props> = ({ conversationId, welcomeMessageEnabled = false }) => {
+const Conversation: React.FC<Props> = ({ conversationId, startOptionsEnabled = false }) => {
   const [isDragDropInputActive, setIsDragDropInputActive] = useState(false);
   const chatHotKeys = useChatHotKeys();
 
@@ -76,16 +79,7 @@ const Conversation: React.FC<Props> = ({ conversationId, welcomeMessageEnabled =
       }
     },
   });
-  const getSelectedOption = (): StartOptionKey => {
-    if (tools && tools.length > 0) {
-      return StartOptionKey.WEB_SEARCH;
-    } else if (params.fileIds && params.fileIds.length > 0) {
-      return StartOptionKey.DOCUMENTS;
-    } else {
-      return StartOptionKey.UNGROUNDED;
-    }
-  };
-  const [startOption, setStartOption] = useState<StartOptionKey>(() => getSelectedOption());
+  const { focusComposer } = useFocusComposer();
 
   // Returns the first visible file loader tool from tools list
   const defaultFileLoaderTool = useMemo(
@@ -151,11 +145,8 @@ const Conversation: React.FC<Props> = ({ conversationId, welcomeMessageEnabled =
   };
 
   const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFileIds = await uploadFile(e.target.files?.[0]);
+    const newFileIds = await uploadFile(e.target.files?.[0], conversationId);
     if (!newFileIds) return;
-    if (startOption !== StartOptionKey.DOCUMENTS) {
-      setStartOption(StartOptionKey.DOCUMENTS);
-    }
     enableDefaultFileLoaderTool();
   };
 
@@ -167,14 +158,18 @@ const Conversation: React.FC<Props> = ({ conversationId, welcomeMessageEnabled =
       ...(enableFileLoaderTool ? [{ name: defaultFileLoaderTool.name }] : []),
     ];
 
-    if (startOption !== StartOptionKey.DOCUMENTS) {
-      setStartOption(StartOptionKey.DOCUMENTS);
-    }
     if (filesExist) {
       enableDefaultFileLoaderTool();
     }
     send({ suggestedMessage: msg }, { tools: chatOverrideTools });
   };
+
+  const handlePromptSelected = (option: PromptOption) => {
+    focusComposer();
+    setUserMessage(option.prompt);
+  };
+
+  const client = appSSR.init_client().client; //add a client to be passed for db access
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -208,19 +203,19 @@ const Conversation: React.FC<Props> = ({ conversationId, welcomeMessageEnabled =
         />
         <MessagingContainer
           conversationId={conversationId}
-          welcomeMessageEnabled={welcomeMessageEnabled}
+          startOptionsEnabled={startOptionsEnabled}
           isStreaming={isStreaming}
           onRetry={handleRetry}
           messages={messages}
           streamingMessage={streamingMessage}
-          startOption={startOption}
-          onStartOptionChange={setStartOption}
+          onPromptSelected={handlePromptSelected}
+          client={client}
           composer={
             <>
               <WelcomeGuideTooltip step={3} className="absolute bottom-full mb-4" />
               <Composer
                 isStreaming={isStreaming}
-                value={userMessage}
+                valueInit={userMessage}
                 messages={messages}
                 streamingMessage={streamingMessage}
                 onChange={(e) => setUserMessage(e.target.value)}

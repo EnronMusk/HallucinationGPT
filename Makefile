@@ -1,5 +1,7 @@
 dev:
 	@docker compose watch
+down:
+	@docker compose down
 run-tests:
 	docker compose run --build backend poetry run pytest src/backend/tests/$(file)
 run-community-tests:
@@ -19,7 +21,7 @@ reset-db:
 	docker volume rm cohere_toolkit_db
 setup:
 	poetry install --only setup --verbose
-	poetry run python3 cli/main.py
+	poetry run python3 src/backend/cli/main.py
 lint:
 	poetry run black .
 	poetry run isort .

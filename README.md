@@ -37,6 +37,90 @@ make first-run
 
 Follow the instructions to configure the model - either AWS Sagemaker, Azure, or Cohere's platform. This can also be done by running `make setup` (See Option 2 below), which will help generate a file for you, or by manually creating a `.env` file and copying the contents of the provided `.env-template`. Then replacing the values with the correct ones.
 
+#### Detailed environment setup
+
+<details>
+  <summary>Windows</summary>
+
+1. Install [docker](https://docs.docker.com/desktop/install/windows-install/)
+2. Install [git]https://git-scm.com/download/win
+3. In PowerShell (Terminal), install [scoop](https://scoop.sh/). After installing, run scoop bucket add extras
+4. Install pipx
+```bash
+scoop install pipx
+pipx ensurepath
+```
+5. Install poetry >= 1.7.1 using 
+```bash
+pipx install poetry
+```
+6. Install miniconda using
+```bash
+scoop install miniconda3
+conda init powershell
+```
+7. Restart PowerShell
+8. Install the following:
+```bash
+scoop install postgresql
+scoop install make
+```
+9. Create a new virtual environment with Python 3.11
+```bash
+conda create -n toolkit python=3.11
+conda activate toolkit
+```
+10. Clone the repo
+11. Alternatively to `make first-run` or `make setup`, run
+```bash
+poetry install --only setup --verbose
+poetry run python cli/main.py
+make migrate
+make dev
+```
+12. Navigate to https://localhost:4000 in your browser
+
+</details>
+
+<details>
+  <summary>MacOS</summary>
+
+1. Install Xcode. This can be done from the App Store or terminal 
+```bash
+xcode-select --install
+```
+2. Install [docker desktop](https://docs.docker.com/desktop/install/mac-install/)
+3. Install [homebrew](https://brew.sh/)
+4. Install [pipx](https://github.com/pypa/pipx). This is useful for installing poetry later.
+```bash
+brew install pipx
+pipx ensurepath
+```
+5. Install [postgres](brew install postgresql)
+6. Install conda using [miniconda](https://docs.anaconda.com/free/miniconda/index.html)
+7. Use your environment manager to create a new virtual environment with Python 3.11
+```bash
+conda create -n toolkit python=3.11
+```
+8. Install [poetry >= 1.7.1](https://python-poetry.org/docs/#installing-with-pipx)
+```bash
+pipx install poetry
+```
+To test if poetry has been installed correctly,
+```bash
+conda activate toolkit
+poetry --version
+```
+You should see the version of poetry (e.g. 1.8.2). If poetry is not found, try
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+And then retry `poetry --version`
+9. Clone the repo and run `make first-run`
+10. Navigate to https://localhost:4000 in your browser
+
+</details>
+
 <details>
   <summary>Environment variables</summary>
   
@@ -44,7 +128,7 @@ Follow the instructions to configure the model - either AWS Sagemaker, Azure, or
 
 - `COHERE_API_KEY`: If your application will interface with Cohere's API, you will need to supply an API key. Not required if using AWS Sagemaker or Azure.
   Sign up at https://dashboard.cohere.com/ to create an API key.
-- `NEXT_PUBLIC_API_HOSTNAME`: The backend URL which the frontend will communicate with. Defaults to http://localhost:8000
+- `NEXT_PUBLIC_API_HOSTNAME`: The backend URL which the frontend will communicate with. Defaults to http://backend:8000 for use with `docker compose`
 - `DATABASE_URL`: Your PostgreSQL database connection string for SQLAlchemy, should follow the format `postgresql+psycopg2://USER:PASSWORD@HOST:PORT`.
 
 ### AWS Sagemaker
@@ -143,6 +227,15 @@ You can deploy Toolkit with one click to Microsoft Azure Platform:
 
 [<img src="https://aka.ms/deploytoazurebutton" height="48px">](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fcohere-ai%2Fcohere-toolkit%2Fmain%2Fazuredeploy.json)
 
+This deployment type uses Azure Container Instances to host the Toolkit.
+After your deployment is complete click "Go to resource" button.
+1) Check the logs to see if the container is running successfully:
+   - click on the "Containers" button on the left side of the screen
+   - click on the container name
+   - click on "Logs" tab to see the logs
+2) Navigate to the "Overview" tab to see the FQDN of the container instance
+3) Open the \<FQDN\>:4000 in your browser to access the Toolkit
+
 ## Setup for Development
 
 ### Setting up Poetry
@@ -161,6 +254,13 @@ Run linters:
 poetry run black .
 poetry run isort .
 ```
+
+## Setting up the Environment Variables
+**Please confirm that you have at least one configuration of the Cohere Platform, SageMaker or Azure.**
+
+You have two methods to set up the environment variables:
+1. Run `make setup` and follow the instructions to configure it.
+2. Run `cp .env-template .env` and adjust the values in the `.env` file according to your situation.
 
 ### Setting up Your Local Database
 
@@ -284,9 +384,11 @@ A model deployment is a running version of one of the Cohere command models. The
   - This model deployment calls into your Azure deployment. To get an Azure deployment [follow these steps](https://learn.microsoft.com/en-us/azure/ai-studio/how-to/deploy-models-cohere-command). Once you have a model deployed you will need to get the endpoint URL and API key from the azure AI studio https://ai.azure.com/build/ -> Project -> Deployments -> Click your deployment -> You will see your URL and API Key. Note to use the Cohere SDK you need to add `/v1` to the end of the url.
 - SageMaker (model_deployments/sagemaker.py)
   - This deployment option calls into your SageMaker deployment. To create a SageMaker endpoint [follow the steps here](https://docs.cohere.com/docs/amazon-sagemaker-setup-guide), alternatively [follow a command notebook here](https://github.com/cohere-ai/cohere-aws/tree/main/notebooks/sagemaker). Note your region and endpoint name when executing the notebook as these will be needed in the environment variables.
+- Local models with LlamaCPP (community/model_deployments/local_model.py)
+  - This deployment option calls into a local model. To use this deployment you will need to download a model. You can use Cohere command models or choose between a range of other models that you can see [here](https://github.com/ggerganov/llama.cpp). You will need to enable community features to use this deployment by setting `USE_COMMUNITY_FEATURES=True` in your .env file.
 - To add your own deployment:
-  1. Create a deployment file, add it to [/community/model_deployments](https://github.com/cohere-ai/toolkit/tree/main/src/community/model_deployments) folder, implement the function calls from `BaseDeployment` similar to the other deployments.
-  2. Add the deployment to [src/community/config/deployments.py](https://github.com/cohere-ai/toolkit/blob/main/src/community/config/deployments.py)
+  1. Create a deployment file, add it to [/community/model_deployments](https://github.com/cohere-ai/cohere-toolkit/tree/main/src/community/model_deployments) folder, implement the function calls from `BaseDeployment` similar to the other deployments.
+  2. Add the deployment to [src/community/config/deployments.py](https://github.com/cohere-ai/cohere-toolkit/blob/main/src/community/config/deployments.py)
   3. Add the environment variables required to the env template.
 - To add a Cohere private deployment, use the steps above copying the cohere platform implementation changing the base_url for your private deployment and add in custom auth steps.
 
@@ -310,7 +412,7 @@ Currently the core chat interface is the Coral frontend. To add your own interfa
 
 ### How to add a connector to the Toolkit
 
-If you have already created a [connector](https://docs.cohere.com/docs/connectors), it can be used in the toolkit with `ConnectorRetriever`. Add in your configuration and then add the definition in [community/config/tools.py](https://github.com/cohere-ai/toolkit/blob/main/src/community/config/tools.py) similar to `Arxiv` implementation with the category `Category.DataLoader`. You can now use the Coral frontend and API with the connector.
+If you have already created a [connector](https://docs.cohere.com/docs/connectors), it can be used in the toolkit with `ConnectorRetriever`. Add in your configuration and then add the definition in [community/config/tools.py](https://github.com/cohere-ai/cohere-toolkit/blob/main/src/community/config/tools.py) similar to `Arxiv` implementation with the category `Category.DataLoader`. You can now use the Coral frontend and API with the connector.
 
 ### How to set up web search with the Toolkit
 

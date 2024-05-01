@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithoutRef, useState, useEffect, ReactNode } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
@@ -12,9 +12,11 @@ import { cn } from '@/utils';
 
 import { renderRemarkCites } from './directives/cite';
 import { remarkReferences } from './directives/code';
-import { renderTableTools } from './directives/table-tools';
+import { renderTableTools  } from './directives/table-tools';
 import { renderRemarkUnknowns } from './directives/unknown';
 import { P } from './tags/P';
+import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
+import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
 import { References } from './tags/References';
 
@@ -60,12 +62,14 @@ export const getActiveMarkdownPlugins = (
   return { remarkPlugins, rehypePlugins };
 };
 
+
+
 /**
  * Convenience component to help apply the styling to markdown texts.
  */
 export const Markdown = ({
   className = '',
-  text,
+  text, //preprocessed is passed
   customComponents,
   customRemarkPlugins = [],
   customRehypePlugins = [],
@@ -73,8 +77,9 @@ export const Markdown = ({
   allowedElements,
   unwrapDisallowed,
   ...rest
-}: MarkdownTextProps) => {
+}: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
   const { remarkPlugins, rehypePlugins } = getActiveMarkdownPlugins(renderLaTex);
+
 
   return (
     <Text
@@ -97,19 +102,38 @@ export const Markdown = ({
     >
       <ReactMarkdown
         remarkPlugins={[...remarkPlugins, ...customRemarkPlugins]}
-        rehypePlugins={[...rehypePlugins, ...customRehypePlugins]}
+        //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
         components={{
-          pre: Pre,
-          p: P,
-          // @ts-ignore
-          references: References,
+          pre: Pre, //copy for code
           ...customComponents,
+          p: P, // CUSTOM P
+          code: Code,
+          td: td,
+          th: th,
+          li: CustomLi,
+          ol: CustomOl,
+          ul: CustomUl,
+          h1: Heading1,
+          h2: Heading2,
+          h3: Heading3,
+          h4: Heading4,
+          h5: Heading5,
+          h6: Heading6,
+          title: Title,
+          dl: dl,
+          dt: dt,
+          dd: dd,
+          strong: strong,
+          em: em,
+
         }}
       >
-        {text}
+        {text} 
       </ReactMarkdown>
     </Text>
   );
 };
+
+export default Markdown;

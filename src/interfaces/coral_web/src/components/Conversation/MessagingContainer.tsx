@@ -5,34 +5,29 @@ import ScrollToBottom, { useScrollToBottom, useSticky } from 'react-scroll-to-bo
 
 import { CitationPanel } from '@/components/Citations/CitationPanel';
 import MessageRow from '@/components/MessageRow';
-import Notification from '@/components/Messages/Notification';
-import WelcomeMessage from '@/components/Messages/Welcome';
-import { StartOptionKey } from '@/components/Messages/Welcome/StartOptions';
 import { Button } from '@/components/Shared';
+import { PromptOption, StartModes } from '@/components/StartModes';
 import { ReservedClasses } from '@/constants';
 import { MESSAGE_LIST_CONTAINER_ID, useCalculateCitationStyles } from '@/hooks/citations';
 import { useFixCopyBug } from '@/hooks/fixCopyBug';
 import { useCitationsStore } from '@/stores';
-import {
-  ChatMessage,
-  MessageType,
-  StreamingMessage,
-  isFulfilledMessage,
-  isNotificationMessage,
-} from '@/types/message';
+import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotation} from '@/types/message';
 import { cn } from '@/utils';
+
+import { appSSR } from '@/pages/_app'; //for db
+import { CohereClient } from '@/cohere-client';
 
 type Props = {
   isStreaming: boolean;
-  welcomeMessageEnabled: boolean;
+  startOptionsEnabled: boolean;
   messages: ChatMessage[];
   streamingMessage: StreamingMessage | null;
-  startOption: StartOptionKey;
-  onStartOptionChange: (option: StartOptionKey) => void;
   onRetry: VoidFunction;
   composer: ReactNode;
   conversationId?: string;
   scrollViewClassName?: string;
+  onPromptSelected?: (option: PromptOption) => void;
+  client: CohereClient;
 };
 
 /**
@@ -63,9 +58,8 @@ export default memo(MessagingContainer);
  * This component lays out the messages, citations, and composer.
  * In order to access the state hooks for the scroll to bottom component, we need to wrap the content in a component.
  */
-const Content: React.FC<Props> = (props) => {
-  const { isStreaming, messages, composer, streamingMessage, startOption, onStartOptionChange } =
-    props;
+const Content: React.FC<Props> = memo((props) => {
+  const { isStreaming, messages, composer, streamingMessage, onPromptSelected } = props;
   const scrollToBottom = useScrollToBottom();
   const {
     citations: { hasCitations },
@@ -114,12 +108,7 @@ const Content: React.FC<Props> = (props) => {
   return (
     <div className="flex h-max min-h-full w-full">
       <div id={MESSAGE_LIST_CONTAINER_ID} className={cn('flex h-auto min-w-0 flex-1 flex-col')}>
-        <Messages
-          {...props}
-          ref={messageContainerDivRef}
-          startOption={startOption}
-          onStartOptionChange={onStartOptionChange}
-        />
+        <Messages {...props} ref={messageContainerDivRef} onPromptSelected={onPromptSelected} />
         {/* Composer container */}
         <div
           className={cn('sticky bottom-0 px-4 pb-4', 'bg-marble-100')}
@@ -150,57 +139,41 @@ const Content: React.FC<Props> = (props) => {
       <div
         className={cn('hidden h-auto border-l border-marble-400', { 'md:flex': hasCitations })}
       />
-
-      <CitationPanel
-        citationToStyles={citationToStyles}
-        streamingMessage={streamingMessage}
-        className={cn(
-          ReservedClasses.CITATION_PANEL,
-          'hidden',
-          { 'md:flex': hasCitations },
-          'relative h-auto w-auto',
-          'md:min-w-citation-panel-md lg:min-w-citation-panel-lg xl:min-w-citation-panel-xl'
-        )}
-      />
     </div>
   );
-};
+});
 
-type MessagesProps = Props & { welcomeMessageEnabled: boolean };
+type MessagesProps = Props & { startOptionsEnabled: boolean };
 /**
  * This component is in charge of rendering the messages.
  */
-const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
-  { welcomeMessageEnabled, onRetry, messages, streamingMessage, startOption, onStartOptionChange },
+const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
+  { startOptionsEnabled, onRetry, messages, streamingMessage, onPromptSelected, client },
   ref
 ) {
-  const lastMessage = messages[messages.length - 1];
-
+  const isConversationEmpty = messages.length === 0;
+  //console.log("THE MSGS")
+  //console.log(messages)
+  //console.log(streamingMessage)
   return (
-    <div className="mt-auto flex flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}>
-      <WelcomeMessage
-        show={
-          welcomeMessageEnabled && messages.filter((m) => !isNotificationMessage(m)).length === 0
-        }
-        startOption={startOption}
-        onStartOptionChange={onStartOptionChange}
-      />
+    <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
+      {startOptionsEnabled && (
+        <div className="flex h-full w-full flex-col justify-center p-4">
+          <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
+        </div>
+      )}
 
-      {messages.map((m, i) => {
-        const isLastInList = i === messages.length - 1;
-
-        if (isNotificationMessage(m) && isLastInList) {
-          // If the last message is a notification, render it after the streaming message if it exists.
-          // The latest status is always shown at the bottom of the chat.
-          return null;
-        } else if (isNotificationMessage(m) && !isLastInList) {
-          return <Notification key={i} message={m.text} show={m.show} />;
-        } else {
+      <div className="mt-auto flex flex-col gap-y-4 md:gap-y-6">
+        {messages.map((m, i) => {
+          const isLastInList = i === messages.length - 1;
+          const is2ndLast = i === messages.length - 2;
           return (
             <MessageRow
               key={i}
               message={m}
               isLast={isLastInList && !streamingMessage}
+              is2ndLast={is2ndLast && !streamingMessage || (isLastInList && !!streamingMessage)}
+              order={i + 1}
               className={cn({
                 // Hide the last message if it is the same as the separate streamed message
                 // to avoid a flash of duplicate messages.
@@ -212,18 +185,15 @@ const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInte
                   streamingMessage.generationId === m.generationId,
               })}
               onRetry={onRetry}
+              client={client}
             />
           );
-        }
-      })}
-
+        })}
+      {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {streamingMessage && (
-        <MessageRow message={streamingMessage} isLast={true} onRetry={onRetry} />
+        <MessageRow key={messages.length} order={messages.length} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} client={client} />
       )}
-
-      {lastMessage && isNotificationMessage(lastMessage) && messages.length > 1 && (
-        <Notification message={lastMessage.text} show={lastMessage.show} shouldAnimate />
-      )}
+      </div>
     </div>
   );
-});
+}));

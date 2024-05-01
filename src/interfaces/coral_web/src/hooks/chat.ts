@@ -1,5 +1,6 @@
 import { UseMutateAsyncFunction, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import React from 'react';
 
 import {
   ChatResponseEvent,
@@ -34,7 +35,6 @@ import {
   createAbortedMessage,
   createErrorMessage,
   createLoadingMessage,
-  isNotificationMessage,
 } from '@/types/message';
 import {
   createStartEndKey,
@@ -43,6 +43,8 @@ import {
   isGroundingOn,
   replaceTextWithCitations,
 } from '@/utils';
+
+import { v4 as uuidv4 } from 'uuid';
 
 const USER_ERROR_MESSAGE = 'Something went wrong. This has been reported. ';
 const ABORT_REASON_USER = 'USER_ABORTED';
@@ -67,7 +69,12 @@ export type HandleSendChat = (
 ) => Promise<void>;
 
 export const useChat = (config?: { onSend?: (msg: string) => void }) => {
-  const { chatMutation, abortController } = useStreamChat();
+
+  const [UserMessageId, setUserMessageId] = useState<string>(uuidv4().toString())
+  const [BotMessageId, setBotMessageId] = useState<string>(uuidv4().toString())
+
+  const { chatMutation, abortController } = useStreamChat(UserMessageId, BotMessageId);
+
   const { mutateAsync: streamChat } = chatMutation;
 
   const {
@@ -188,7 +195,9 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 isRAGOn,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
+              
               break;
             }
 
@@ -216,6 +225,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 generationId,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId,
               });
               break;
             }
@@ -235,6 +245,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 generationId,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
 
               break;
@@ -257,6 +268,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 generationId,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
               break;
             }
@@ -317,7 +329,11 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 isRAGOn,
                 originalText: isRAGOn ? responseText : botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
+
+              setUserMessageId(uuidv4().toString()) //reset available uuids for messages on finsih!
+              setBotMessageId(uuidv4().toString())
 
               break;
             }
@@ -330,6 +346,16 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
         },
         onError: (e) => {
           citations = [];
+
+          /// on error we need to rest the avaialbe msg ids
+
+          ///
+          
+          ///
+
+          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
+          setBotMessageId(uuidv4().toString())
+
           if (isCohereNetworkError(e)) {
             const networkError = e;
             let errorMessage = USER_ERROR_MESSAGE;
@@ -426,6 +452,8 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       file_ids: fileIds && fileIds.length > 0 ? fileIds : undefined,
       temperature,
       model,
+      bot_msg_id: BotMessageId,
+      user_msg_id: UserMessageId,
       ...restOverrides,
     };
   };
@@ -445,26 +473,17 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
     const request = getChatRequest(message, overrides);
     const headers = { 'Deployment-Name': deployment ?? '' };
     let newMessages: ChatMessage[] = currentMessages;
-    const latestMessage = newMessages[newMessages.length - 1];
-    let notificationMessage = null;
 
-    if (latestMessage && isNotificationMessage(latestMessage) && latestMessage.show) {
-      notificationMessage = newMessages.pop();
-    }
     if (streamingMessage) {
       newMessages.push(streamingMessage);
       setStreamingMessage(null);
-
-      // The grounding notification message should always appear after the streamed bot message
-      // when it they are being added to the chat history.
-      if (notificationMessage) {
-        newMessages.push(notificationMessage);
-      }
     }
     newMessages = newMessages.concat({
       type: MessageType.USER,
       text: message,
       files: composerFiles,
+      message_id: UserMessageId, //set it to user msg for streaming messages
+      is_annotation_response: message.includes('| Annotated Text | Annotation |\n|----------|----------|\n')
     });
 
     await handleStreamConverse({ newMessages, request, headers, streamConverse: streamChat });

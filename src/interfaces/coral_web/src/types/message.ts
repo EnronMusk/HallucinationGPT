@@ -1,4 +1,5 @@
 import { Citation, File, StreamToolInput } from '@/cohere-client';
+import { AnyZodObject } from 'zod';
 
 export enum BotState {
   LOADING = 'loading',
@@ -11,14 +12,22 @@ export enum BotState {
 export enum MessageType {
   BOT = 'bot',
   USER = 'user',
-  WELCOME = 'welcome',
-  NOTIFICATION = 'notification',
 }
 
 type BaseMessage = {
   type: MessageType;
   text: string;
   error?: string;
+  message_id?: string; //for accessing db
+  conversation_id?: string; //for submission to AHA
+};
+
+export type Annotation = {
+  id?: string; //used for db pull and push.
+  htext: string;
+  annotation: string;
+  start: number;
+  end: number;
 };
 
 /**
@@ -39,6 +48,8 @@ export type FulfilledMessage = BaseMessage & {
   isRAGOn?: boolean;
   originalText: string;
   toolEvents?: StreamToolInput[];
+
+  annotations?: Annotation[];
 };
 
 /**
@@ -87,30 +98,7 @@ export type ErrorMessage = BaseMessage & {
 export type UserMessage = BaseMessage & {
   type: MessageType.USER;
   files?: File[];
-};
-
-/**
- * Special message type when the first time user is first welcomed into a conversation and the content is being typed.
- */
-export type TypingWelcomeMessage = BaseMessage & {
-  type: MessageType.WELCOME;
-  state: BotState.TYPING;
-};
-
-/**
- * Special message type when the welcome message is fulfilled.
- */
-export type WelcomeMessage = BaseMessage & {
-  type: MessageType.WELCOME;
-  state: BotState.FULFILLED;
-};
-
-/**
- * A message for notifying the user of something.
- */
-export type NotificationMessage = BaseMessage & {
-  type: MessageType.NOTIFICATION;
-  show: boolean;
+  is_annotation_response: boolean;
 };
 
 export type ChatMessage = UserMessage | BotMessage;
@@ -119,11 +107,8 @@ export type BotMessage =
   | LoadingMessage
   | TypingMessage
   | FulfilledMessage
-  | TypingWelcomeMessage
-  | WelcomeMessage
   | ErrorMessage
-  | AbortedMessage
-  | NotificationMessage;
+  | AbortedMessage;
 
 export type StreamingMessage = FulfilledMessage | TypingMessage | LoadingMessage;
 
@@ -161,10 +146,6 @@ export const isFulfilledOrTypingMessageWithCitations = (
   m: ChatMessage
 ): m is FulfilledMessage | (TypingMessage & Required<Pick<FulfilledMessage, 'citations'>>) =>
   m && isFulfilledOrTypingMessage(m) && !!m.citations && m.citations.length > 0;
-
-export const isNotificationMessage = (message: ChatMessage): message is NotificationMessage => {
-  return message.type === MessageType.NOTIFICATION;
-};
 
 export const createErrorMessage = (message: Omit<ErrorMessage, 'type' | 'state'>): ErrorMessage => {
   return {

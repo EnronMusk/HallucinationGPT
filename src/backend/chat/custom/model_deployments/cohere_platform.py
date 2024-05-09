@@ -67,6 +67,9 @@ class CohereDeployment(BaseDeployment):
     #Original Method utilizing cohere API
 
     def invoke_chat_old(self, chat_request: CohereChatRequest, **kwargs: Any) -> Any:
+    #Original Method utilizing cohere API
+
+    def invoke_chat_old(self, chat_request: CohereChatRequest, **kwargs: Any) -> Any:
         return self.client.chat(
             **chat_request.model_dump(exclude={"stream"}),
             **kwargs,

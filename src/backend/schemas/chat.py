@@ -64,6 +64,11 @@ class ChatMessage(BaseModel):
             "tool_results": self.tool_results,
             "tool_calls": self.tool_calls,
         }
+    
+    #For openAI conversion.
+    def to_openAI_dict(self) -> Dict[str, str]:
+        #Reassign the role to system instead of chatbot.
+        return {"role": "assistant" if ChatRole.CHATBOT else "user", "content": self.message}
 
 
 # TODO: fix titles of these types

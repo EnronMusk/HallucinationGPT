@@ -5,10 +5,17 @@ from typing import Any, Dict, Generator, List
 import cohere
 import requests
 import openai as ai
+import openai as ai
 from cohere.types import StreamedChatResponse
 
 from backend.chat.custom.model_deployments.base import BaseDeployment
 from backend.schemas.cohere_chat import CohereChatRequest
+
+#Imports for our openAI api call
+from backend.schemas.chat import ChatMessage, ChatRole
+from cohere import NonStreamedChatResponse, FinishReason
+from openai.types.chat import ChatCompletion, ChatCompletionMessage
+from openai.types.chat.chat_completion import Choice
 
 #Imports for our openAI api call
 from backend.schemas.chat import ChatMessage, ChatRole
@@ -22,10 +29,12 @@ class CohereDeployment(BaseDeployment):
 
     api_key = os.environ.get("COHERE_API_KEY")
     openai_key = os.environ.get("OPENAI_API_KEY")
+    openai_key = os.environ.get("OPENAI_API_KEY")
     client_name = "cohere-toolkit"
 
     def __init__(self):
         self.client = cohere.Client(api_key=self.api_key, client_name=self.client_name)
+        self.OAI_client = ai.Client(api_key=self.openai_key)
         self.OAI_client = ai.Client(api_key=self.openai_key)
     @property
     def rerank_enabled(self) -> bool:
@@ -55,6 +64,9 @@ class CohereDeployment(BaseDeployment):
     def is_available(cls) -> bool:
         return cls.api_key is not None
 
+    #Original Method utilizing cohere API
+
+    def invoke_chat_old(self, chat_request: CohereChatRequest, **kwargs: Any) -> Any:
     #Original Method utilizing cohere API
 
     def invoke_chat_old(self, chat_request: CohereChatRequest, **kwargs: Any) -> Any:

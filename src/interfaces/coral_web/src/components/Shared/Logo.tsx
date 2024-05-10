@@ -10,7 +10,13 @@ interface LogoProps {
   darkModeEnabled?: boolean;
 }
 
-export const Logo: React.FC<LogoProps> = ({
+export const Logo: React.FC<{
+  className?: string;
+}> = ({ className }) => (
+  <span className={className}>ChatGPT Hallucination Leaderboard</span>
+);
+
+export const LogoCustom: React.FC<LogoProps> = ({
   includeBrandName = true,
   hasCustomLogo,
   className,

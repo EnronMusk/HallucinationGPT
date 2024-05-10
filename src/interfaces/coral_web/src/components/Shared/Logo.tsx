@@ -1,4 +1,5 @@
 import cx from 'classnames';
+import { Icon, IconProps } from './Icon';
 
 interface LogoProps {
   includeBrandName?: boolean;
@@ -7,8 +8,9 @@ interface LogoProps {
   darkModeEnabled?: boolean;
 }
 
-export const Logo: React.FC<{
-  className?: string;
-}> = ({ className }) => (
-  <span className={className}>ChatGPT Hallucination Leaderboard</span>
+export const Logo: React.FC<LogoProps> = ({ className }) => (
+  <span className={cx('flex items-center', className)}>
+    <Icon name="globe-stand" className="mr-2" /> {}
+    <span className="font-bold">ChatGPT Hallucination Leaderboard</span>
+  </span>
 );

@@ -10,24 +10,24 @@ module.exports = {
         black: '#212121',
         white: '#FAFAFA',
         primary: {
-          900: '#511D12',
-          800: '#903420',
-          700: '#CA492D',
-          600: '#E25D41',
-          500: '#FF7759',
-          400: '#FF967E',
-          300: '#FFAD9B',
-          200: '#F8C8BC',
-          100: '#F6DDD5',
-          75: '#FBE0DA',
-          50: '#FDF2F0',
+          900: '#212121',
+          800: '#212121',
+          700: '#212121',
+          600: '#212121',
+          500: '#212121',
+          400: '#212121',
+          300: '#212121',
+          200: '#212121',
+          100: '#212121',
+          75: '#212121',
+          50: '#212121',
         },
         secondary: {
-          900: '#39352E',
-          800: '#676054',
+          900: '#212121',
+          800: '#212121',
           700: '#8E8572',
-          600: '#9D9482',
-          500: '#AFA694',
+          600: '#212121',
+          500: '#212121',
           400: '#C5BCAC',
           300: '#D7CFC1',
           200: '#E4DED2',
@@ -40,7 +40,7 @@ module.exports = {
           400: '#E0E0E0',
           300: '#EEEEEE',
           200: '#F5F5F5',
-          100: '#FAFAFA',
+          100: '#F5F4F2',
         },
         // Volcanic black
         volcanic: {
@@ -111,26 +111,26 @@ module.exports = {
         'p-lg': ['1rem', { letterSpacing: '0em', lineHeight: '150%' }], // 16px - Large Paragraph
         code: ['1rem', { letterSpacing: '0.03em', lineHeight: '136%' }], // 16px - Code
         // Headings
-        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%' }], // 24px - Logo Application
-        'h5-m': ['1.125rem', { letterSpacing: '0em', lineHeight: '136%' }], // 18px - Mobile Heading 5
-        h5: ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%' }], // 21px - Desktop Heading 5
-        'h4-m': ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%' }], // 21px - Mobile Heading 4
-        h4: ['1.75rem', { letterSpacing: '0em', lineHeight: '136%' }], // 28px - Desktop Heading 4
-        'h3-m': ['1.75rem', { letterSpacing: '0em', lineHeight: '136%' }], // 28px - Mobile Heading 3
-        h3: ['2.375rem', { letterSpacing: '0em', lineHeight: '120%' }], // 38px - Desktop Heading 3
-        'h2-m': ['2.375rem', { letterSpacing: '0em', lineHeight: '120%' }], // 38px - Mobile Heading 2
-        h2: ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%' }], // 51px - Desktop Heading 2
-        'h1-m': ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%' }], // 51px - Mobile Heading 1
-        h1: ['4.1875rem', { letterSpacing: '0em', lineHeight: '116%' }], // 67px - Desktop Heading 1
+        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%'}], // 24px - Logo Application
+        'h5-m': ['1.125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 18px - Mobile Heading 5
+        h5: ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Desktop Heading 5
+        'h4-m': ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Mobile Heading 4
+        h4: ['1.75rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 28px - Desktop Heading 4
+        'h3-m': ['1.75rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 28px - Mobile Heading 3
+        h3: ['2.375rem', { letterSpacing: '0em', lineHeight: '120%', fontWeight: 'bold'  }], // 38px - Desktop Heading 3
+        'h2-m': ['2.375rem', { letterSpacing: '0em', lineHeight: '120%', fontWeight: 'bold'  }], // 38px - Mobile Heading 2
+        h2: ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%', fontWeight: 'bold'  }], // 51px - Desktop Heading 2
+        'h1-m': ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%', fontWeight: 'bold'  }], // 51px - Mobile Heading 1
+        h1: ['4.1875rem', { letterSpacing: '0em', lineHeight: '116%', fontWeight: 'bold'  }], // 67px - Desktop Heading 1
         'icon-sm': ['12px', { lineHeight: '100%' }],
         'icon-md': ['16px', { lineHeight: '100%' }],
         'icon-lg': ['24px', { lineHeight: '100%' }],
         'icon-xl': ['36px', { lineHeight: '100%' }],
       },
       fontFamily: {
-        body: ['Arial', ...defaultTheme.fontFamily.sans],
-        variable: ['Arial', ...defaultTheme.fontFamily.serif],
-        code: defaultTheme.fontFamily.mono,
+        body: ['Cambira', ...defaultTheme.fontFamily.serif],
+        variable: ['Cambira', ...defaultTheme.fontFamily.serif],
+        code: defaultTheme.fontFamily.serif,
         iconOutline: ['CohereIconOutline'],
         iconDefault: ['CohereIconDefault'],
       },

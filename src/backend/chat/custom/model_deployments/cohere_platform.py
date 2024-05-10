@@ -157,8 +157,8 @@ class CohereDeployment(BaseDeployment):
         Uses the openAI api. 
         \n Takes in a coherechatrequest and reformats it into its equivelant openAI api call. 
         \n then rebuilds it back into a cohere-api chat response.
+        \n two step process where we reformat the NonStreamedChatResponse and the generator fields.
         """        
-
         prompt = chat_request.message
 
         #Pull out paramters for renaming.
@@ -204,12 +204,23 @@ class CohereDeployment(BaseDeployment):
                 "response_id" : str(uuid.uuid4())
         }
 
-        # Maps openAI stop reasons to cohere reasons
+        #Maps openAI stop reasons to cohere reasons
         stop_reason_map = {
             "stop": "COMPLETION", 
             "length": "MAX_TOKENS", 
             "content_filter" : "ERROR_TOXIC"
         }
+
+        #Yield the first formatted dictioanry (stream start)
+        yield {
+            'generation_id' : str(uuid.uuid4()),
+            'event_type' : 'stream-start',
+            'is_finished' : False,
+            'conversation_id' : chat_request.conversation_id 
+
+        }
+        
+        #here we create all the intermediate generated tokens for the generator.
 
         total_response = ""
 
@@ -220,6 +231,12 @@ class CohereDeployment(BaseDeployment):
             if choice.finish_reason == None: 
                 total_response += choice.delta.content #Add intermediate token to total response
 
+                # print({
+                #     'text' : choice.delta.content,
+                #     'event_type' : 'text-generation',
+                #     'is_finished' : False
+                # })
+
                 #Yield intermediate token if not finished
                 yield {
                     'text' : choice.delta.content,
@@ -228,6 +245,8 @@ class CohereDeployment(BaseDeployment):
                 }
             else: reformatted_stop_reason = stop_reason_map[choice.finish_reason] #It is stopped, so grab the reason.
 
+        #Add the latest chatbot response in cohere format.
+        chat_request.chat_history.append(ChatMessage(role=ChatRole.CHATBOT, message=total_response)) 
 
         #We need to rebuild a NonStreamedChatResponse so it works with the rest of the software. This is for the total and final output.
         reformated_response = NonStreamedChatResponse(
@@ -236,7 +255,17 @@ class CohereDeployment(BaseDeployment):
             finish_reason=reformatted_stop_reason 
         )
 
-        #Yield final formatted dictionary with total response.
+        # print({
+        #     "response" : reformated_response, 
+        #     "finish_reason" : reformatted_stop_reason,
+        #     "event_type" : "stream-end",
+        #     "is_finished" : True,
+        #     "tokens" : None,
+        #     "billed_units" : None, #add if needed
+        #     "response_id" : str(uuid.uuid4())
+        # })
+
+        #Yield final formatted dictionary with total response. (stream end)
         yield {
             "response" : reformated_response, 
             "finish_reason" : reformatted_stop_reason,

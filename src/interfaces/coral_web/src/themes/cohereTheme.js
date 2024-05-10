@@ -7,46 +7,38 @@ module.exports = {
       colors: {
         black: '#212121',
         white: '#FAFAFA',
-        // Simulated Coral
-        coral: {
-          950: '#FFEAE5',
-          900: '#FFD5CC',
-          800: '#FFAC99',
-          700: '#FF8266',
-          600: '#FF5833',
-          500: '#FF2F00',
-          400: '#CC2500',
-          300: '#991C00',
-          200: '#661300',
-          150: '#330900',
+        primary: {
+          900: '#212121',
+          800: '#212121',
+          700: '#212121',
+          600: '#212121',
+          500: '#212121',
+          400: '#212121',
+          300: '#212121',
+          200: '#212121',
+          100: '#212121',
+          75: '#212121',
+          50: '#212121',
         },
-        // Mushroom Grey
-        mushroom: {
-          950: '#F4F3F0',
-          900: '#E9E7E2',
-          800: '#D2CDC4',
-          700: '#BDB6A8',
-          600: '#A79E8B',
-          500: '#91856E',
-          400: '#70695C',
-          300: '#575042',
-          200: '#3A352C',
-          150: '#2C2821',
-        },
-        // Evolved Mushroom Grey
-        'evolved-mushroom': {
-          500: '#FFAA00',
-          600: '#FFBB33',
-          800: '#FFDC97',
+        secondary: {
+          900: '#212121',
+          800: '#212121',
+          700: '#8E8572',
+          600: '#212121',
+          500: '#212121',
+          400: '#C5BCAC',
+          300: '#D7CFC1',
+          200: '#E4DED2',
+          100: '#E9E6DE',
+          50: '#F5F4F2',
         },
         // Marble White
         marble: {
-          1000: '#FFFFFF',
-          980: '#F9F9FB',
-          950: '#EFEFF5',
-          900: '#DFDFEC',
-          850: '#D0D0E2',
-          800: '#C4C4C4',
+          500: '#BDBDBD',
+          400: '#E0E0E0',
+          300: '#EEEEEE',
+          200: '#F5F5F5',
+          100: '#F5F4F2',
         },
         // Volcanic Black
         volcanic: {
@@ -145,26 +137,26 @@ module.exports = {
         code: ['1rem', { letterSpacing: '0.03em', lineHeight: '136%' }], // 16px - Code
         'code-sm': ['0.75rem', { letterSpacing: '0.03em', lineHeight: '136%' }], // 12px - Small Code
         // Headings
-        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%' }], // 24px - Logo Application
-        'h5-m': ['1.125rem', { letterSpacing: '0em', lineHeight: '136%' }], // 18px - Mobile Heading 5
-        h5: ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%' }], // 21px - Desktop Heading 5
-        'h4-m': ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%' }], // 21px - Mobile Heading 4
-        h4: ['1.75rem', { letterSpacing: '0em', lineHeight: '136%' }], // 28px - Desktop Heading 4
-        'h3-m': ['1.75rem', { letterSpacing: '0em', lineHeight: '136%' }], // 28px - Mobile Heading 3
-        h3: ['2.375rem', { letterSpacing: '0em', lineHeight: '120%' }], // 38px - Desktop Heading 3
-        'h2-m': ['2.375rem', { letterSpacing: '0em', lineHeight: '120%' }], // 38px - Mobile Heading 2
-        h2: ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%' }], // 51px - Desktop Heading 2
-        'h1-m': ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%' }], // 51px - Mobile Heading 1
-        h1: ['4.1875rem', { letterSpacing: '0em', lineHeight: '116%' }], // 67px - Desktop Heading 1
+        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%'}], // 24px - Logo Application
+        'h5-m': ['1.125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 18px - Mobile Heading 5
+        h5: ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Desktop Heading 5
+        'h4-m': ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Mobile Heading 4
+        h4: ['1.75rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 28px - Desktop Heading 4
+        'h3-m': ['1.75rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 28px - Mobile Heading 3
+        h3: ['2.375rem', { letterSpacing: '0em', lineHeight: '120%', fontWeight: 'bold'  }], // 38px - Desktop Heading 3
+        'h2-m': ['2.375rem', { letterSpacing: '0em', lineHeight: '120%', fontWeight: 'bold'  }], // 38px - Mobile Heading 2
+        h2: ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%', fontWeight: 'bold'  }], // 51px - Desktop Heading 2
+        'h1-m': ['3.1875rem', { letterSpacing: '0em', lineHeight: '116%', fontWeight: 'bold'  }], // 51px - Mobile Heading 1
+        h1: ['4.1875rem', { letterSpacing: '0em', lineHeight: '116%', fontWeight: 'bold'  }], // 67px - Desktop Heading 1
         'icon-sm': ['12px', { lineHeight: '100%' }],
         'icon-md': ['16px', { lineHeight: '100%' }],
         'icon-lg': ['24px', { lineHeight: '100%' }],
         'icon-xl': ['36px', { lineHeight: '100%' }],
       },
       fontFamily: {
-        body: ['CohereText', 'Arial', ...defaultTheme.fontFamily.sans],
-        variable: ['CohereVariable', 'Arial', ...defaultTheme.fontFamily.serif],
-        code: ['CohereMono', ...defaultTheme.fontFamily.mono],
+        body: ['Cambira', ...defaultTheme.fontFamily.serif],
+        variable: ['Cambira', ...defaultTheme.fontFamily.serif],
+        code: defaultTheme.fontFamily.serif,
         iconOutline: ['CohereIconOutline'],
         iconDefault: ['CohereIconDefault'],
       },

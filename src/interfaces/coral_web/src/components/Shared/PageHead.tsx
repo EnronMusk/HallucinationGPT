@@ -7,7 +7,7 @@ export const PageHead: React.FC<{ title: string; children?: React.ReactNode }> =
   title,
   children,
 }) => {
-  const fullTitle = `${title} | Cohere`;
+  const fullTitle = `ChatGPT Hallicunation Leaderboard`;
   return (
     <Head>
       <title>{fullTitle}</title>

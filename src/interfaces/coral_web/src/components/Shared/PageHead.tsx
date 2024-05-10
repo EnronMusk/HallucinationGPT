@@ -7,7 +7,7 @@ export const PageHead: React.FC<{ title: string; children?: React.ReactNode }> =
   title,
   children,
 }) => {
-  const fullTitle = `ChatGPT Hallicunation Leaderboard`;
+  const fullTitle = `ChatGPT Hallucination Leaderboard`;
   return (
     <Head>
       <title>{fullTitle}</title>

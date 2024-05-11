@@ -177,7 +177,7 @@ def process_chat(
     conversation = get_or_create_conversation(
         session, chat_request, user_id, should_store
     )
-
+    
     # Get position to put next message in
     next_message_position = get_next_message_position(conversation)
     user_message = create_message(
@@ -418,12 +418,23 @@ def create_chat_history(
     Returns:
         list[ChatMessage]: List of chat messages.
     """
-    if chat_request.chat_history is not None:
-        return chat_request.chat_history
 
+    # print("CREATE HISTORY CHAT +++++++++++++++++++++++++++++++++++++++")
+    # print(chat_request.chat_history)
+
+    # if chat_request.chat_history is not None:
+    #     print("Has history!")
+    #     return chat_request.chat_history
+
+    #Ignore user message postion. This messed up chat_history for open AI calls. We can ignore it.
     text_messages = [
-        message for message in conversation.messages[:user_message_position]
+        message for message in conversation.messages #[:user_message_position] LEAVE THIS COMMENTED OUT.
     ]
+
+    # print("TEXT MESSAGES: ")
+    # for m in text_messages:
+    #     print(m.text)
+    # print("++++++++++++++++++++++++++++++++++++++++++++")
     return [
         ChatMessage(
             role=ChatRole(message.agent.value.upper()),
@@ -469,6 +480,11 @@ def generate_chat_stream(
     should_store: bool = True,
     **kwargs: Any,
 ) -> Generator[bytes, Any, None]:
+
+    print("used this method!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("conv id :", conversation_id)
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
     """
     Generate chat stream from model deployment stream.
 

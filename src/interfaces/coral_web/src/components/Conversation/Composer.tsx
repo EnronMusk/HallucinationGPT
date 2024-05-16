@@ -103,7 +103,7 @@ const Composer: React.FC<Props> = ({
               dir="auto"
               ref={textareaRef}
               value={value}
-              placeholder="Message..."
+              placeholder="Prompt here..."
               className={cn(
                 'min-h-[3rem] md:min-h-[4rem]',
                 'max-h-48 w-full flex-1 resize-none overflow-hidden',

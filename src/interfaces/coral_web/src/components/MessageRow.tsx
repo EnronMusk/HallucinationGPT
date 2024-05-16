@@ -1,5 +1,6 @@
 import { usePreviousDistinct } from '@react-hookz/web';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { useLongPress } from 'react-aria';
 
 import { Avatar } from '@/components/Avatar';
@@ -11,7 +12,9 @@ import {
   CopyToClipboardButton,
   CopyToClipboardIconButton,
   Icon,
+  Markdown,
   Tooltip,
+  Text,
 } from '@/components/Shared';
 import { ToolEvents } from '@/components/ToolEvents';
 import { ReservedClasses } from '@/constants';
@@ -28,6 +31,13 @@ import {
   isUserMessage,
 } from '@/types/message';
 import { cn } from '@/utils';
+
+import { STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
+import { render } from '@headlessui/react/dist/utils/render';
+
+import { CitationTextHighlighter } from '@/components/Citations/CitationTextHighlighter';
+import { DataTable } from '@/components/DataTable';
+import { MarkdownImage } from '@/components/MarkdownImage';
 
 type Props = {
   isLast: boolean;
@@ -120,6 +130,151 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     }
   };
 
+  const word = "word"
+
+  //
+
+  // Annotations code for error highlighing in prompts!!!
+
+  //
+
+  type Annotation = {
+    text: string;
+    annotation: string;
+  };
+
+  // State to manage the selected text and annotations
+  const [selectedText, setSelectedText] = useState<string>("");
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [annotationIndex, setAnnotationIndex] = useState<number | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Function to handle text selection
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString()) {
+      const text = selection.toString();
+      setSelectedText(text)
+      setAnnotationIndex(selection.anchorOffset);
+    }
+  };
+
+  // Function to add annotation
+  const addAnnotation = (a: string) => {
+    setAnnotations(prevAnnotations => [
+      ...prevAnnotations,
+      { text: selectedText, annotation: a }
+  ]);
+    setSelectedText("");
+    setAnnotationIndex(null);
+  };
+
+
+  const renderAnnotatedText = (text: string) => {
+    if (annotationIndex === null || !selectedText) {
+      return (
+        <Markdown
+          text={text}
+          className={cn(STYLE_LEVEL_TO_CLASSES.p)}
+          customComponents={{
+            img: MarkdownImage as any,
+            cite: CitationTextHighlighter as any,
+            table: DataTable as any,
+          }}
+          renderLaTex={true}
+          highlightedRanges={[{start:210, end:220}]}
+        />
+      );
+    }
+
+    // Split the text while keeping the selected text parts intact
+    const parts = text.split(new RegExp((`${selectedText}`), "g"));
+    
+    let currentCharIndex = 0;
+    const annotatedElements = parts.map((part, index) => {
+      const isSelectedText = part === selectedText && currentCharIndex === annotationIndex;
+      
+      if (isSelectedText) {
+        currentCharIndex += part.length;
+        return (
+          <React.Fragment key={index}>
+            <span className="bg-yellow-100">{selectedText}</span> 
+                <input
+                ref={inputRef}
+                type='text'
+                style={{
+                  fontSize: '14px', // Adjust the font size as needed
+                  height: '2rem', // Adjust the height as needed
+                  width: '200px', // Adjust the width as needed
+                  padding: '0.5rem', // Adjust the padding as needed
+                  lineHeight: '1.5', // Adjust the line height as needed
+                  fontFamily: 'Arial, sans-serif' // Adjust the font family as needed
+              }}
+                className={cn(
+                  'min-h-[1rem] md:min-h-[2rem]',
+                  "w-auto",
+                  'self-center',
+                  'rounded',
+                  'px-1 px-2',
+                  'border',
+                  'bg-danger-50',
+                  'text-lg',
+              
+                  'border-secondary-400',
+                  'transition ease-in-out',
+                  'focus:border-secondary-700',
+                  'focus:outline-none',
+      
+                  'placeholder-base'
+                  
+                )}
+                  
+                  placeholder="Add annotation . . ."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const target = e.target as HTMLInputElement;
+                      const index = annotations.findIndex(a => a.text === selectedText);
+                      if (index !== -1) {
+                          addAnnotation(target.value);
+                      }
+                      target.value = "";
+                    }
+                  }}
+            />
+          </React.Fragment>
+        );
+      }
+      
+      currentCharIndex += part.length;
+      return part;
+    });
+
+    // Join parts back together
+    const annotatedText = annotatedElements.reduce((acc, elem) => {
+      // Determine if fragment and join back to string
+      if (typeof elem === "string") {
+        return acc + elem;
+      }
+      return acc;
+    }, '');
+
+    // Return the entire annotated text as a single string
+    return (
+      <Markdown
+        text={text}
+        className={cn(STYLE_LEVEL_TO_CLASSES.p)}
+        customComponents={{
+          img: MarkdownImage as any,
+          cite: CitationTextHighlighter as any,
+          table: DataTable as any,
+        }}
+        renderLaTex={true}
+        highlightedRanges={[{start:2, end:5},{start:6, end:10}]}
+      />
+    );
+  };
+
+
   return (
     <div
       id={
@@ -130,6 +285,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
       className={cn(ReservedClasses.MESSAGE, 'flex', className)}
       onMouseEnter={handleOnMouseEnter}
       onMouseLeave={handleOnMouseLeave}
+      onMouseUp={handleMouseUp}
       ref={ref}
     >
       <LongPressMenu
@@ -164,7 +320,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
         className={cn(
           'group flex h-fit w-full flex-col gap-2 rounded-md p-2 text-left md:flex-row',
           'transition-colors ease-in-out',
-          'hover:bg-secondary-50',
+          'hover:bg-secondary-100',
 
           {
             'bg-secondary-50':
@@ -182,8 +338,32 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
             <div className="w-full">
               {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents} />}
 
-              <MessageContent isLast={isLast} message={message} onRetry={onRetry} />
+              {//This is where we render the annotated box
+              }
+              
+              <div className="flex w-full flex-col justify-center gap-y-1 py-1">
+                <Text        
+                  as="div"
+                  className="flex flex-col gap-y-1 whitespace-pre-wrap [overflow-wrap:anywhere] md:max-w-4xl">
+                  <div>
+                    {renderAnnotatedText(message.text)}
+                  </div>
+                </Text>
+              </div>
+
+              {//This was an old rendering pipeline. 
+              //<MessageContent isLast={isLast} message={message} onRetry={onRetry} />
+              }
+
+              {annotations.map((annotation, index) => (
+                <div key={index} className='bg-secondary-50 p-1 my-1'>
+                  <span className='font-bold'>{annotation.text}</span>: {annotation.annotation}
+                </div>
+              ))}
             </div>
+
+            
+
             <div
               className={cn('flex h-full items-end justify-end self-end', {
                 'hidden md:invisible md:flex':

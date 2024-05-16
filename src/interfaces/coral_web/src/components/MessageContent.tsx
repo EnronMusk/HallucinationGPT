@@ -16,24 +16,83 @@ import {
   isErroredMessage,
   isFulfilledOrTypingMessage,
   isLoadingMessage,
+  Annotation,
 } from '@/types/message';
 import { cn } from '@/utils';
+
+import { useState, useRef } from 'react';
+import { STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
+import internal from 'stream';
 
 type Props = {
   isLast: boolean;
   message: ChatMessage;
+  annotations?: Annotation[];
   onRetry?: VoidFunction;
+  onAnnotate?: (start: number, end: number) => void;
 };
 
 const BOT_ERROR_MESSAGE = 'Unable to generate a response since an error was encountered. ';
 
-export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) => {
+export const MessageContent: React.FC<Props> = ({
+  isLast,
+  message,
+  onRetry,
+  annotations = [],
+  onAnnotate
+}) => {
   const isUser = message.type === MessageType.USER;
   const isLoading = isLoadingMessage(message);
   const isBotError = isErroredMessage(message);
   const isUserError = isUser && message.error;
   const isAborted = isAbortedMessage(message);
   const isTypingOrFulfilledMessage = isFulfilledOrTypingMessage(message);
+
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString()) {
+      const range = selection.getRangeAt(0);
+      const start = range.startOffset;
+      const end = range.endOffset;
+  
+      // Call the annotation handler passed as props
+      if (onAnnotate) {
+        onAnnotate(start, end);
+      }
+    }
+  };
+
+  const renderAnnotatedText = (text: string) => {
+    if (annotations.length === 0) {
+      return <Markdown
+      text={text}
+      className={cn(STYLE_LEVEL_TO_CLASSES.p)}
+      />
+    }
+
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+
+    annotations.forEach(({ start, end, text: annotatedText }, index) => {
+      if (start !== -1) {
+        parts.push(
+          <span key={`part-${index}-${lastIndex}`}>{text.substring(lastIndex, start)}</span>,
+          <span key={index} className={cn('bg-yellow-100”, “annotated-text')}>
+            {annotatedText}
+          </span>
+        );
+        lastIndex = end;
+      }
+    });
+
+    if (lastIndex < text.length) {
+      parts.push(<span key={`part-${lastIndex}`}>{text.substring(lastIndex)}</span>);
+    }
+
+    return parts;
+  };
 
   let content: React.ReactNode = null;
 
@@ -119,9 +178,9 @@ export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry }) =>
         />
         {isAborted && (
           <MessageInfo>
-            This generation was stopped.{' '}
+            This generation was stopped.{" "}
             {isLast && isAborted && (
-              <button className="underline underline-offset-1" type="button" onClick={onRetry}>
+              <button className='underline underline-offset-1' type='button' onClick={onRetry}>
                 Retry?
               </button>
             )}

@@ -44,6 +44,17 @@ def get_conversation(
         .first()
     )
 
+def extract_conversations(
+        db: Session
+) -> list[Conversation]:
+    
+    """
+    
+    Returns an array of all conversations in the database.
+    
+    """
+
+    return (db.query(Conversation).all())
 
 @validate_transaction
 def get_conversations(

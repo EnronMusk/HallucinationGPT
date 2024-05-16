@@ -1,5 +1,5 @@
-import { ComponentPropsWithoutRef, useMemo } from 'react';
-import ReactMarkdown, { Components, UrlTransform } from 'react-markdown';
+import { ComponentPropsWithoutRef, useState, useEffect, ReactNode } from 'react';
+import ReactMarkdown, { Components } from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
@@ -75,6 +75,8 @@ export const getActiveMarkdownPlugins = (
   return { remarkPlugins, rehypePlugins };
 };
 
+
+
 /**
  * Convenience component to help apply the styling to markdown texts.
  */
@@ -87,9 +89,9 @@ export const Markdown = ({
   renderLaTex = true,
   allowedElements,
   unwrapDisallowed,
-  urlTransform,
+  highlightedRanges = [],
   ...rest
-}: MarkdownTextProps) => {
+}: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
   const { remarkPlugins, rehypePlugins } = getActiveMarkdownPlugins(renderLaTex);
 
   // Memoize to avoid re-rendering that occurs with Pre due to lambda function
@@ -99,13 +101,48 @@ export const Markdown = ({
       // @ts-ignore
       pre: (props) => <Pre {...props} />,
       p: P,
-      references: References,
+      code: overrideHighlightStyle,
       // @ts-ignore
-      iframe: Iframe,
+      references: References,
       ...customComponents,
     }),
     [customComponents]
   );
+
+// Function to insert highlight markers into text based on ranges
+const insertHighlightMarkers = (text: string, ranges: { start: number; end: number }[]) => {
+  let highlightedText = '';
+  let currentIndex = 0;
+
+  ranges.forEach(range => {
+    // Add the text before the range
+    highlightedText += text.substring(currentIndex, range.start);
+    // Add the start marker for the highlighted text
+    highlightedText += '[[HIGHLIGHT]]';
+    // Add the highlighted text
+    highlightedText += text.substring(range.start, range.end);
+    // Add the end marker for the highlighted text
+    highlightedText += '[[/HIGHLIGHT]]';
+    currentIndex = range.end;
+  });
+
+  // Add the remaining text after the last range
+  highlightedText += text.substring(currentIndex);
+
+  return highlightedText;
+};
+
+  const processedText = insertHighlightMarkers(text, highlightedRanges);
+
+  // Function to override the style for highlighted text
+  const overrideHighlightStyle = (props: any) => {
+    // Check if the text is inside a highlighted section
+    if (props.node && props.node.type === 'text' && props.node.value === '[[HIGHLIGHT]]') {
+      return <code className='bg-yellow-100'>{props.children}</code>;
+    }
+    // Return the default rendering
+    return <span {...props} />;
+  };
 
   return (
     <Text
@@ -137,8 +174,10 @@ export const Markdown = ({
         urlTransform={urlTransform}
         skipHtml={false}
       >
-        {text}
+        {processedText}
       </ReactMarkdown>
     </Text>
   );
 };
+
+export default Markdown;

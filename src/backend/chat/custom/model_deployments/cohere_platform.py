@@ -5,7 +5,6 @@ from typing import Any, Dict, Generator, List
 import cohere
 import requests
 import openai as ai
-import openai as ai
 from cohere.types import StreamedChatResponse
 
 from backend.chat.custom.model_deployments.base import BaseDeployment

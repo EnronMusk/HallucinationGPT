@@ -15,20 +15,13 @@ from backend.schemas.chat import ChatMessage, ChatRole
 from cohere import NonStreamedChatResponse, FinishReason
 from openai.types.chat import ChatCompletion, ChatCompletionMessage
 from openai.types.chat.chat_completion import Choice
-
-#Imports for our openAI api call
-from backend.schemas.chat import ChatMessage, ChatRole
-from cohere import NonStreamedChatResponse, FinishReason, StreamedChatResponse
-from openai.types.chat import ChatCompletion, ChatCompletionMessage
-from openai.types.chat.chat_completion import Choice
+from backend.chat.enums import StreamEvent
 import uuid
-
 
 class CohereDeployment(BaseDeployment):
     """Cohere Platform Deployment."""
 
     api_key = os.environ.get("COHERE_API_KEY")
-    openai_key = os.environ.get("OPENAI_API_KEY")
     openai_key = os.environ.get("OPENAI_API_KEY")
     client_name = "cohere-toolkit"
 
@@ -107,20 +100,20 @@ class CohereDeployment(BaseDeployment):
 
         try: 
             openai_response = self.OAI_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo",
                 messages=messages,
                 n=n,
                 top_p=top_p,
                 **chat_request.model_dump(include={"tempature", "frequency_p", "max_tokens", "precense_penalty"}),
                 **kwargs,
             )
-        except ai.error.RateLimitError: 
+        except:
             print("API limit reached, please try again in one minute.")
             return NonStreamedChatResponse(text="", chat_history=chat_request.chat_history, finish_reason="ERROR_LIMIT")
 
         # Maps openAI stop reasons to cohere reasons
         stop_reason_map = {
-            "stop": "COMPLETION", 
+            "stop": "COMPLETE", 
             "length": "MAX_TOKENS", 
             "content_filter" : "ERROR_TOXIC"
         }
@@ -134,7 +127,7 @@ class CohereDeployment(BaseDeployment):
 
         return reformated_response
 
-    def invoke_chat_stream_old(
+    def invoke_chat_stream_1(
         self, chat_request: CohereChatRequest, **kwargs: Any
     ) -> Generator[StreamedChatResponse, None, None]:
 
@@ -142,8 +135,9 @@ class CohereDeployment(BaseDeployment):
             **chat_request.model_dump(exclude={"stream"}),
             **kwargs,
         )
-        
+        print(chat_request.prompt_truncation)
         for event in stream:
+            print(event.__dict__)
             yield event.__dict__
 
     #Modify this to openAI chat request
@@ -165,20 +159,16 @@ class CohereDeployment(BaseDeployment):
         top_p = chat_request.p
 
         #We need to convert to openAI format, chat history needs reformatting.
-
         messages = []
-        chat_request.chat_history.append(ChatMessage(role=ChatRole.USER, message=prompt)) #Add the latest prompt in cohere format.
+        #chat_request.chat_history.append(ChatMessage(role=ChatRole.USER, message=prompt)) #If the conversation is empty, start one.
 
         #Reformat the chat history for openAI API
         for chat_msg in chat_request.chat_history:
             chat_msg = chat_msg.to_openAI_dict()
             messages.append(chat_msg)
-
-        #OpenAI return classes
-        # J = ChatCompletion()
-        # H = ChatCompletionMessage()
-        # K = Choice()
-        # U = FinishReason
+        
+        print("XSdadasdaisdhi1uy23y12ugeadbahjsdgakjsdhaksjhdaksjhdczmxnb")
+        print(messages)
 
         try: 
             openai_response = self.OAI_client.chat.completions.create(
@@ -190,22 +180,13 @@ class CohereDeployment(BaseDeployment):
                 **chat_request.model_dump(include={"tempature", "frequency_p", "max_tokens", "precense_penalty"}),
                 **kwargs,
             )
-        except ai.error.RateLimitError: 
+        except self.OAI_client.request():
             print("API limit reached, please try again in one minute.")
-            #Yield a blank and return ERROR_LIMIT
-            yield {
-                "response" : NonStreamedChatResponse(text='', finish_reason='ERROR_LIMIT'), 
-                "finish_reason" : 'ERROR_LIMIT',
-                "event_type" : "stream-end",
-                "is_finished" : True,
-                "tokens" : None,
-                "billed_units" : None,
-                "response_id" : str(uuid.uuid4())
-        }
+            print(openai_response)
 
         #Maps openAI stop reasons to cohere reasons
         stop_reason_map = {
-            "stop": "COMPLETION", 
+            "stop": "COMPLETE", 
             "length": "MAX_TOKENS", 
             "content_filter" : "ERROR_TOXIC"
         }
@@ -213,9 +194,9 @@ class CohereDeployment(BaseDeployment):
         #Yield the first formatted dictioanry (stream start)
         yield {
             'generation_id' : str(uuid.uuid4()),
-            'event_type' : 'stream-start',
-            'is_finished' : False,
-            'conversation_id' : chat_request.conversation_id 
+            'event_type' : StreamEvent.STREAM_START,
+            'is_finished' : False#,
+            # 'conversation_id' : chat_request.conversation_id 
 
         }
         
@@ -230,45 +211,30 @@ class CohereDeployment(BaseDeployment):
             if choice.finish_reason == None: 
                 total_response += choice.delta.content #Add intermediate token to total response
 
-                # print({
-                #     'text' : choice.delta.content,
-                #     'event_type' : 'text-generation',
-                #     'is_finished' : False
-                # })
-
                 #Yield intermediate token if not finished
                 yield {
                     'text' : choice.delta.content,
-                    'event_type' : 'text-generation',
+                    'event_type' : StreamEvent.TEXT_GENERATION,
                     'is_finished' : False
                 }
             else: reformatted_stop_reason = stop_reason_map[choice.finish_reason] #It is stopped, so grab the reason.
 
         #Add the latest chatbot response in cohere format.
-        chat_request.chat_history.append(ChatMessage(role=ChatRole.CHATBOT, message=total_response)) 
+        #chat_request.chat_history.append(ChatMessage(role=ChatRole.CHATBOT, message=total_response))
 
         #We need to rebuild a NonStreamedChatResponse so it works with the rest of the software. This is for the total and final output.
         reformated_response = NonStreamedChatResponse(
             text=total_response,
             chat_history=chat_request.chat_history,
-            finish_reason=reformatted_stop_reason 
+            finish_reason=reformatted_stop_reason,
+            conversation_id=chat_request.conversation_id
         )
-
-        # print({
-        #     "response" : reformated_response, 
-        #     "finish_reason" : reformatted_stop_reason,
-        #     "event_type" : "stream-end",
-        #     "is_finished" : True,
-        #     "tokens" : None,
-        #     "billed_units" : None, #add if needed
-        #     "response_id" : str(uuid.uuid4())
-        # })
 
         #Yield final formatted dictionary with total response. (stream end)
         yield {
             "response" : reformated_response, 
             "finish_reason" : reformatted_stop_reason,
-            "event_type" : "stream-end",
+            "event_type" : StreamEvent.STREAM_END,
             "is_finished" : True,
             "tokens" : None,
             "billed_units" : None, #add if needed

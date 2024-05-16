@@ -422,19 +422,18 @@ def create_chat_history(
     # print("CREATE HISTORY CHAT +++++++++++++++++++++++++++++++++++++++")
     # print(chat_request.chat_history)
 
-    # if chat_request.chat_history is not None:
-    #     print("Has history!")
-    #     return chat_request.chat_history
+    if chat_request.chat_history is not None:
+        return chat_request.chat_history
 
     #Ignore user message postion. This messed up chat_history for open AI calls. We can ignore it.
     text_messages = [
-        message for message in conversation.messages #[:user_message_position] LEAVE THIS COMMENTED OUT.
+        message for message in conversation.messages #[:user_message_position] #LEAVE THIS COMMENTED OUT.
     ]
 
-    # print("TEXT MESSAGES: ")
-    # for m in text_messages:
-    #     print(m.text)
-    # print("++++++++++++++++++++++++++++++++++++++++++++")
+    print("TEXT MESSAGES: ")
+    for m in text_messages:
+        print(m.text)
+    print("++++++++++++++++++++++++++++++++++++++++++++")
     return [
         ChatMessage(
             role=ChatRole(message.agent.value.upper()),

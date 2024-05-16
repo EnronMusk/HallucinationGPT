@@ -41,6 +41,17 @@ def get_conversation(
         .first()
     )
 
+def extract_conversations(
+        db: Session
+) -> list[Conversation]:
+    
+    """
+    
+    Returns an array of all conversations in the database.
+    
+    """
+
+    return (db.query(Conversation).all())
 
 def get_conversations(
     db: Session, user_id: str, offset: int = 0, limit: int = 100

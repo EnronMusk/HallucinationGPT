@@ -153,7 +153,50 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   const [annotDict, setAnnotDict] = useState<AnnotDict>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
-  //useImperativeHandle(ref, () =>  containerRef.current as HTMLDivElement);
+
+  function findTextRange(startContainerText: string, endContainerText: string, selectedText: string) {
+    let possibleStartIndices = [];
+    let possibleEndIndices = [];
+
+    const messageText = message.text;
+    
+    // Find all start container occurrences
+    let index = messageText.indexOf(startContainerText);
+    while (index !== -1) {
+      possibleStartIndices.push(index);
+      index = messageText.indexOf(startContainerText, index + 1);
+    }
+    
+    // Find all end container occurrences
+    index = messageText.indexOf(endContainerText);
+    while (index !== -1) {
+      possibleEndIndices.push(index + endContainerText.length);
+      index = messageText.indexOf(endContainerText, index + 1);
+    }
+    
+    let closestRange = null;
+    
+    // Now iterate through each possible start and end index to find the closest match
+    for (let startIndex of possibleStartIndices) {
+      for (let endIndex of possibleEndIndices) {
+        // Ensure endIndex is after the startIndex
+        if (endIndex > startIndex) {
+          const candidateText = messageText.substring(startIndex, endIndex);
+          if (candidateText.includes(selectedText)) {
+            if (!closestRange || (endIndex - startIndex) < (closestRange.end - closestRange.start)) {
+              closestRange = { start: startIndex, end: endIndex };
+            }
+          }
+        }
+      }
+    }
+  
+    if (closestRange) {
+      return closestRange;
+    }
+  
+    return { start: 0, end: 1 };
+  }
 
 
   // Function to handle text selection
@@ -171,16 +214,24 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
       const startCont = range.startContainer.textContent||"";
       const endCont = range.endContainer.textContent||"";
+
       
 
       console.log("cont", startCont)
       console.log(endCont)
 
       const contextBefore = message.text.substring(0, selection.anchorOffset)
-      const start = message.text.indexOf(startCont) + range.startOffset;
-      const end = message.text.indexOf(endCont) + range.endOffset;
+      let start = message.text.indexOf(startCont) + range.startOffset;
+      let end = message.text.indexOf(endCont) + range.endOffset;
 
       const isMatch = message.text.substring(start, end) === selectedText;
+  
+      //we need to look at possible selections
+      if (!isMatch){
+        const vals = findTextRange(startCont, endCont, selectedText)
+        start = vals['start'];
+        end = vals['end'];
+      }
 
       console.log(message.text.substring(start, end))
       console.log("isMatch?",isMatch)

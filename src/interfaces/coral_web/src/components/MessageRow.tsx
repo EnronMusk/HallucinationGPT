@@ -158,7 +158,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     const selection = window.getSelection();
     console.log('select', selection?.toString())
     console.log("annot", annotationVisible)
-    if (selection && selection?.toString()) {
+    if (selection && selection.toString() && !annotationVisible) { //!annotaitonVisible for 1 at at time annotations.
       const range = selection.getRangeAt(0);
       const start = range.startOffset;
       const end = range.endOffset;
@@ -182,7 +182,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
     const id = uuidv4().toString();
 
-    const annot: Annotation = { s, a, start, end };
+    const annot: Annotation = { text:s, annotation:a, start, end };
     setAnnotDict(prevDict => ({ ...prevDict, [id]: annot }));
 
     console.log('start', start)
@@ -196,8 +196,12 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
    
   };
 
+  interface RenderAnnoatedTextProps {
+    msg: string;
+    ad: { [key: string]: Annotation};
+  }
 
-  const renderAnnotatedText = ({msg, ad}: {msg: string, ad: { [key: string]: Annotation }}) => {
+  const renderAnnotatedText: React.FC<RenderAnnoatedTextProps> = ({msg, ad}: {msg: string, ad: { [key: string]: Annotation }}) => {
 
     const ranges = Object.values(ad).map(({ start, end }) => ({ start, end }));
 
@@ -340,6 +344,10 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
                                     setAnnotationVisible(false);
                                     setAnnotationKey("")
                                     target.value = "";
+                                  }
+                                  else if(e.key === "Escape"){
+                                    setAnnotationVisible(false);
+                                    setAnnotationKey("")
                                   }
                                 }}
                           />

@@ -171,6 +171,7 @@ const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInte
       <div className="mt-auto flex flex-col gap-y-4 md:gap-y-6">
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;
+          m.annotations = {} //Initialize the annotations here!
           return (
             <MessageRow
               key={i}

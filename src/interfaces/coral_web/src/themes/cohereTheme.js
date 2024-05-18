@@ -10,17 +10,17 @@ module.exports = {
         black: '#212121',
         white: '#FAFAFA',
         primary: {
-          900: '#212121',
-          800: '#212121',
-          700: '#212121',
-          600: '#212121',
+          900: '#511D12',
+          800: '#903420',
+          700: '#CA492D',
+          600: '#E25D41',
           500: '#212121',
-          400: '#212121',
-          300: '#212121',
-          200: '#212121',
-          100: '#212121',
-          75: '#212121',
-          50: '#212121',
+          400: '#FF967E',
+          300: '#FFAD9B',
+          200: '#F8C8BC',
+          100: '#F6DDD5',
+          75: '#FBE0DA',
+          50: '#FDF2F0',
         },
         secondary: {
           900: '#212121',
@@ -111,7 +111,7 @@ module.exports = {
         'p-lg': ['1rem', { letterSpacing: '0em', lineHeight: '150%' }], // 16px - Large Paragraph
         code: ['1rem', { letterSpacing: '0.03em', lineHeight: '136%' }], // 16px - Code
         // Headings
-        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%'}], // 24px - Logo Application
+        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%', fontWeight: 'bold'}], // 24px - Logo Application
         'h5-m': ['1.125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 18px - Mobile Heading 5
         h5: ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Desktop Heading 5
         'h4-m': ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Mobile Heading 4
@@ -128,8 +128,8 @@ module.exports = {
         'icon-xl': ['36px', { lineHeight: '100%' }],
       },
       fontFamily: {
-        body: ['Cambira', ...defaultTheme.fontFamily.serif],
-        variable: ['Cambira', ...defaultTheme.fontFamily.serif],
+        body: ['Arial', ...defaultTheme.fontFamily.serif],
+        variable: ['Arial', ...defaultTheme.fontFamily.serif],
         code: defaultTheme.fontFamily.serif,
         iconOutline: ['CohereIconOutline'],
         iconDefault: ['CohereIconDefault'],

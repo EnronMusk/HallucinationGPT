@@ -1,4 +1,5 @@
 import { Citation, File, StreamToolInput } from '@/cohere-client';
+import { AnyZodObject } from 'zod';
 
 export enum BotState {
   LOADING = 'loading',
@@ -17,6 +18,14 @@ type BaseMessage = {
   type: MessageType;
   text: string;
   error?: string;
+  annotations: { [key: string]: Annotation };
+};
+
+export type Annotation = {
+  text: string;
+  annotation: string;
+  start: number;
+  end: number;
 };
 
 /**

@@ -145,55 +145,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     [key: string]: Annotation;
   }
 
-  interface TextNode {
-    node: Node;
-    start: number;
-    end: number;
-  }
-
-
-  const flattenTextNodes = (node: Node) => {
-    const textNodes: TextNode[] = [];
-    let currentIndex = 0;
-  
-    const extractTextNodes = (current: Node, index: number) => {
-      if (current.nodeType === Node.TEXT_NODE && current.textContent) {
-        textNodes.push({
-          node: current,
-          start: index,
-          end: index + current.textContent.length,
-        });
-        currentIndex += current.textContent.length;
-      } else if (current.nodeType === Node.ELEMENT_NODE) {
-        for (let child of current.childNodes) {
-          extractTextNodes(child, currentIndex);
-        }
-      }
-    };
-
-  extractTextNodes(node, currentIndex);
-  return textNodes;
-};
-
-const getAbsoluteSelectionIndices = (selection: Selection, container: Node) => {
-  const textNodes = flattenTextNodes(container);
-  const range = selection.getRangeAt(0);
-  const startContainer = range.startContainer;
-  const endContainer = range.endContainer;
-
-  const startTextNode = textNodes.find(n => n.node === startContainer);
-  const endTextNode = textNodes.find(n => n.node === endContainer);
-
-  if (!startTextNode || !endTextNode) {
-    return null;
-  }
-
-  const startIndex = startTextNode.start + range.startOffset;
-  const endIndex = endTextNode.start + range.endOffset;
-
-  return { startIndex, endIndex };
-};
-
 
   // State to manage the selected text and annotations
   const [annotationVisible, setAnnotationVisible] = useState<boolean>(false);
@@ -202,27 +153,43 @@ const getAbsoluteSelectionIndices = (selection: Selection, container: Node) => {
   const [annotDict, setAnnotDict] = useState<AnnotDict>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useImperativeHandle(ref, () =>  containerRef.current as HTMLDivElement);
+  //useImperativeHandle(ref, () =>  containerRef.current as HTMLDivElement);
 
 
   // Function to handle text selection
   const handleMouseUp = () => {
     const selection = window.getSelection();
-    const container = containerRef.current;
+    if (!(selection && selection.toString() && !annotationVisible)) {
+      return;
+    }
 
     console.log('select', selection?.toString())
     console.log("annot", annotationVisible)
-    if (selection && selection.toString() && !annotationVisible && container) { //!annotaitonVisible for 1 at at time annotations.
-      const indices = getAbsoluteSelectionIndices(selection, container);
+    console.log('ref', ref)
+      const selectedText = selection.toString();
+      const range = selection.getRangeAt(0);
 
-    if (indices) {
-      const { startIndex, endIndex } = indices;
+      const startCont = range.startContainer.textContent||"";
+      const endCont = range.endContainer.textContent||"";
+      
 
-      const id = addAnnotation(selection.toString(), '', startIndex, endIndex);
+      console.log("cont", startCont)
+      console.log(endCont)
+
+      const contextBefore = message.text.substring(0, selection.anchorOffset)
+      const start = message.text.indexOf(startCont) + range.startOffset;
+      const end = message.text.indexOf(endCont) + range.endOffset;
+
+      const isMatch = message.text.substring(start, end) === selectedText;
+
+      console.log(message.text.substring(start, end))
+      console.log("isMatch?",isMatch)
+
+      const id = addAnnotation(selection.toString(), '', start, end);
       setAnnotationVisible(true);
       setAnnotationKey(id);
-    }
-  }
+    
+  
 };
   
   
@@ -254,8 +221,6 @@ const getAbsoluteSelectionIndices = (selection: Selection, container: Node) => {
   const renderAnnotatedText: React.FC<RenderAnnoatedTextProps> = ({msg, ad}: {msg: string, ad: { [key: string]: Annotation }}) => {
 
     const ranges = Object.values(ad).map(({ start, end }) => ({ start, end }));
-
-    console.log("HR",ranges)
 
       return (
         <Markdown

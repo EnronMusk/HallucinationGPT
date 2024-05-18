@@ -29,15 +29,20 @@ import {
   isFulfilledOrTypingMessage,
   isFulfilledOrTypingMessageWithCitations,
   isUserMessage,
+  Annotation,
 } from '@/types/message';
 import { cn } from '@/utils';
 
 import { STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
 import { render } from '@headlessui/react/dist/utils/render';
+import { v4 as uuidv4 } from 'uuid';
 
 import { CitationTextHighlighter } from '@/components/Citations/CitationTextHighlighter';
 import { DataTable } from '@/components/DataTable';
 import { MarkdownImage } from '@/components/MarkdownImage';
+import { zIndex } from '@/constants/tailwindConfigValues';
+
+import { Dictionary } from 'lodash';
 
 type Props = {
   isLast: boolean;
@@ -56,6 +61,9 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   ref
 ) {
   const breakpoint = useBreakpoint();
+
+  //Store our annots here!
+  const [annotDict, setAnnotDict] = useState<{ [key: string]: Annotation }>({});
 
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
@@ -130,51 +138,85 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     }
   };
 
-  const word = "word"
-
   //
 
   // Annotations code for error highlighing in prompts!!!
 
   //
 
-  type Annotation = {
-    text: string;
-    annotation: string;
-  };
 
   // State to manage the selected text and annotations
-  const [selectedText, setSelectedText] = useState<string>("");
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [annotationIndex, setAnnotationIndex] = useState<number | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [annotationVisible, setAnnotationVisible] = useState<boolean>(false);
+  const [annotationKey, setAnnotationKey] = useState<string>("");  
+  const annotationRef = useRef<HTMLDivElement>(null);
 
   // Function to handle text selection
   const handleMouseUp = () => {
     const selection = window.getSelection();
-    if (selection && selection.toString()) {
-      const text = selection.toString();
-      setSelectedText(text)
-      setAnnotationIndex(selection.anchorOffset);
-    }
-  };
+    console.log('select', selection?.toString())
+    console.log("annot", annotationVisible)
+    if (selection && selection?.toString()) {
+      const range = selection.getRangeAt(0);
+      const start = range.startOffset;
+      const end = range.endOffset;
+      
 
+      console.log("set!")
+      console.log("range anchor", selection.anchorOffset)
+      console.log("range", selection)
+      console.log("range count")
+    
+      const id = addAnnotation(selection.toString(), "default_annotation", start, end)
+      setAnnotationVisible(true);
+      setAnnotationKey(id);
+
+  }
+  
+  };
+  
   // Function to add annotation
-  const addAnnotation = (a: string) => {
-    setAnnotations(prevAnnotations => [
-      ...prevAnnotations,
-      { text: selectedText, annotation: a }
-  ]);
-    setSelectedText("");
-    setAnnotationIndex(null);
+  const addAnnotation = (s: string, a: string, start: number, end: number) => {
+
+    const id = uuidv4().toString();
+
+
+    console.log('start', start)
+    console.log('end', end)
+
+    const annot: Annotation = {
+      text: s,
+      annotation: a, 
+      start: start,
+      end: end
+    };
+
+  const dict = annotDict;
+  dict[id] = annot;
+  setAnnotDict(dict)
+
+  console.log(dict[id])
+  console.log("key!!!", id)
+
+  return id
+
+   
   };
 
 
-  const renderAnnotatedText = (text: string) => {
-    if (annotationIndex === null || !selectedText) {
+  interface RenderAnnotatedTextProps {
+    msg: string;
+    ad: { [key: string]: Annotation };
+  }
+
+  const renderAnnotatedText = ({msg, ad}: {msg: string, ad: { [key: string]: Annotation }}) => {
+
+    const ranges = Object.values(ad).map(({ start, end }) => ({ start, end }));
+
+    console.log("HR",ranges)
+
       return (
         <Markdown
-          text={text}
+          text={msg}
           className={cn(STYLE_LEVEL_TO_CLASSES.p)}
           customComponents={{
             img: MarkdownImage as any,
@@ -182,98 +224,13 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
             table: DataTable as any,
           }}
           renderLaTex={true}
-          highlightedRanges={[{start:210, end:220}]}
+          //highlightedRanges={[{start:1,end:5},{start:310, end:320},{start:310, end:340}]}
+          highlightedRanges={ranges}
         />
-      );
-    }
+      )
+    };
 
-    // Split the text while keeping the selected text parts intact
-    const parts = text.split(new RegExp((`${selectedText}`), "g"));
-    
-    let currentCharIndex = 0;
-    const annotatedElements = parts.map((part, index) => {
-      const isSelectedText = part === selectedText && currentCharIndex === annotationIndex;
-      
-      if (isSelectedText) {
-        currentCharIndex += part.length;
-        return (
-          <React.Fragment key={index}>
-            <span className="bg-yellow-100">{selectedText}</span> 
-                <input
-                ref={inputRef}
-                type='text'
-                style={{
-                  fontSize: '14px', // Adjust the font size as needed
-                  height: '2rem', // Adjust the height as needed
-                  width: '200px', // Adjust the width as needed
-                  padding: '0.5rem', // Adjust the padding as needed
-                  lineHeight: '1.5', // Adjust the line height as needed
-                  fontFamily: 'Arial, sans-serif' // Adjust the font family as needed
-              }}
-                className={cn(
-                  'min-h-[1rem] md:min-h-[2rem]',
-                  "w-auto",
-                  'self-center',
-                  'rounded',
-                  'px-1 px-2',
-                  'border',
-                  'bg-danger-50',
-                  'text-lg',
-              
-                  'border-secondary-400',
-                  'transition ease-in-out',
-                  'focus:border-secondary-700',
-                  'focus:outline-none',
-      
-                  'placeholder-base'
-                  
-                )}
-                  
-                  placeholder="Add annotation . . ."
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const target = e.target as HTMLInputElement;
-                      const index = annotations.findIndex(a => a.text === selectedText);
-                      if (index !== -1) {
-                          addAnnotation(target.value);
-                      }
-                      target.value = "";
-                    }
-                  }}
-            />
-          </React.Fragment>
-        );
-      }
-      
-      currentCharIndex += part.length;
-      return part;
-    });
-
-    // Join parts back together
-    const annotatedText = annotatedElements.reduce((acc, elem) => {
-      // Determine if fragment and join back to string
-      if (typeof elem === "string") {
-        return acc + elem;
-      }
-      return acc;
-    }, '');
-
-    // Return the entire annotated text as a single string
-    return (
-      <Markdown
-        text={text}
-        className={cn(STYLE_LEVEL_TO_CLASSES.p)}
-        customComponents={{
-          img: MarkdownImage as any,
-          cite: CitationTextHighlighter as any,
-          table: DataTable as any,
-        }}
-        renderLaTex={true}
-        highlightedRanges={[{start:2, end:5},{start:6, end:10}]}
-      />
-    );
-  };
-
+  const msg = message.text;
 
   return (
     <div
@@ -340,13 +297,72 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
               {//This is where we render the annotated box
               }
+
+              {annotationVisible && (
+                    console.log("annot visisble!"),
+                    <div style={{
+                    position: "absolute"
+                    //zIndex: 9999
+                  }}
+                    > 
+                              <input
+                              type='text'
+                              style={{
+                                fontSize: '14px', // Adjust the font size as needed
+                                height: '2rem', // Adjust the height as needed
+                                width: '200px', // Adjust the width as needed
+                                padding: '0.5rem', // Adjust the padding as needed
+                                lineHeight: '1.5', // Adjust the line height as needed
+                                fontFamily: 'Arial, sans-serif' // Adjust the font family as needed
+                            }}
+                              className={cn(
+                                'min-h-[1rem] md:min-h-[2rem]',
+                                "w-auto",
+                                'self-center',
+                                'rounded',
+                                'px-1 px-2',
+                                'border',
+                                'bg-danger-50',
+                                'text-lg',
+                            
+                                'border-secondary-400',
+                                'transition ease-in-out',
+                                'focus:border-secondary-700',
+                                'focus:outline-none',
+                    
+                                'placeholder-base'
+                                
+                              )}
+                                
+                                placeholder="Add annotation . . ."
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    const target = e.target as HTMLInputElement;
+
+                                    const dict = annotDict;
+
+                                    console.log(annotationKey)
+                                    console.log(dict)
+                                    console.log("TEXT",message.text)
+
+                                    dict[annotationKey].annotation = target.value;
+                                    setAnnotDict(dict)
+                                    
+                                    setAnnotationVisible(false);
+                                    setAnnotationKey("")
+                                    target.value = "";
+                                  }
+                                }}
+                          />
+                      </div>
+                      )}
               
               <div className="flex w-full flex-col justify-center gap-y-1 py-1">
                 <Text        
                   as="div"
                   className="flex flex-col gap-y-1 whitespace-pre-wrap [overflow-wrap:anywhere] md:max-w-4xl">
                   <div>
-                    {renderAnnotatedText(message.text)}
+                    {renderAnnotatedText({msg:msg, ad:annotDict})}
                   </div>
                 </Text>
               </div>
@@ -355,7 +371,14 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
               //<MessageContent isLast={isLast} message={message} onRetry={onRetry} />
               }
 
-              {annotations.map((annotation, index) => (
+              {/* {annotations.map((annotation, index) => (
+                <div key={index} className='bg-secondary-50 p-1 my-1'>
+                  <span className='font-bold'>{annotation.text}</span>: {annotation.annotation}
+                </div>
+              ))} */}
+           
+
+            {Object.values(annotDict).map((annotation, index) => (
                 <div key={index} className='bg-secondary-50 p-1 my-1'>
                   <span className='font-bold'>{annotation.text}</span>: {annotation.annotation}
                 </div>

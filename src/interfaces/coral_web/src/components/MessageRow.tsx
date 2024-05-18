@@ -1,5 +1,5 @@
 import { usePreviousDistinct } from '@react-hookz/web';
-import { forwardRef, useEffect, useState, useRef } from 'react';
+import { forwardRef, useEffect, useState, useRef, useImperativeHandle } from 'react';
 import React from 'react';
 import { useLongPress } from 'react-aria';
 
@@ -145,37 +145,87 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     [key: string]: Annotation;
   }
 
+  interface TextNode {
+    node: Node;
+    start: number;
+    end: number;
+  }
+
+
+  const flattenTextNodes = (node: Node) => {
+    const textNodes: TextNode[] = [];
+    let currentIndex = 0;
+  
+    const extractTextNodes = (current: Node, index: number) => {
+      if (current.nodeType === Node.TEXT_NODE && current.textContent) {
+        textNodes.push({
+          node: current,
+          start: index,
+          end: index + current.textContent.length,
+        });
+        currentIndex += current.textContent.length;
+      } else if (current.nodeType === Node.ELEMENT_NODE) {
+        for (let child of current.childNodes) {
+          extractTextNodes(child, currentIndex);
+        }
+      }
+    };
+
+  extractTextNodes(node, currentIndex);
+  return textNodes;
+};
+
+const getAbsoluteSelectionIndices = (selection: Selection, container: Node) => {
+  const textNodes = flattenTextNodes(container);
+  const range = selection.getRangeAt(0);
+  const startContainer = range.startContainer;
+  const endContainer = range.endContainer;
+
+  const startTextNode = textNodes.find(n => n.node === startContainer);
+  const endTextNode = textNodes.find(n => n.node === endContainer);
+
+  if (!startTextNode || !endTextNode) {
+    return null;
+  }
+
+  const startIndex = startTextNode.start + range.startOffset;
+  const endIndex = endTextNode.start + range.endOffset;
+
+  return { startIndex, endIndex };
+};
+
 
   // State to manage the selected text and annotations
   const [annotationVisible, setAnnotationVisible] = useState<boolean>(false);
   const [annotationKey, setAnnotationKey] = useState<string>("");  
   //Store our annots here!
   const [annotDict, setAnnotDict] = useState<AnnotDict>({});
-  const annotationRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () =>  containerRef.current as HTMLDivElement);
+
 
   // Function to handle text selection
   const handleMouseUp = () => {
     const selection = window.getSelection();
+    const container = containerRef.current;
+
     console.log('select', selection?.toString())
     console.log("annot", annotationVisible)
-    if (selection && selection.toString() && !annotationVisible) { //!annotaitonVisible for 1 at at time annotations.
-      const range = selection.getRangeAt(0);
-      const start = range.startOffset;
-      const end = range.endOffset;
-      
+    if (selection && selection.toString() && !annotationVisible && container) { //!annotaitonVisible for 1 at at time annotations.
+      const indices = getAbsoluteSelectionIndices(selection, container);
 
-      console.log("set!")
-      console.log("range anchor", selection.anchorOffset)
-      console.log("range", selection)
-      console.log("range count")
-    
-      const id = addAnnotation(selection.toString(), "", start, end)
+    if (indices) {
+      const { startIndex, endIndex } = indices;
+
+      const id = addAnnotation(selection.toString(), '', startIndex, endIndex);
       setAnnotationVisible(true);
       setAnnotationKey(id);
-
+    }
   }
+};
   
-  };
+  
   
   // Function to add annotation
   const addAnnotation = (s: string, a: string, start: number, end: number) => {

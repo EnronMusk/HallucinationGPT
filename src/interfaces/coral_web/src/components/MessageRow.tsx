@@ -62,9 +62,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 ) {
   const breakpoint = useBreakpoint();
 
-  //Store our annots here!
-  const [annotDict, setAnnotDict] = useState<{ [key: string]: Annotation }>({});
-
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
   const [isStepsExpanded, setIsStepsExpanded] = useState<boolean>(isLast);
@@ -144,10 +141,16 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
   //
 
+  interface AnnotDict {
+    [key: string]: Annotation;
+  }
+
 
   // State to manage the selected text and annotations
   const [annotationVisible, setAnnotationVisible] = useState<boolean>(false);
   const [annotationKey, setAnnotationKey] = useState<string>("");  
+  //Store our annots here!
+  const [annotDict, setAnnotDict] = useState<AnnotDict>({});
   const annotationRef = useRef<HTMLDivElement>(null);
 
   // Function to handle text selection
@@ -166,7 +169,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
       console.log("range", selection)
       console.log("range count")
     
-      const id = addAnnotation(selection.toString(), "default_annotation", start, end)
+      const id = addAnnotation(selection.toString(), "", start, end)
       setAnnotationVisible(true);
       setAnnotationKey(id);
 
@@ -179,22 +182,13 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
     const id = uuidv4().toString();
 
+    const annot: Annotation = { s, a, start, end };
+    setAnnotDict(prevDict => ({ ...prevDict, [id]: annot }));
 
     console.log('start', start)
     console.log('end', end)
 
-    const annot: Annotation = {
-      text: s,
-      annotation: a, 
-      start: start,
-      end: end
-    };
 
-  const dict = annotDict;
-  dict[id] = annot;
-  setAnnotDict(dict)
-
-  console.log(dict[id])
   console.log("key!!!", id)
 
   return id
@@ -202,11 +196,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
    
   };
 
-
-  interface RenderAnnotatedTextProps {
-    msg: string;
-    ad: { [key: string]: Annotation };
-  }
 
   const renderAnnotatedText = ({msg, ad}: {msg: string, ad: { [key: string]: Annotation }}) => {
 
@@ -339,14 +328,14 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
                                   if (e.key === "Enter") {
                                     const target = e.target as HTMLInputElement;
 
-                                    const dict = annotDict;
 
                                     console.log(annotationKey)
-                                    console.log(dict)
                                     console.log("TEXT",message.text)
 
-                                    dict[annotationKey].annotation = target.value;
-                                    setAnnotDict(dict)
+                                    setAnnotDict(prevDict => ({
+                                      ...prevDict,
+                                      [annotationKey]: { ...prevDict[annotationKey], annotation: target.value }
+                                    }));
                                     
                                     setAnnotationVisible(false);
                                     setAnnotationKey("")

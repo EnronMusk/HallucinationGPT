@@ -1,15 +1,19 @@
 import { ComponentPropsWithoutRef } from 'react';
 import React from 'react';
 
+interface PropsWithChildren {
+  children: React.ReactNode;
+}
+
 const Highlight = ({ children }: { children: React.ReactNode }) => {
   return <span className="bg-yellow-100">{children}</span>;
 };
 
-export const P = ({ children }: ComponentPropsWithoutRef<'p'>) => {
+export const Code = ({ children }: ComponentPropsWithoutRef<'code'>) => {
   const processText = (text: string): React.ReactNode => {
-    const parts = text.split(/(\[\[H\]\]|\[\[\/H\]\])/);
+    const parts = text.split(/(\[H\]|\[\/H\])/);
     return parts.map((part, index) => {
-      if (part === '[[H]]' || part === '[[/H]]') {
+      if (part === '[H]' || part === '[/H]') {
         return null; // Ignore the markers themselves
       }
       if (index % 4 === 2) {
@@ -32,5 +36,5 @@ export const P = ({ children }: ComponentPropsWithoutRef<'p'>) => {
     return children;
   };
 
-  return <p dir="auto">{processChildren(children)}</p>;
+  return <code dir="auto">{processChildren(children)}</code>;
 };

@@ -21,6 +21,8 @@ import { renderTableTools } from './directives/table-tools';
 import { renderRemarkTags } from './directives/tag';
 import { renderRemarkUnknowns } from './directives/unknown';
 import { P } from './tags/P';
+import { TableP } from './tags/TableP';
+import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
 import { References } from './tags/References';
 
@@ -127,11 +129,11 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
     // Add the text before the range
     highlightedText += text.substring(currentIndex, range.start);
     // Add the start marker for the highlighted text
-    highlightedText += '[[HIGHLIGHT]]';
+    highlightedText += '[[H]]';
     // Add the highlighted text
     highlightedText += text.substring(range.start, range.end);
     // Add the end marker for the highlighted text
-    highlightedText += '[[/HIGHLIGHT]]';
+    highlightedText += '[[/H]]';
     currentIndex = range.end;
   });
 
@@ -142,16 +144,8 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
 };
 
   const processedText = insertHighlightMarkers(text, highlightedRanges);
+  //console.log("processed text", processedText)
 
-    // Function to override the style for highlighted text
-    const overrideHighlightStyle = (props: any) => {
-      // Check if the text is inside a highlighted section
-      if (props.node && props.node.type === 'text' && props.node.value === '[[HIGHLIGHT]]') {
-        return <code className='bg-yellow-100'>{props.children}</code>;
-      }
-      // Return the default rendering
-      return <span {...props} />;
-    };
 
   return (
     <Text
@@ -179,9 +173,13 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
         // rehypePlugins={[...rehypePlugins, ...customRehypePlugins]}
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
-        components={components}
-        urlTransform={urlTransform}
-        skipHtml={false}
+        components={{
+          pre: Pre,
+          ...customComponents,
+          p: P, // CUSTOM P
+          code: Code,
+          td: TableP,
+        }}
       >
         {processedText}
       </ReactMarkdown>

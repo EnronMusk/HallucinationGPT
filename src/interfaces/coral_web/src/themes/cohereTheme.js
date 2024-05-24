@@ -128,7 +128,7 @@ module.exports = {
         'icon-xl': ['36px', { lineHeight: '100%' }],
       },
       fontFamily: {
-        body: ['Arial', ...defaultTheme.fontFamily.serif],
+        body: ['Cambria', ...defaultTheme.fontFamily.serif],
         variable: ['Arial', ...defaultTheme.fontFamily.serif],
         code: defaultTheme.fontFamily.serif,
         iconOutline: ['CohereIconOutline'],

@@ -18,11 +18,11 @@ type BaseMessage = {
   type: MessageType;
   text: string;
   error?: string;
-  annotations: { [key: string]: Annotation };
+  annotations?: { [key: string]: Annotation };
 };
 
 export type Annotation = {
-  text: string;
+  htext: string;
   annotation: string;
   start: number;
   end: number;

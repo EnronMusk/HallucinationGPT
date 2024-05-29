@@ -15,11 +15,11 @@ import { cn } from '@/utils';
 
 import { renderRemarkCites } from './directives/cite';
 import { remarkReferences } from './directives/code';
-import { renderTableTools } from './directives/table-tools';
+import { renderTableTools  } from './directives/table-tools';
 import { renderRemarkTags } from './directives/tag';
 import { renderRemarkUnknowns } from './directives/unknown';
 import { P } from './tags/P';
-import { TableP } from './tags/TableP';
+import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
 import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
 import { References } from './tags/References';
@@ -84,14 +84,13 @@ export const getActiveMarkdownPlugins = (
  */
 export const Markdown = ({
   className = '',
-  text,
+  text, //preprocessed is passed
   customComponents,
   customRemarkPlugins = [],
   customRehypePlugins = [],
   renderLaTex = true,
   allowedElements,
   unwrapDisallowed,
-  highlightedRanges = [],
   ...rest
 }: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
   const { remarkPlugins, rehypePlugins } = getActiveMarkdownPlugins(renderLaTex);
@@ -104,7 +103,23 @@ export const Markdown = ({
       pre: (props) => <Pre {...props} />,
       p: P,
       code: Code,
-      td: TableP,
+      td: td,
+      th: th,
+      li: CustomLi,
+      ol: CustomOl,
+      ul: CustomUl,
+      h1: Heading1,
+      h2: Heading2,
+      h3: Heading3,
+      h4: Heading4,
+      h5: Heading5,
+      h6: Heading6,
+      title: Title,
+      dl: dl,
+      dt: dt,
+      dd: dd,
+      strong: strong,
+      em: em,
       // @ts-ignore
       references: References,
       ...customComponents,
@@ -162,14 +177,14 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
     >
       <ReactMarkdown
         remarkPlugins={[...remarkPlugins, ...customRemarkPlugins]}
-        rehypePlugins={[...rehypePlugins, ...customRehypePlugins]}
+        //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
         components={components}
         urlTransform={urlTransform}
         skipHtml={false}
       >
-        {processedText}
+        {text} 
       </ReactMarkdown>
     </Text>
   );

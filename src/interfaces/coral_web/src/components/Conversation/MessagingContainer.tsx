@@ -181,7 +181,13 @@ const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInte
   }
 
   return (
-    <div className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}>
+    <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
+      {startOptionsEnabled && (
+        <div className="flex h-full w-full flex-col justify-center p-4">
+          <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
+        </div>
+      )}
+
       <div className="mt-auto flex flex-col gap-y-4 md:gap-y-6">
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;

@@ -22,6 +22,7 @@ import { renderRemarkTags } from './directives/tag';
 import { renderRemarkUnknowns } from './directives/unknown';
 import { P } from './tags/P';
 import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
+
 import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
 import { References } from './tags/References';
@@ -129,7 +130,7 @@ export const Markdown = ({
     >
       <ReactMarkdown
         remarkPlugins={[...remarkPlugins, ...customRemarkPlugins]}
-        //// rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
+        //// //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting! //screw the code formatting!
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
         components={{

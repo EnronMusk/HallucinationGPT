@@ -90,6 +90,10 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     return message.text;
   };
 
+  if (isLast){
+    console.log("THIS IS LAST", message.text)
+  }
+
   const enableLongPress =
     (isFulfilledMessage(message) || isUserMessage(message)) && breakpoint === Breakpoint.sm;
   const { longPressProps } = useLongPress({
@@ -190,7 +194,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   const [annotationKey, setAnnotationKey] = useState<string>("");  
   //Store our annots here!
   const [annotDict, setAnnotDict] = useState<AnnotDict>({});
-  const [AnnotRange, setAnnotRange] = useState<AnnotRange[]>([]);
+  const [addedAnnots, setAddedAnnots] = useState<AnnotDict>({}); //Checks for added annots to the prompt.
   const [annotationPosition, setAnnotationPosition] = useState({ top: 0, left:0 });
   const [preprocessedMessage, setPreprocessedMessage] = useState<string>(message.text); //default is normal message.text it is updated with higlights.
   const [annotSortDict, setSortAnnotDict] = useState<AnnotDict>(() => sortAnnotDict({}));
@@ -239,7 +243,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     // setAnnotationVisible(true)
     const id = uuidv4().toString();
 
-    const annot: Annotation = { text:s, annotation:a, start, end };
+    const annot: Annotation = { htext:s, annotation:a, start, end };
     ad[id] = annot;
     const newDictSorted = sortAnnotDict(ad)
     setAnnotDict(ad);
@@ -421,6 +425,14 @@ const normalize = (text : string) => {
   //.replace(/\\n\./g,"")
 };
 
+//For normalizing annotations ONLY.
+const normalizeAnnotation = (text : string) => {
+  return text.replace(/\n(\d{1,2})\./g, "").replace(/[-`\n\<\>\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
+  .replace(/\*/g, "")
+
+  //.replace(/\\n\./g,"")
+};
+
 
 const backNormalize = (text: string): string => {
 
@@ -550,6 +562,15 @@ const filteredMappingV2 = (text:string) => {
     }
   };
 
+  //Used for annotation box
+  function isAlphaNumericOrSymbol(char:string) {
+    if (char.length > 1){
+      return false
+    }
+    const regex = /^[a-zA-Z0-9 &@(#&$]+$/;
+    return regex.test(char);
+  }
+
 
   useEffect(() => {
     const targetElement = document.getElementById(annotationKey);
@@ -571,7 +592,6 @@ const filteredMappingV2 = (text:string) => {
     inputBox.style.padding = "0.5rem";
     inputBox.style.lineHeight = "150%";
     inputBox.style.fontFamily = "Arial, sans-serif";
-    inputBox.style.font = "Arial, sans-serif";
     inputBox.style.minHeight = "1.6rem";
     inputBox.style.maxHeight = "3.2rem";
     inputBox.style.textOverflow = "ellipsis";
@@ -597,31 +617,35 @@ const filteredMappingV2 = (text:string) => {
       "focus:border-secondary-700",
       "focus:outline-none",
       "placeholder-base",
-      "hover:none"
+      "font-family-Arial"
     ].join(" ")
 
     inputBox.ariaHidden = 'true'
 
     inputBox.placeholder = 'Add annotation . . .';
-    inputBox.maxLength = 125;
+    inputBox.maxLength = 100;
+
+    let text = ""
 
     // Adding event handler
     inputBox.onkeydown = (e) => {
+      const target = e.target as HTMLInputElement;
+
       if (e.key === 'Enter') {
-        const target = e.target as HTMLInputElement;
-        
 
         console.log(annotationKey);
         console.log('text', message.text);
 
+        let final_annot = normalizeAnnotation(target.value) //remove unwatned chars.
+
         setAnnotDict(prevDict => ({
           ...prevDict,
-          [annotationKey]: { ...prevDict[annotationKey], annotation: target.value}
+          [annotationKey]: { ...prevDict[annotationKey], annotation: final_annot}
         }));
 
         // Temporary dict for this single render.
         let ad = annotDict;
-        ad[annotationKey].annotation = target.value;
+        ad[annotationKey].annotation = final_annot;
         ad = sortAnnotDict(ad);
 
         setSortAnnotDict(ad);
@@ -646,7 +670,11 @@ const filteredMappingV2 = (text:string) => {
         console.log(targetElement?.childNodes)
         console.log('REMOVED', inputBox)
         console.log(targetElement?.childNodes)
-      }
+      } else {
+        let tooltip = document.getElementById('tool' + annotationKey)
+        const n_key = isAlphaNumericOrSymbol(e.key) ? e.key : "" //add latest key
+        if (tooltip){tooltip.textContent = target.value + n_key;}
+      } 
         
     
     }
@@ -740,7 +768,7 @@ const calculateStartAndEnd = (sc: Node, startOffset:number, st:string, n_msg:str
   console.log('p_tex_org', p_text)
 
   //For tricky starting points as code.
-  if (sc.parentElement?.nodeName === 'CODE'){ 
+  if (sc.parentElement?.nodeName === 'CODE' && ec.parentElement?.nodeName === 'P'){ 
     console.log('override with ender')
     p_text = calculateContainerEnder(ec)+normalize(ec.textContent||"")
     trueOffset += p_text.lastIndexOf(normalize(sc.textContent||""))
@@ -763,10 +791,11 @@ const calculateStartAndEnd = (sc: Node, startOffset:number, st:string, n_msg:str
 
   //if selected text is long enough, have it override.
   console.log("ST LENGTH", st.length)
-  if (st.length >= 75){
+  if (st.length >= 60){
     p_idx = n_msg.indexOf(st)
     c_idx = 0;
     trueOffset = 0;
+    text = ""
   }
 
   return {start: (p_idx + c_idx + text.length + trueOffset), end: (p_idx + c_idx + text.length + trueOffset + st.length)}
@@ -789,6 +818,14 @@ const handleAnnotationDelete = (key: string) => {
 
 }
 
+//checks if an annot is in the prompt.
+function isAnnotAdded(key: string, ad: AnnotDict): boolean {
+
+  if(ad[key]){
+    return true
+  }
+  return false
+}
 
 
   
@@ -919,8 +956,13 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     const startIdxInMessage = message.text.indexOf(startContainerText) + startOffset;
     const endIdxInMessage = message.text.indexOf(endContainerText) + endOffset;
 
-    if (message.text.substring(start, end).includes('```')){ //The user is trying to make a stupid highlight.
+    if (message.text.substring(start, end).includes('```')||message.text.substring(startIdxInMessage, endIdxInMessage).includes('```') && (range?.commonAncestorContainer?.textContent||"").includes('```')){ //The user is trying to make a stupid highlight.
       console.log("code detection")
+      return;
+    }
+
+    //cannot annotate a space 
+    if(message.text === ""){
       return;
     }
 
@@ -1039,7 +1081,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                                 fontWeight: 'bold'
                               }}
                               onClick={() => handleClick(key)}
-                              >{index + 1}{'. '}{annotation.text}
+                              >{index + 1}{'. '}{annotation.htext}
                   </span>
 
                   <span id='annots' className='bg-secondary-900' style={{                               
@@ -1083,6 +1125,30 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
               lineHeight: '1.5', // Adjust the line height as needed
               fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
             }}/>
+            <Tooltip
+              label={isAnnotAdded(key, addedAnnots) ? 'Added!' : 'Prompt Model'}
+              duration={1000}
+              showOutline={true}
+              hover
+              placement='left-start'
+              className={'position-relative display-block'}
+              icon={
+                <Icon size={'md'} name='add' kind="outline" onClick={() => handleAnnotationDelete(key)} className={cn(
+                  'transition ease-in-out',
+                  'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
+                  //'bg-secondary-200',
+                  'trash' 
+                )} style={{                               
+                  fontSize: '10.5px', // Adjust the font size as needed
+                  height: '1rem', // Adjust the height as needed
+                  width: '200px', // Adjust the width as needed
+                  padding: '0.3rem', // Adjust the padding as needed
+                  marginTop: '15px',
+                  lineHeight: '1.5', // Adjust the line height as needed
+                  fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                }}/>
+              }
+            />
                 </div>
                 
               ))}

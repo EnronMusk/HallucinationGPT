@@ -52,3 +52,88 @@
 .grecaptcha-badge {
   visibility: hidden;
 }
+/**/
+
+/**/
+
+/* Annotations stuff */
+
+/**/
+
+/**/
+
+.highlight {
+  position: relative;
+  background-color: #ffffcc; 
+}
+
+
+.tooltip {
+  font-weight: normal;
+  font-family: Arial;
+  width: max-content;
+  min-width: 100px;
+  max-width: 300px;
+  background-color: #FFF1F1;
+  color: black;
+  text-align: center;
+  text-wrap: pretty;
+  border-radius: 5px;
+  padding:  0.25rem;
+  margin-bottom: 5px;
+  position: absolute;
+  z-index: 1000000;
+  bottom: 100%; 
+  opacity: 0;
+  transition: opacity 0.5s;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;  
+  line-height: 1.5;
+  min-height: 1.6rem;
+  max-height: 3.2rem;
+  white-space: normal;
+  overflow: hidden; 
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-overflow: ellipsis;
+}
+
+.tooltip::after {
+  content: “”;
+  position: absolute;
+  top: 100%; 
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+}
+
+.highlight:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+  display: block
+}
+
+/*for annoations*/
+.non-selectable {
+  user-select: none; /* For most browsers */
+  -webkit-user-select: none; /* For WebKit browsers (Safari, Chrome) */
+  -moz-user-select: none; /* For Firefox */
+  -ms-user-select: none; /* For Internet Explorer/Edge */
+}
+
+
+/* this doesnt work because JSX and html suck!!!! */
+@layer base {
+::selection {
+  background-color: #FEF3C7; 
+}
+::-moz-selection {
+  background-color: #FEF3C7; 
+}
+::-webkit-user-select{
+  background-color: #FEF3C7;  
+}
+}

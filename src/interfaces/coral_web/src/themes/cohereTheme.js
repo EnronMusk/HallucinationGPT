@@ -137,7 +137,7 @@ module.exports = {
         code: ['1rem', { letterSpacing: '0.03em', lineHeight: '136%' }], // 16px - Code
         'code-sm': ['0.75rem', { letterSpacing: '0.03em', lineHeight: '136%' }], // 12px - Small Code
         // Headings
-        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%', fontWeight: 'bold'}], // 24px - Logo Application
+        logo: ['1.5rem', { letterSpacing: '0em', lineHeight: '100%', fontWeight: 'bold' }], // 24px - Logo Application
         'h5-m': ['1.125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 18px - Mobile Heading 5
         h5: ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Desktop Heading 5
         'h4-m': ['1.3125rem', { letterSpacing: '0em', lineHeight: '136%', fontWeight: 'bold'  }], // 21px - Mobile Heading 4
@@ -154,8 +154,8 @@ module.exports = {
         'icon-xl': ['36px', { lineHeight: '100%' }],
       },
       fontFamily: {
-        body: ['Cambria', ...defaultTheme.fontFamily.serif],
-        variable: ['Arial', ...defaultTheme.fontFamily.serif],
+        body: ['Arial', ...defaultTheme.fontFamily.serif],
+        variable: ['Cambria', ...defaultTheme.fontFamily.serif],
         code: defaultTheme.fontFamily.serif,
         iconOutline: ['CohereIconOutline'],
         iconDefault: ['CohereIconDefault'],

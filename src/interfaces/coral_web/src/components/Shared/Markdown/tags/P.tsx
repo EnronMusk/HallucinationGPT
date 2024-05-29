@@ -1,20 +1,42 @@
-import { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithoutRef, useState, useRef, useEffect, useLayoutEffect } from 'react';
 import React from 'react';
-
-const Highlight = ({ children }: { children: React.ReactNode }) => {
-  return <span className="bg-yellow-100">{children}</span>;
-};
+import { MESSAGE_LIST_CONTAINER_ID, useCalculateCitationStyles } from '@/hooks/citations';
+import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
+import StaticGenerationSearchParamsBailoutProvider from 'next/dist/client/components/static-generation-searchparams-bailout-provider';
+import { left } from '@popperjs/core'; 
+import { Highlight } from './Highlight';
 
 export const P = ({ children }: ComponentPropsWithoutRef<'p'>) => {
   const processText = (text: string): React.ReactNode => {
-    const parts = text.split(/(\[\[H\]\]|\[\[\/H\]\])/);
+    const parts = text.split(/(\[H\]|\[\/H\])/);
     return parts.map((part, index) => {
-      if (part === '[[H]]' || part === '[[/H]]') {
+      if (part === '[H]' || part === '[/H]') {
         return null; // Ignore the markers themselves
       }
       if (index % 4 === 2) {
+        const idx_id = part.indexOf("+#$s^&@") //Grab idx for the secret id to assign.
+        let id = ""
+
+        if(idx_id !== -1){
+          let start = 7;
+          id = part.substring(start, start + 36)
+          part = part.substring(start + 36)
+          //console.log(id)
+        }
+
+        const idx_annotation = part.indexOf("@&^s$#+")
+        let annot = ""
+
+        if(idx_annotation !== -1){
+          let start = 7 //start from id
+          let len = part.substring(start, start + 3) //length of annotation
+          annot = part.substring(start + 3, start + 3 + Number(len))
+          part = part.substring(start + 3 + Number(len))
+          //console.log(id)
+        }
+
         // Text within markers
-        return <Highlight key={index}>{part}</Highlight>;
+        return <Highlight key={index} id={id.toString()} annotation={annot}>{part}</Highlight>; //Use id as a markter for linking the annotation.
       }
       return part; // Regular text
     });

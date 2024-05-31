@@ -1,7 +1,7 @@
 'use client';
 
 import { Transition } from '@headlessui/react';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState, useEffect } from 'react';
 
 import { CitationTextHighlighter } from '@/components/Citations/CitationTextHighlighter';
 import { DataTable } from '@/components/DataTable';
@@ -17,6 +17,7 @@ import {
   isErroredMessage,
   isFulfilledOrTypingMessage,
   isLoadingMessage,
+  BotState
 } from '@/types/message';
 import { cn } from '@/utils';
 
@@ -113,6 +114,10 @@ export const MessageContent: React.FC<Props> = ({ isLast, message, onRetry, over
       </>
     );
   } else {
+    // console.log("OVERRIDE", overrideText)
+    // (message.text === "") message.text : overrideText;
+    // console.log("NEWOVER", overrideText)
+    //message.annotations = {}
     const hasCitations =
       isTypingOrFulfilledMessage && message.citations && message.citations.length > 0;
     content = (

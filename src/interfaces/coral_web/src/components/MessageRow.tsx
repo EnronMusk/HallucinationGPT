@@ -69,11 +69,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     citations: { selectedCitation, hoveredGenerationId },
     hoverCitation,
   } = useCitationsStore();
-  const [isStepsExpanded, setIsStepsExpanded] = useState<boolean>(isLast);
-  // const {
-  //   citations: { selectedCitation, hoveredGenerationId },
-  //   hoverCitation,
-  // } = useCitationsStore();
   const hasSteps =
     (isFulfilledOrTypingMessage(message) ||
       isErroredMessage(message) ||

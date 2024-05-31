@@ -1,5 +1,5 @@
 import { usePreviousDistinct } from '@react-hookz/web';
-import { forwardRef, useEffect, useState, useRef, useImperativeHandle, ChangeEvent } from 'react';
+import { forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo, memo } from 'react';
 import React from 'react';
 import { useLongPress } from 'react-aria';
 
@@ -32,20 +32,14 @@ import {
   isUserMessage,
   Annotation,
   MessageType,
+  BotState,
+  isTypingMessage
 } from '@/types/message';
-import { cn, replaceTextWithCitations } from '@/utils';
+import { cn, mapHistoryToMessages, replaceTextWithCitations } from '@/utils';
 
 import { STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
 import { render } from '@headlessui/react/dist/utils/render';
 import { v4 as uuidv4 } from 'uuid';
-
-import { CitationTextHighlighter } from '@/components/Citations/CitationTextHighlighter';
-import { DataTable } from '@/components/DataTable';
-import { MarkdownImage } from '@/components/MarkdownImage';
-import { zIndex } from '@/constants/tailwindConfigValues';
-
-import { Dictionary } from 'lodash';
-import { offset } from '@floating-ui/react';
 
 type Props = {
   isLast: boolean;
@@ -65,16 +59,13 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 ) {
   const breakpoint = useBreakpoint();
 
-  //REPLACE DOUBLE NEW LINES WITH SINGLE? IDK?
-
-
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
   const [isStepsExpanded, setIsStepsExpanded] = useState<boolean>(isLast);
-  const {
-    citations: { selectedCitation, hoveredGenerationId },
-    hoverCitation,
-  } = useCitationsStore();
+  // const {
+  //   citations: { selectedCitation, hoveredGenerationId },
+  //   hoverCitation,
+  // } = useCitationsStore();
   const hasSteps =
     (isFulfilledOrTypingMessage(message) ||
       isErroredMessage(message) ||
@@ -90,10 +81,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     return message.text;
   };
 
-  if (isLast){
-    console.log("THIS IS LAST", message.text)
-  }
-
   const enableLongPress =
     (isFulfilledMessage(message) || isUserMessage(message)) && breakpoint === Breakpoint.sm;
   const { longPressProps } = useLongPress({
@@ -105,45 +92,46 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     if (delay) {
       setTimeout(() => setIsShowing(true), 300);
     }
+    setPreprocessedMessage(message.text)
   }, []);
-
+  
   useEffect(() => {
     if (isLast) {
       setIsStepsExpanded(true);
     }
   }, [isLast]);
 
-  const [highlightMessage, setHighlightMessage] = useState(false);
-  const prevSelectedCitationGenId = usePreviousDistinct(selectedCitation?.generationId);
+  // const [highlightMessage, setHighlightMessage] = useState(false);
+  // const prevSelectedCitationGenId = usePreviousDistinct(selectedCitation?.generationId);
 
-  useEffect(() => {
-    if (isFulfilledOrTypingMessage(message) && message.citations && message.generationId) {
-      if (
-        selectedCitation?.generationId === message.generationId &&
-        prevSelectedCitationGenId !== message.generationId
-      ) {
-        setHighlightMessage(true);
+  // useEffect(() => {
+  //   if (isFulfilledOrTypingMessage(message) && message.citations && message.generationId) {
+  //     if (
+  //       selectedCitation?.generationId === message.generationId &&
+  //       prevSelectedCitationGenId !== message.generationId
+  //     ) {
+  //       setHighlightMessage(true);
 
-        setTimeout(() => {
-          setHighlightMessage(false);
-        }, 1000);
-      }
-    }
-  }, [selectedCitation?.generationId, prevSelectedCitationGenId]);
+  //       setTimeout(() => {
+  //         setHighlightMessage(false);
+  //       }, 1000);
+  //     }
+  //   }
+  // }, [selectedCitation?.generationId, prevSelectedCitationGenId]);
 
   if (delay && !isShowing) return null;
 
-  const handleOnMouseEnter = () => {
-    if (isFulfilledOrTypingMessageWithCitations(message)) {
-      hoverCitation(message.generationId);
-    }
-  };
+  // const handleOnMouseEnter = () => {
+  //   if (isFulfilledOrTypingMessageWithCitations(message)) {
+  //     hoverCitation(message.generationId);
+  //   }
+  // };
 
-  const handleOnMouseLeave = () => {
-    if (isFulfilledOrTypingMessageWithCitations(message)) {
-      hoverCitation(null);
-    }
-  };
+  // const handleOnMouseLeave = () => {
+  //   if (isFulfilledOrTypingMessageWithCitations(message)) {
+  //     hoverCitation(null);
+  //   }
+  // };
 
   //FOr annotation linking
   const handleClick = (id:string) => {
@@ -194,11 +182,16 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   const [annotationKey, setAnnotationKey] = useState<string>("");  
   //Store our annots here!
   const [annotDict, setAnnotDict] = useState<AnnotDict>({});
-  const [addedAnnots, setAddedAnnots] = useState<AnnotDict>({}); //Checks for added annots to the prompt.
-  const [annotationPosition, setAnnotationPosition] = useState({ top: 0, left:0 });
+  const [addedAnnots, setAddedAnnots] = useState<Set<string>>(new Set()); //Checks for added annots to the prompt.
+
   const [preprocessedMessage, setPreprocessedMessage] = useState<string>(message.text); //default is normal message.text it is updated with higlights.
   const [annotSortDict, setSortAnnotDict] = useState<AnnotDict>(() => sortAnnotDict({}));
 
+
+
+  const annotDictLength = useMemo(() => {
+    return Object.keys(annotDict).length;
+  }, [annotDict]);
 
   //automatically updates the sorted annotdict when needed.
   useEffect(() => {
@@ -289,12 +282,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
     ///
 
-    //Creates a secret id for each annotation based on the annotation itself. (it is embedded in the highlighted text and processed by each markdown component)
-    const createSecretId = (text: string, start: number, end: number) => {
-
-      return '+#$s^&@' + (start * end + 100000).toString().substring(0,6)
-    }
-
     // Function to insert highlight markers into text based on ranges
     const insertHighlightMarkers = (text: string, annots: AnnotDict): string => {
       let highlightedText = '';
@@ -329,7 +316,13 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
         //Advanced highlighting to handle special formatting
         highlightedSelection = highlightedSelection.replaceAll("```", "[$$$%g%%$$$]"); //convert code breaks these so they arent touched.
 
-        highlightedSelection = highlightedSelection.replaceAll("**", "[/H]**[H]" + annotationSection);
+        highlightedSelection = highlightedSelection.replaceAll("**", "[@@@%ga%^$]"); //for bold
+        
+        highlightedSelection = highlightedSelection.replaceAll("*", "[/H]*[H]" + annotationSection); //for italics
+
+        highlightedSelection = highlightedSelection.replaceAll("_", "[/H]_[H]" + annotationSection); //for underline
+
+        highlightedSelection = highlightedSelection.replaceAll("[@@@%ga%^$]", "[/H]**[H]" + annotationSection); //for bold
 
         highlightedSelection = highlightedSelection.replaceAll("<", "[/H][H]<[/H][H]" + annotationSection); //<>
 
@@ -387,47 +380,40 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
     ///
   
-    interface RenderAnnoatedTextProps {
-      p_msg: string;
-    }
   //ad: { [key: string]: Annotation }}
-    const renderAnnotatedText: React.FC<RenderAnnoatedTextProps> = ({p_msg}: {p_msg: string}) => {
-        if (p_msg === ""){//if initial render has trouble...? sometimes processedMEssage is not initialized properly.
-          p_msg = message.text
-        }
+  
 
-        return (
-          <MessageContent 
-            isLast={isLast}
-            message={message}
-            onRetry={onRetry}
-            overrideText={p_msg}
-          >
-          </MessageContent>
-
-          // <Markdown
-          //   text={p_msg} //Pass pre processed text with highlights only.
-          //   className={cn(STYLE_LEVEL_TO_CLASSES.p)}
-          //   customComponents={{
-          //     img: MarkdownImage as any,
-          //     cite: CitationTextHighlighter as any,
-          //     table: DataTable as any,
-          //   }}
-          //   renderLaTex={true}
-          // />
-        )
-      };
+  const renderAnnotatedText = ({ p_msg }: { p_msg: string }) => {
+    const memoizedContent = useMemo(() => {
+      if (p_msg === '') {
+        p_msg = message.text;
+        console.log(message);
+      }
+      console.log("render row ", p_msg.charAt(0));
+      
+      return (
+        <MessageContent 
+          isLast={isLast}
+          message={message}
+          onRetry={onRetry}
+          overrideText={p_msg}
+        />
+      );
+    }, [p_msg, message]); // Add all dependencies here
+  
+    return memoizedContent;
+  };
 
 const normalize = (text : string) => {
-  return text.replace(/\n(\d{1,2})\./g, "").replace(/[\s-`\n\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
-  .replace(/\*\*/g, "")
+  return text.replace(/\n(\d{1,2})\./g, "").replace(/[\s-_`\n\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
+  .replace(/\*\*/g, "").replace(/\*/g, "")
 
   //.replace(/\\n\./g,"")
 };
 
 //For normalizing annotations ONLY.
 const normalizeAnnotation = (text : string) => {
-  return text.replace(/\n(\d{1,2})\./g, "").replace(/[-`\n\<\>\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
+  return text.replace(/\n(\d{1,2})\./g, "").replace(/[-_`\n\<\>\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
   .replace(/\*/g, "")
 
   //.replace(/\\n\./g,"")
@@ -437,7 +423,7 @@ const normalizeAnnotation = (text : string) => {
 const backNormalize = (text: string): string => {
 
   // Strings/characters to remove from the end (length 1-4)
-  const substrsToRemove = new Set([' ', '-', '\n', '\r', '\t', '`', '**']);
+  const substrsToRemove = new Set([' ', '-', '\n', '\r', '\t', '`', '**', '*', '_']);
 
   for (let i = 1; i <= 50; i++) {
     let pair = "\n" + i + '.'; // i + ". "
@@ -501,8 +487,8 @@ const filteredMappingV2 = (text:string) => {
     const normalizedText = normalize(text);
 
     let pairsToRemove = ['**']
-    let tripletsToRemove = []
-    let singlesToRemove = ['`', '-', '\n', '\r', ' ']
+    let tripletsToRemove = ['']
+    let singlesToRemove = ['`', '-', '\n', '\r', ' ', '*', '_']
 
     for (let i = 1; i <= 9; i++) {
       let pair = "\n" + i + '.'; // i + ". "
@@ -549,18 +535,6 @@ const filteredMappingV2 = (text:string) => {
 
     return filteredArray
   }
-
-  const [value, setValue] = useState('');
-
-  const handleChange = (event : ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    // Regex pattern: allow alphanumeric characters and specified special characters
-    const regex = /^[a-zA-Z0-9\[\]\(\)\{\}\!\@\#\$\%\^\&\_\+\=\-\;\:\'\"\,\.\?\/\\]*$/;
-    
-    if (regex.test(value)) {
-      setValue(value);
-    }
-  };
 
   //Used for annotation box
   function isAlphaNumericOrSymbol(char:string) {
@@ -624,8 +598,6 @@ const filteredMappingV2 = (text:string) => {
 
     inputBox.placeholder = 'Add annotation . . .';
     inputBox.maxLength = 100;
-
-    let text = ""
 
     // Adding event handler
     inputBox.onkeydown = (e) => {
@@ -703,10 +675,6 @@ const filteredMappingV2 = (text:string) => {
   }, [annotationVisible]);
 
 
-  useEffect(() => {
-    //setPreprocessedMessage(insertHighlightMarkers(message.text, annotSortDict))
-  }, [annotSortDict]);
-
 // // Usage
 // const originalText = "Your original text here";
 // const { normalizedText, mappings } = normalizeShellWithMapping(originalText);
@@ -767,12 +735,14 @@ const calculateStartAndEnd = (sc: Node, startOffset:number, st:string, n_msg:str
 
   console.log('p_tex_org', p_text)
 
+  const types = ['CODE', 'EM', 'STRONG']
+
   //For tricky starting points as code.
-  if (sc.parentElement?.nodeName === 'CODE' && ec.parentElement?.nodeName === 'P'){ 
+  if (types.includes(sc.parentElement?.nodeName||"") && ec.parentElement?.nodeName === 'P'){ 
     console.log('override with ender')
     p_text = calculateContainerEnder(ec)+normalize(ec.textContent||"")
     trueOffset += p_text.lastIndexOf(normalize(sc.textContent||""))
-  }
+  }sc.parentElement?.nodeName === 'CODE'
 
   console.log("p_text", p_text)
   console.log("s_text", text)
@@ -818,12 +788,27 @@ const handleAnnotationDelete = (key: string) => {
 
 }
 
-//checks if an annot is in the prompt.
-function isAnnotAdded(key: string, ad: AnnotDict): boolean {
+//Handles the addition and removal of annotations uuid from 'add to prompt' list
+const handleAddPromptAnnotation = (key: string) => {
+  setAddedAnnots((prevAnnots) => new Set(prevAnnots).add(key))
+}
 
-  if(ad[key]){
+//Handles the addition and removal of annotations uuid from 'add to prompt' list
+const handleRemovePromptAnnotation = (key: string) => {
+  setAddedAnnots((prevAnnots) => {
+    const newAnnots = new Set(prevAnnots);
+    newAnnots.delete(key);
+    return newAnnots;
+  });
+}
+
+//checks if an annot is in the prompt.
+function isAnnotAdded(key: string, ad: Set<string>): boolean {
+  if(ad.has(key)){
+    console.log('its added')
     return true
   }
+  console.log('its not added')
   return false
 }
 
@@ -962,22 +947,19 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     }
 
     //cannot annotate a space 
-    if(message.text === ""){
+    if(selectedText === ""){
       return;
     }
 
     const ida = addAnnotation(selectedText, "Add Annotation...", start, end, annotDict);
     // //setAnnotationVisible(true);
     setAnnotationKey(ida);
-
-    setAnnotationPosition({
-      top: 0, //rect.top + scrollY,
-      left: rect.right + window.scrollX //rect.right + scrollX - 10, //correct X.
-    });
     
     
 
   };
+
+
 
   return (
     <div
@@ -987,8 +969,8 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           : undefined
       }
       className={cn(ReservedClasses.MESSAGE, 'flex', className)}
-      onMouseEnter={handleOnMouseEnter}
-      onMouseLeave={handleOnMouseLeave}
+      //onMouseEnter={handleOnMouseEnter}
+      //onMouseLeave={handleOnMouseLeave}
       onMouseUp={handleMouseUp}
       ref={ref}
     >
@@ -1026,13 +1008,13 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           'transition-colors ease-in-out',
           'hover:bg-secondary-100',
 
-          {
-            'bg-secondary-50':
-              isFulfilledOrTypingMessage(message) &&
-              message.generationId &&
-              hoveredGenerationId === message.generationId,
-            'bg-primary-50 hover:bg-primary-50': highlightMessage,
-          }
+          // {
+          //   'bg-secondary-50':
+          //     isFulfilledOrTypingMessage(message) &&
+          //     message.generationId &&
+          //     hoveredGenerationId === message.generationId,
+          //   'bg-primary-50 hover:bg-primary-50': highlightMessage,
+          // }
         )}
         {...(enableLongPress && longPressProps)}
       >
@@ -1040,19 +1022,25 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           <Avatar message={message} />
           <div className="flex w-full min-w-0 max-w-message flex-1 flex-col items-center gap-x-3 md:flex-row">
             <div className="w-full">
-              {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents} />}
+              {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents}/>}
 
               {//This is where we render the annotated box
               }
 
-          
-              {annotationVisible && (<div></div>)}
+              {/* <MessageContent 
+              isLast={isLast}
+              message={message}
+              onRetry={onRetry}
+              overrideText={preprocessedMessage}
+              >
+              </MessageContent> */}
 
-             
+
                   <div>
                     {renderAnnotatedText({p_msg:preprocessedMessage})}
                   </div>
-              
+
+
 
               {//This was an old rendering pipeline. 
               //<MessageContent isLast={isLast} message={message} onRetry={onRetry} />
@@ -1065,10 +1053,10 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
               ))} */}
 
             
-            {Object.keys(annotDict).length > 0 && <h1 id='annots' className={cn('text-title','font-bold','font-family-CohereIconDefault')} 
+            {annotDictLength > 0 && <h1 id='annots' className={cn('text-title','font-bold','font-family-CohereIconDefault')} 
                                                       style={{ paddingTop: '0.5rem', paddingBottom: '0.3rem', }}>
                                                   Annotations</h1>}
-            {Object.keys(annotDict).length > 0 &&  <hr id='annots' style={{ paddingTop: '0.5rem', paddingBottom: '0.1rem', border: 'none', borderTop: '2px solid black' }}></hr>}
+            {annotDictLength > 0 &&  <hr id='annots' style={{ paddingTop: '0.5rem', paddingBottom: '0.1rem', border: 'none', borderTop: '2px solid black' }}></hr>}
             {Object.entries(annotSortDict).map(([key, annotation], index) => (
                 <div id='annots' key={index} className={cn()}>
                   <span id='annots' className='clickable cursor-pointer bg-yellow-100 hover:underline focus:underline' style={{                               
@@ -1112,47 +1100,51 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                               >{annotation.annotation}
                     </span>
                     <Icon size={'md'} name='trash' kind="outline" onClick={() => handleAnnotationDelete(key)} className={cn(
-              'transition ease-in-out',
-              'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
-              //'bg-secondary-200',
-              'trash' 
-            )} style={{                               
-              fontSize: '10.5px', // Adjust the font size as needed
-              height: '1rem', // Adjust the height as needed
-              width: '200px', // Adjust the width as needed
-              padding: '0.3rem', // Adjust the padding as needed
-              marginTop: '15px',
-              lineHeight: '1.5', // Adjust the line height as needed
-              fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
-            }}/>
-            <Tooltip
-              label={isAnnotAdded(key, addedAnnots) ? 'Added!' : 'Prompt Model'}
-              duration={1000}
-              showOutline={true}
-              hover
-              placement='left-start'
-              className={'position-relative display-block'}
-              icon={
-                <Icon size={'md'} name='add' kind="outline" onClick={() => handleAnnotationDelete(key)} className={cn(
-                  'transition ease-in-out',
-                  'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
-                  //'bg-secondary-200',
-                  'trash' 
-                )} style={{                               
-                  fontSize: '10.5px', // Adjust the font size as needed
-                  height: '1rem', // Adjust the height as needed
-                  width: '200px', // Adjust the width as needed
-                  padding: '0.3rem', // Adjust the padding as needed
-                  marginTop: '15px',
-                  lineHeight: '1.5', // Adjust the line height as needed
-                  fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
-                }}/>
-              }
-            />
+                    'transition ease-in-out',
+                    'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
+                    //'bg-secondary-200',
+                    'trash' 
+                  )} style={{                               
+                    fontSize: '10.5px', // Adjust the font size as needed
+                    height: '1rem', // Adjust the height as needed
+                    width: '200px', // Adjust the width as needed
+                    padding: '0.3rem', // Adjust the padding as needed
+                    marginTop: '15px',
+                    lineHeight: '1.5', // Adjust the line height as needed
+                    fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                  }}/>
+                  {!isAnnotAdded(key, addedAnnots) && (<Icon size={'md'} name='add' kind="outline" onClick={() => handleAddPromptAnnotation(key)} className={cn(
+                      'transition ease-in-out',
+                      'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
+                      //'bg-secondary-200',
+                      'trash' 
+                    )} style={{                               
+                      fontSize: '10.5px', // Adjust the font size as needed
+                      height: '1rem', // Adjust the height as needed
+                      width: '200px', // Adjust the width as needed
+                      padding: '0.3rem', // Adjust the padding as needed
+                      marginTop: '15px',
+                      lineHeight: '1.5', // Adjust the line height as needed
+                      fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                    }}/>)}
+                    {isAnnotAdded(key, addedAnnots) && (<Icon size={'md'} name='subtract' kind="outline" onClick={() => handleRemovePromptAnnotation(key)} className={cn(
+                      'transition ease-in-out',
+                      'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
+                      //'bg-secondary-200',
+                      'trash' 
+                    )} style={{                               
+                      fontSize: '10.5px', // Adjust the font size as needed
+                      height: '1rem', // Adjust the height as needed
+                      width: '200px', // Adjust the width as needed
+                      padding: '0.3rem', // Adjust the padding as needed
+                      marginTop: '15px',
+                      lineHeight: '1.5', // Adjust the line height as needed
+                      fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                    }}/>)}
                 </div>
                 
               ))}
-            {Object.keys(annotDict).length > 2 &&  <hr id='annots' style={{ marginTop: '0.8rem', paddingTop: '0.8rem', paddingBottom: '0.1rem', border: 'none', borderTop: '2px solid black' }}></hr>}
+            {annotDictLength > 2 &&  <hr id='annots' style={{ marginTop: '0.8rem', paddingTop: '0.8rem', paddingBottom: '0.1rem', border: 'none', borderTop: '2px solid black' }}></hr>}
             </div>
             
 
@@ -1166,7 +1158,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                 'hidden md:invisible md:flex md:group-hover:visible': !isLast,
               })}
             >
-              {hasSteps && (
+              {/* {hasSteps && (
                 <Tooltip label={`${isStepsExpanded ? 'Hide' : 'Show'} steps`} hover>
                   <IconButton
                     iconName="list"
@@ -1180,7 +1172,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                     onClick={() => setIsStepsExpanded((prevIsExpanded) => !prevIsExpanded)}
                   />
                 </Tooltip>
-              )}
+              )} */}
               <CopyToClipboardIconButton value={getMessageText()} onClick={onCopy} />
             </div>
           </div>
@@ -1189,4 +1181,6 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     </div>
   );
 });
-export default MessageRow;
+
+
+export default memo(MessageRow);

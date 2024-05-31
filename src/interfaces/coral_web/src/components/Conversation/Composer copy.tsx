@@ -51,12 +51,11 @@ const Composer: React.FC<Props> = ({
       if (e.shiftKey) return;
 
       e.preventDefault();
-      //Force it to use the curretn textRef value (not static)
       if (isReadyToReceiveMessage && (textareaRef?.current?.value||"").trim().length > 0) {
         onSend(textareaRef?.current?.value);
         //set it to blank
         if(textareaRef?.current?.value){
-          textareaRef.current.value="" //reset the box on send.
+          textareaRef.current.value=""
         }
       }
     }
@@ -169,4 +168,4 @@ const Square = () => (
   </svg>
 );
 
-export default React.memo(Composer);
+export default Composer;

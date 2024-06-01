@@ -124,6 +124,27 @@
   -ms-user-select: none; /* For Internet Explorer/Edge */
 }
 
+th {
+  border: 0px solid #ddd;
+  font-size: 14px;
+  padding: 4px;
+  text-align: center;
+  vertical-align: top;
+  overflow-wrap: break-word;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+td {
+  border: 0px solid #757575;
+  padding-left: 16px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+  max-width: 700px;
+  word-wrap: break-word;
+}
+
 
 /* this doesnt work because JSX and html suck!!!! */
 @layer base {

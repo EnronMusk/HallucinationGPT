@@ -1,5 +1,5 @@
 import { usePreviousDistinct } from '@react-hookz/web';
-import { forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo, memo } from 'react';
+import { MouseEvent, forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo, memo, useContext, createContext } from 'react';
 import React from 'react';
 import { useLongPress } from 'react-aria';
 
@@ -41,11 +41,15 @@ import { STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
 import { render } from '@headlessui/react/dist/utils/render';
 import { v4 as uuidv4 } from 'uuid';
 
+import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
+
 type Props = {
   isLast: boolean;
+  is2ndLast: boolean;
   message: ChatMessage;
   delay?: boolean;
   className?: string;
+  order?: number;
   onCopy?: VoidFunction;
   onRetry?: VoidFunction;
 };
@@ -54,7 +58,7 @@ type Props = {
  * Renders a single message row from the user or from our models.
  */
 const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal(
-  { message, delay = false, isLast, className = '', onCopy, onRetry },
+  { message, delay = false, isLast, is2ndLast, className = '', order, onCopy, onRetry },
   ref
 ) {
   const breakpoint = useBreakpoint();
@@ -178,7 +182,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   }
 
   // State to manage the selected text and annotations
-  const [annotationVisible, setAnnotationVisible] = useState<boolean>(false);
+  const [annotationVisible, setAnnotationVisible] = useState<boolean | null>(null);
   const [annotationKey, setAnnotationKey] = useState<string>("");  
   //Store our annots here!
   const [annotDict, setAnnotDict] = useState<AnnotDict>({});
@@ -237,9 +241,10 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     const id = uuidv4().toString();
 
     const annot: Annotation = { htext:s, annotation:a, start, end };
-    ad[id] = annot;
-    const newDictSorted = sortAnnotDict(ad)
-    setAnnotDict(ad);
+    const newAnnotDict = {...ad}
+    newAnnotDict[id] = annot;
+    const newDictSorted = sortAnnotDict(newAnnotDict)
+    setAnnotDict(newAnnotDict);
     setSortAnnotDict(newDictSorted)
 
     setPreprocessedMessage(insertHighlightMarkers(message.text, newDictSorted)) //Set the preprocessed message with higlights
@@ -296,7 +301,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
         const annotText = annotation.annotation;
 
         //Add the annotation length and fill it to 3 characters with secret parase key.
-        const annotationSection = "@&^s$#+" + annotText.length.toString().padStart(3, '0') + annotText 
+        const annotationSection = "@&^s$x+" + annotText.length.toString().padStart(3, '0') + annotText 
 
         // Add the text before the range
         highlightedText += text.substring(currentIndex, start);
@@ -304,7 +309,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
         highlightedText += '[H]';
 
         //Construct the secret id for click scroll to be parsed by the markdown. Is parsed using the secret idx '+#$!^&@'
-        highlightedText += '+#$s^&@' + key
+        highlightedText += '+x$s^&@' + key
 
         highlightedText += annotationSection //add annotation section.
 
@@ -317,8 +322,12 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
         highlightedSelection = highlightedSelection.replaceAll("```", "[$$$%g%%$$$]"); //convert code breaks these so they arent touched.
 
         highlightedSelection = highlightedSelection.replaceAll("**", "[@@@%ga%^$]"); //for bold
+
+        highlightedSelection = highlightedSelection.replaceAll("\n-", "[%s%^$]"); //for lists
         
         highlightedSelection = highlightedSelection.replaceAll("*", "[/H]*[H]" + annotationSection); //for italics
+
+        highlightedSelection = highlightedSelection.replaceAll("#", "[/H]#[H]" + annotationSection); //for headings (doesnt fix sadly)
 
         highlightedSelection = highlightedSelection.replaceAll("_", "[/H]_[H]" + annotationSection); //for underline
 
@@ -332,7 +341,9 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
         highlightedSelection = highlightedSelection.replaceAll("[$$$%g%%$$$]", "```"); //restore them
 
-        highlightedSelection = highlightedSelection.replaceAll("- ", "- [H]" + annotationSection); //For lists
+        highlightedSelection = highlightedSelection.replaceAll("- ", "[/H]- [H]" + annotationSection); //For lists
+
+        highlightedSelection = highlightedSelection.replaceAll("[%s%^$]", "[/H]\n- [H]" + annotationSection); //For lists
 
         highlightedSelection = highlightedSelection.replaceAll(/\n(\d{1,2})\. /g, '[/H]\n$1. [H]' + annotationSection) //lists
 
@@ -340,6 +351,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
         highlightedSelection = highlightedSelection.replaceAll("\n\n", "[/H]\n\n[H]" + annotationSection);  //for highlgihts through line breaks.
         //highlightedSection = highlightedSection.replaceAll(":", "[/H]:[H]"); //list item titles
+        //highlightedSelection = highlightedSelection.replaceAll("\n", "[/H]\n[H]" + annotationSection);
 
         highlightedText += highlightedSelection;
 
@@ -405,7 +417,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   };
 
 const normalize = (text : string) => {
-  return text.replace(/\n(\d{1,2})\./g, "").replace(/[\s-_`\n\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
+  return text.replace(/\n(\d{1,2})\./g, "").replace(/[\s-_#`\n\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
   .replace(/\*\*/g, "").replace(/\*/g, "")
 
   //.replace(/\\n\./g,"")
@@ -413,7 +425,7 @@ const normalize = (text : string) => {
 
 //For normalizing annotations ONLY.
 const normalizeAnnotation = (text : string) => {
-  return text.replace(/\n(\d{1,2})\./g, "").replace(/[-_`\n\<\>\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
+  return text.replace(/\n(\d{1,2})\./g, "").replace(/[-_`#\n\<\>\r\t]/g, "")//.replace(/[\x00-\x1F\x7F\s]/g, '');
   .replace(/\*/g, "")
 
   //.replace(/\\n\./g,"")
@@ -488,7 +500,7 @@ const filteredMappingV2 = (text:string) => {
 
     let pairsToRemove = ['**']
     let tripletsToRemove = ['']
-    let singlesToRemove = ['`', '-', '\n', '\r', ' ', '*', '_']
+    let singlesToRemove = ['`', '-', '\n', '\r', ' ', '*', '_', '#']
 
     for (let i = 1; i <= 9; i++) {
       let pair = "\n" + i + '.'; // i + ". "
@@ -616,7 +628,7 @@ const filteredMappingV2 = (text:string) => {
         }));
 
         // Temporary dict for this single render.
-        let ad = annotDict;
+        let ad = {...annotDict};
         ad[annotationKey].annotation = final_annot;
         ad = sortAnnotDict(ad);
 
@@ -762,7 +774,9 @@ const calculateStartAndEnd = (sc: Node, startOffset:number, st:string, n_msg:str
   //if selected text is long enough, have it override.
   console.log("ST LENGTH", st.length)
   if (st.length >= 60){
+    console.log('st override')
     p_idx = n_msg.indexOf(st)
+    console.log("st p_idx", p_idx)
     c_idx = 0;
     trueOffset = 0;
     text = ""
@@ -785,11 +799,15 @@ function showHiddenCharacters(str:string) {
 const handleAnnotationDelete = (key: string) => {
   setAnnotationVisible(false);
   removeAnnotation(key, annotSortDict);
+  handleRemovePromptAnnotation(key) //remove it if added to prompt
 
 }
 
 //Handles the addition and removal of annotations uuid from 'add to prompt' list
 const handleAddPromptAnnotation = (key: string) => {
+  if(annotationVisible === true){ //you cant add unfinished annotations.
+    return
+  }
   setAddedAnnots((prevAnnots) => new Set(prevAnnots).add(key))
 }
 
@@ -797,21 +815,153 @@ const handleAddPromptAnnotation = (key: string) => {
 const handleRemovePromptAnnotation = (key: string) => {
   setAddedAnnots((prevAnnots) => {
     const newAnnots = new Set(prevAnnots);
-    newAnnots.delete(key);
+    if(newAnnots.has(key)){
+      newAnnots.delete(key);
+    }
     return newAnnots;
   });
 }
 
+///
+
+
+
+/// ANNOTATION prompt assembly code here
+
+
+
+
+///
+
+// | Header 1 | Header 2 |
+// |----------|----------|
+// | Cell 1   | Cell 2   |
+// | Cell 3   | Cell 4   |
+
+function constructHeaders(): string {
+  let l1 = '| Annotated Text | Annotation |\n'
+  let l2 = '|----------|----------|\n'
+  return l1 + l2
+}
+
+//Builds the prompt for annotations to be passed to the model
+function constructAnnotationPromptCore(annots: AnnotDict, keys: Set<string>): string {
+  let core = ""
+
+  //Creates a single line for the prompt
+  function createAnnotationLine(a: Annotation): string {
+    let line = "| " + (a.htext).trim().replaceAll('\n',"").replaceAll('\t',"").replaceAll(/\s{2,}/g, "").replaceAll('\r',"") + " | *" + (a.annotation).trim() + "* |\n"
+    //let line = "**" + (a.htext).trim() + "** : *" + (a.annotation).trim() + "*\n"
+
+    return line
+  }
+
+  Object.entries(annots).forEach(([key, annotation]) => {
+
+    if(keys.has(key)){  
+      core += '' + createAnnotationLine(annotation)
+      //core += '\n- ' + createAnnotationLine(annotation)
+    }
+    
+    
+})
+
+return core
+}
+
+///THIS HANDLES THE CONSTRUCTION OF ANNOTATION PROMPTS
+useEffect(() => {
+
+  let parent = document.getElementById(CHAT_COMPOSER_TEXTAREA_ID) as HTMLTextAreaElement;
+  if(parent){
+    
+    console.log("is 2nd or not?", is2ndLast)
+    if(is2ndLast){
+      console.log("is2nd")
+      let start = "Can you address these annotations? Answer by modifying your previous output. I have provided annotations for my prompt first, then your output in the order they appeared in our conversation.\n\n## Prompt Annotations:\n" + constructHeaders()
+      let sCore = constructAnnotationPromptCore(annotSortDict, addedAnnots)
+      let h2 = parent.getAttribute('data-model')
+
+      //If no user prompts
+      if(sCore === ""){
+        start = ""
+        
+      }
+
+      //if no model prompts
+      if(h2 === "" && sCore !== ""){
+        start = "Can you address these annotations? Answer by modifying your previous output. I have provided annotations regarding my prompt in the order they appeared in the prompt.\n\n## Prompt Annotations:\n" + constructHeaders()
+        sCore += '\n'
+      }
+      let h1 = start + sCore
+
+      parent.setAttribute('data-user', h1)
+
+      let new_val = h1 + h2
+      parent.value = new_val === "" ? "" : new_val
+
+
+    } else if(isLast){
+      let start = '\n\n## Output Annotations:\n'
+      let eCore = constructAnnotationPromptCore(annotSortDict, addedAnnots)
+      let h1 = parent.getAttribute('data-user')
+
+      //If no output annotations
+      if(eCore === ""){
+        start = ""
+      }
+
+      if(h1 === "" && eCore !== ""){
+        start = "Can you address these annotations? Answer by modifying your previous output. I have provided annotations for your output in the order they appeared in your message.\n\n## Output Annotations:\n" + constructHeaders()
+      }
+
+      let h2 = start + eCore
+      console.log('realh2',h2)
+      console.log('start', start)
+      parent.setAttribute('data-model', h2)
+
+      //Assign the prompt
+      let new_val = h1 + h2
+      parent.value = new_val === "" ? "" : new_val
+    }
+
+    parent.focus();
+    console.log('PARENT VALUE', parent.value)
+    //parent.blur();
+
+    //this will force the output box to readjust.
+    if (parent) {
+      parent.style.height = 'auto';
+      parent.style.height = `${parent.scrollHeight}px`;
+
+      // if the content overflows the max height, show the scrollbar
+      if (parent.scrollHeight > parent.clientHeight + 2) {
+        parent.style.overflowY = 'scroll';
+      } else {
+        parent.style.overflowY = 'hidden';
+      }
+    }
+  }
+
+}, [addedAnnots]);
+
 //checks if an annot is in the prompt.
 function isAnnotAdded(key: string, ad: Set<string>): boolean {
   if(ad.has(key)){
-    console.log('its added')
     return true
   }
-  console.log('its not added')
   return false
 }
 
+///Custom copier because the cohere  1 is too annoying to use wtihout breaking other stuff
+
+const handleCopy = async (e: MouseEvent<HTMLElement>) => {
+  try {
+    await window?.navigator?.clipboard.writeText(e.currentTarget.id ?? '');
+  } catch (e) {
+    console.error(e);
+  }
+};
 
   
 
@@ -955,6 +1105,8 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     // //setAnnotationVisible(true);
     setAnnotationKey(ida);
     
+
+
     
 
   };
@@ -1034,7 +1186,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
               overrideText={preprocessedMessage}
               >
               </MessageContent> */}
-
+              
 
                   <div>
                     {renderAnnotatedText({p_msg:preprocessedMessage})}
@@ -1141,6 +1293,20 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                       lineHeight: '1.5', // Adjust the line height as needed
                       fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
                     }}/>)}
+                    <Icon size={'md'} name='copy' kind="outline" id={annotation.htext} onClick={handleCopy} className={cn(
+                      'transition ease-in-out',
+                      'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
+                      //'bg-secondary-200',
+                    )} style={{                               
+                      fontSize: '13px', // Adjust the font size as needed
+                      height: '1rem', // Adjust the height as needed
+                      width: '200px', // Adjust the width as needed
+                      padding: '0.3rem', // Adjust the padding as needed
+                      marginTop: '15px',
+                      lineHeight: '1.5', // Adjust the line height as needed
+                      fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                    }}/>
+
                 </div>
                 
               ))}
@@ -1173,7 +1339,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                   />
                 </Tooltip>
               )} */}
-              <CopyToClipboardIconButton value={getMessageText()} onClick={onCopy} />
+              {<CopyToClipboardIconButton value={getMessageText()} onClick={onCopy} />}
             </div>
           </div>
         </div>

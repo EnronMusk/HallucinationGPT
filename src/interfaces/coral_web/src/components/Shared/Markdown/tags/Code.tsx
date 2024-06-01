@@ -31,7 +31,7 @@ export const Code = ({ children }: ComponentPropsWithoutRef<'code'>) => {
         return null; // Ignore the markers themselves
       }
       if (index % 4 === 2) {
-        const idx_id = part.indexOf("+#$s^&@") //Grab idx for the secret id to assign.
+        const idx_id = part.indexOf("+x$s^&@") //Grab idx for the secret id to assign.
         let id = ""
 
         if(idx_id !== -1){
@@ -41,7 +41,7 @@ export const Code = ({ children }: ComponentPropsWithoutRef<'code'>) => {
           //console.log(id)
         }
 
-        const idx_annotation = part.indexOf("@&^s$#+")
+        const idx_annotation = part.indexOf("@&^s$x+")
         let annot = ""
 
         if(idx_annotation !== -1){

@@ -11,7 +11,7 @@ import { ReservedClasses } from '@/constants';
 import { MESSAGE_LIST_CONTAINER_ID, useCalculateCitationStyles } from '@/hooks/citations';
 import { useFixCopyBug } from '@/hooks/fixCopyBug';
 import { useAgentsStore, useCitationsStore } from '@/stores';
-import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage } from '@/types/message';
+import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotation} from '@/types/message';
 import { cn } from '@/utils';
 
 type Props = {
@@ -59,7 +59,7 @@ export default memo(MessagingContainer);
  * This component lays out the messages, citations, and composer.
  * In order to access the state hooks for the scroll to bottom component, we need to wrap the content in a component.
  */
-const Content: React.FC<Props> = (props) => {
+const Content: React.FC<Props> = memo((props) => {
   const { isStreaming, messages, composer, streamingMessage } = props;
   const scrollToBottom = useScrollToBottom();
   const {
@@ -160,26 +160,20 @@ const Content: React.FC<Props> = (props) => {
       />
     </div>
   );
-};
+});
 
 type MessagesProps = Props;
 /**
  * This component is in charge of rendering the messages.
  */
-const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
+const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
   { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents },
   ref
 ) {
-  const isChatEmpty = messages.length === 0;
-
-  if (isChatEmpty) {
-    return (
-      <div className="m-auto p-4">
-        <Welcome show={isChatEmpty} agentId={agentId} />
-      </div>
-    );
-  }
-
+  const isConversationEmpty = messages.length === 0;
+  //console.log("THE MSGS")
+  //console.log(messages)
+  //console.log(streamingMessage)
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
       {startOptionsEnabled && (
@@ -191,13 +185,16 @@ const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInte
       <div className="mt-auto flex flex-col gap-y-4 md:gap-y-6">
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;
+          const is2ndLast = i === messages.length - 2;
+          const isTrue2nd = is2ndLast || (isLastInList && streamingMessage);
           m.annotations = {} //Initialize the annotations here!
           return (
             <MessageRow
               key={i}
               message={m}
               isLast={isLastInList && !streamingMessage}
-              isStreamingToolEvents={isStreamingToolEvents}
+              is2ndLast={is2ndLast && !streamingMessage || (isLastInList && !!streamingMessage)}
+              order={i + 1}
               className={cn({
                 // Hide the last message if it is the same as the separate streamed message
                 // to avoid a flash of duplicate messages.
@@ -212,16 +209,11 @@ const Messages = forwardRef<HTMLDivElement, MessagesProps>(function MessagesInte
             />
           );
         })}
-      </div>
-
+      {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {streamingMessage && (
-        <MessageRow
-          isLast
-          isStreamingToolEvents={isStreamingToolEvents}
-          message={streamingMessage}
-          onRetry={onRetry}
-        />
+        <MessageRow key={messages.length} order={messages.length} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} />
       )}
+      </div>
     </div>
   );
-});
+}));

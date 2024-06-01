@@ -134,7 +134,7 @@ export const Markdown = ({
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
         components={{
-          //pre: Pre,
+          pre: Pre, //copy for code
           ...customComponents,
           p: P, // CUSTOM P
           code: Code,

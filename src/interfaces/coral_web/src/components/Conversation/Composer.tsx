@@ -1,6 +1,5 @@
 import { ChangeEvent, useEffect, useRef } from 'react';
 import React from 'react';
-
 import { Tool } from '@/cohere-client';
 import { ComposerFiles } from '@/components/Conversation/ComposerFiles';
 import { ComposerMenu } from '@/components/Conversation/ComposerMenu';
@@ -39,25 +38,27 @@ const Composer: React.FC<Props> = ({
     useFileActions();
   const isDesktop = useIsDesktop();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const canSend = isReadyToReceiveMessage && (textareaRef?.current?.value||"").trim().length > 0;
+  const canSend = isReadyToReceiveMessage && value.trim().length > 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
-      console.log(textareaRef?.current?.value)
-      console.log(canSend)
-      console.log(isReadyToReceiveMessage)
-
       // Do expected default behaviour (add a newline inside of the textarea)
       if (e.shiftKey) return;
 
+      console.log(textareaRef.current?.value)
+      console.log(canSend)
+
+      let cref = textareaRef.current;
+
       e.preventDefault();
-      //Force it to use the curretn textRef value (not static)
-      if (isReadyToReceiveMessage && (textareaRef?.current?.value||"").trim().length > 0) {
-        onSend(textareaRef?.current?.value);
-        //set it to blank
-        if(textareaRef?.current?.value){
-          textareaRef.current.value="" //reset the box on send.
-        }
+      if (canSend) {
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
+        onSend(undefined);
+      } else if(textareaRef.current?.value != ""){ //manually check value in case of no update to the DOM.
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
+        onSend(cref?.value);
       }
     }
   };
@@ -94,9 +95,19 @@ const Composer: React.FC<Props> = ({
     return () => clearTimeout(timer);
   }, [isMobileConvListPanelOpen, isDesktop, textareaRef.current]);
 
+  //for the send button only.
+  const handleSendClick = () => {
+    if (textareaRef.current && textareaRef.current.value.trim().length > 0) {
+      onSend(textareaRef.current.value);
+    } else {
+      onStop();
+    }
+  };
+
   return (
     <div className="flex w-full flex-col gap-y-2">
       <div className="flex items-end gap-x-2 md:gap-x-4">
+        {<Icon name='help' size='lg' kind='default' className='position-relative hover:' style={{bottom:'25%', transform:'translateY(-100%)'}} />}
         <div
           className={cn(
             'flex w-full items-end',
@@ -111,7 +122,7 @@ const Composer: React.FC<Props> = ({
               id={CHAT_COMPOSER_TEXTAREA_ID}
               dir="auto"
               ref={textareaRef}
-              //value={value} //causes CRAZY rendering. DO NOT UNCOMMENT
+              value={value}
               placeholder="Prompt here..."
               className={cn(
                 'min-h-[3rem] md:min-h-[4rem]',
@@ -127,7 +138,7 @@ const Composer: React.FC<Props> = ({
               )}
               rows={1}
               onKeyDown={handleKeyDown}
-              //onChange={onChange} //causes CRAZY rendering. DO NOT UNCOMMENT
+              onChange={onChange}
             />
             <ComposerFiles
               uploadingFiles={uploadingFiles}
@@ -145,7 +156,7 @@ const Composer: React.FC<Props> = ({
               'border-secondary-400 bg-secondary-200 text-secondary-800 hover:bg-secondary-300'
             )}
             type="button"
-            onClick={() => (canSend ? onSend(textareaRef.current?.value) : onStop())}
+            onClick={handleSendClick}
           >
             {isReadyToReceiveMessage ? <Icon name="arrow-right" /> : <Square />}
           </button>

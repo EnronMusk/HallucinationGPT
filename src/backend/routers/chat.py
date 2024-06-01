@@ -430,10 +430,10 @@ def create_chat_history(
         message for message in conversation.messages #[:user_message_position] #LEAVE THIS COMMENTED OUT.
     ]
 
-    print("TEXT MESSAGES: ")
-    for m in text_messages:
-        print(m.text)
-    print("++++++++++++++++++++++++++++++++++++++++++++")
+    # print("TEXT MESSAGES: ")
+    # for m in text_messages:
+    #     print(m.text)
+    # print("++++++++++++++++++++++++++++++++++++++++++++")
     return [
         ChatMessage(
             role=ChatRole(message.agent.value.upper()),
@@ -480,7 +480,7 @@ def generate_chat_stream(
     **kwargs: Any,
 ) -> Generator[bytes, Any, None]:
 
-    print("used this method!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("used this method (chat stream) !!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("conv id :", conversation_id)
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 

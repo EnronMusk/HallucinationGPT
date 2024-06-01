@@ -168,7 +168,7 @@ class CohereDeployment(BaseDeployment):
             messages.append(chat_msg)
         
         print("XSdadasdaisdhi1uy23y12ugeadbahjsdgakjsdhaksjhdaksjhdczmxnb")
-        print(messages)
+        #print(messages)
 
         try: 
             openai_response = self.OAI_client.chat.completions.create(

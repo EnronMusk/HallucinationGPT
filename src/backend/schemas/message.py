@@ -8,6 +8,9 @@ from backend.schemas.citation import Citation
 from backend.schemas.document import Document
 from backend.schemas.file import File
 
+# annotations import
+from backend.schemas.annotation import Annotation
+
 
 class MessageBase(BaseModel):
     text: str
@@ -26,12 +29,10 @@ class Message(MessageBase):
     documents: List[Document]
     citations: List[Citation]
     files: List[File]
+    annotations: List[Annotation] #added annotaitons
 
     agent: MessageAgent
 
     class Config:
         from_attributes = True
 
-
-class UpdateMessage(MessageBase):
-    pass

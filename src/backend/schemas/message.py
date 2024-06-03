@@ -7,6 +7,9 @@ from backend.database_models.message import MessageAgent
 from backend.schemas.citation import Citation
 from backend.schemas.document import Document
 from backend.schemas.file import File
+
+# annotations import
+from backend.schemas.annotation import Annotation
 from backend.schemas.tool import ToolCall
 
 
@@ -27,6 +30,7 @@ class Message(MessageBase):
     documents: List[Document]
     citations: List[Citation]
     files: List[File]
+    annotations: List[Annotation] #added annotaitons
     tool_calls: List[ToolCall]
     tool_plan: Union[str, None]
 
@@ -35,6 +39,3 @@ class Message(MessageBase):
     class Config:
         from_attributes = True
 
-
-class UpdateMessage(MessageBase):
-    pass

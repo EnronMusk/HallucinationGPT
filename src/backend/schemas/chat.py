@@ -244,6 +244,27 @@ class ChatResponseEvent(BaseModel):
         title="Data returned from chat response of a given event type",
     )
 
+class BaseAnnotationRequest(BaseModel):
+
+    message_id: str = Field(
+        title="The message id.",
+    )
+    conversation_id: str = Field(
+        title="To store a conversation then create a conversation id and use it for every related request",
+    )
+    htext: str = Field(
+        title="The highlighted text.",
+    )
+    annotation: str = Field(
+        title="The annotation text.",
+    )
+    start: int = Field(
+        title="start.",
+    )
+    end: int = Field(
+        title="end.",
+    )
+
 
 class BaseChatRequest(BaseModel):
 

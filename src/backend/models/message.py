@@ -8,6 +8,7 @@ from backend.models.base import Base
 from backend.models.citation import Citation
 from backend.models.document import Document
 from backend.models.file import File
+from backend.models.annotation import Annotation
 
 
 class MessageAgent(StrEnum):
@@ -36,10 +37,16 @@ class Message(Base):
     documents: Mapped[List["Document"]] = relationship()
     citations: Mapped[List["Citation"]] = relationship()
     files: Mapped[List["File"]] = relationship()
+    annotations: Mapped[List["Annotation"]] = relationship()
 
     agent: Mapped[MessageAgent] = mapped_column(
         Enum(MessageAgent, native_enum=False),
     )
+
+    #For ordering of annotations.
+    @property
+    def annotations_ordered(self):
+        return sorted(self.annotations, key=lambda x: x.position)
 
     __table_args__ = (
         Index("message_conversation_id_user_id", conversation_id, user_id),

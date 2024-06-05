@@ -164,6 +164,7 @@ export class CohereClient {
     const requestBody = JSON.stringify({
       ...chatRequest,
     });
+    console.log('frontend chat-stream ping')
     return await fetchEventSource(this.getEndpoint('chat-stream'), {
       method: 'POST',
       headers: { ...this.getHeaders(), ...headers },
@@ -238,6 +239,7 @@ export class CohereClient {
   }: { conversationId: string } & {
     signal?: AbortSignal;
   }): Promise<Conversation> {
+    console.log('frontend getconvo ping')
     const response = await this.fetch(`${this.getEndpoint('conversations')}/${conversationId}`, {
       method: 'GET',
       headers: this.getHeaders(),
@@ -273,9 +275,22 @@ export class CohereClient {
     return body as {};
   }
 
+  //deletes annotations
+  public async deleteAnnotation(annotation_id: string ): Promise<void> {
+    console.log('deleting annotaiton')
+    const response = await this.fetch(`${this.getEndpoint('annotations')}/${annotation_id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    const body = await response.json();
+    console.log('deeltedi h tkn')
+
+  }
+
   public async editConversation(
     request: UpdateConversation & { conversationId: string }
   ): Promise<Conversation> {
+    console.log("frontend editconvo-ping")
     const { conversationId, ...rest } = request;
     const endpoint = `${this.getEndpoint('conversations')}/${conversationId}`;
     const requestBody: UpdateConversation = {
@@ -317,6 +332,44 @@ export class CohereClient {
     }
 
     return body as Tool[];
+  }
+
+  //
+
+
+  //For adding annotations!
+
+  //
+
+  public async annotate(
+    annotation_id: string,
+    annotationRequest: {
+      message_id: string,
+      conversation_id: string,
+      htext: string,
+      annotation: string,
+      start: number,
+      end: number
+    }): Promise<void>  {
+    console.log('reqeusting end???')
+    const endpoint = `${this.getEndpoint('annotations')}/${annotation_id}/add`;
+    console.log('reqeusting end', endpoint)
+    const requestBody = {
+      message_id: annotationRequest.message_id,
+      conversation_id: annotationRequest.conversation_id,
+      htext: annotationRequest.htext,
+      annotation: annotationRequest.annotation,
+      start: annotationRequest.start,
+      end: annotationRequest.end
+    };
+  
+    const response = await this.fetch(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(requestBody),
+      headers: this.getHeaders(),
+    });
+
+    const body = await response.json();
   }
 
   public async listDeployments(): Promise<Deployment[]> {
@@ -382,6 +435,7 @@ export class CohereClient {
       | 'tools'
       | 'deployments'
       | 'experimental_features'
+      | 'annotations'
   ) {
     return `/api/${endpoint}`;
   }
@@ -394,3 +448,5 @@ export class CohereClient {
     return headers;
   }
 }
+
+

@@ -1,24 +1,22 @@
 import datetime
 
 from pydantic import BaseModel, Field
+from typing import List, Optional, Union
 
+class AnnotationBase(BaseModel):
+    htext: str
 
-class Annotation(BaseModel):
+class Annotation(AnnotationBase):
     id: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
     start: int
     end: int
-    htext: str
     annotation: str
-
-    position: int
-
 
     class Config:
         from_attributes = True
-
 
 class ListAnnotation(Annotation):
     pass

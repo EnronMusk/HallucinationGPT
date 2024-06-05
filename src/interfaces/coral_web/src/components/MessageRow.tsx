@@ -1,47 +1,36 @@
-import { usePreviousDistinct } from '@react-hookz/web';
 import { MouseEvent, forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo, memo, useContext, createContext } from 'react';
 import React from 'react';
 import { useLongPress } from 'react-aria';
 
 import { Avatar } from '@/components/Avatar';
-import IconButton from '@/components/IconButton';
 import { LongPressMenu } from '@/components/LongPressMenu';
 import { MessageContent } from '@/components/MessageContent';
-import { MESSAGE_LIST_CONTAINER_ID } from '@/hooks/citations';
 import {
   Button,
   CopyToClipboardButton,
   CopyToClipboardIconButton,
   Icon,
-  Markdown,
-  Tooltip,
-  Text,
 } from '@/components/Shared';
 import { ToolEvents } from '@/components/ToolEvents';
 import { ReservedClasses } from '@/constants';
 import { Breakpoint, useBreakpoint } from '@/hooks/breakpoint';
 import { getMessageRowId } from '@/hooks/citations';
-import { useCitationsStore } from '@/stores';
 import {
   type ChatMessage,
   isAbortedMessage,
   isErroredMessage,
   isFulfilledMessage,
   isFulfilledOrTypingMessage,
-  isFulfilledOrTypingMessageWithCitations,
   isUserMessage,
   Annotation,
-  MessageType,
-  BotState,
-  isTypingMessage
 } from '@/types/message';
-import { cn, mapHistoryToMessages, replaceTextWithCitations } from '@/utils';
+import { cn } from '@/utils';
 
-import { STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
-import { render } from '@headlessui/react/dist/utils/render';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
+import { appSSR } from '@/pages/_app';
+import { CohereClient } from '@/cohere-client';
 
 type Props = {
   isLast: boolean;
@@ -62,6 +51,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   ref
 ) {
   const breakpoint = useBreakpoint();
+  const client = appSSR.init_client().client;
 
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
@@ -629,10 +619,28 @@ const filteredMappingV2 = (text:string) => {
 
         // Temporary dict for this single render.
         let ad = {...annotDict};
+        let annotation_inst = ad[annotationKey]
         ad[annotationKey].annotation = final_annot;
         ad = sortAnnotDict(ad);
 
         setSortAnnotDict(ad);
+
+
+        //add annotation to db!
+
+        const annotation_request = {
+          message_id : '072284f1-483e-4587-b950-1baa7c73a571',
+          conversation_id : '17e15e3e-c8c7-4dd1-ad7e-b988c14cec45',
+          htext : annotation_inst.htext,
+          annotation : annotation_inst.annotation,
+          start : annotation_inst.start,
+          end : annotation_inst.end
+      
+        }
+        client.annotate(annotationKey, annotation_request) //add it to DB
+
+        
+
         // inputBox.textContent = "";
         //if (tooltip){tooltip!.textContent = "";}
         targetElement?.removeChild(inputBox)
@@ -800,6 +808,7 @@ const handleAnnotationDelete = (key: string) => {
   setAnnotationVisible(false);
   removeAnnotation(key, annotSortDict);
   handleRemovePromptAnnotation(key) //remove it if added to prompt
+  client.deleteAnnotation(key) //remove it from db
 
 }
 
@@ -930,7 +939,6 @@ useEffect(() => {
     //parent.blur();
 
     //this will force the output box to readjust.
-    if (parent) {
       parent.style.height = 'auto';
       parent.style.height = `${parent.scrollHeight}px`;
 
@@ -940,7 +948,7 @@ useEffect(() => {
       } else {
         parent.style.overflowY = 'hidden';
       }
-    }
+    
   }
 
 }, [addedAnnots]);

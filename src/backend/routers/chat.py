@@ -26,6 +26,7 @@ from backend.models.document import Document
 from backend.models.message import Message, MessageAgent
 from backend.schemas.chat import (
     BaseChatRequest,
+    BaseAnnotationRequest,
     ChatMessage,
     ChatResponseEvent,
     ChatRole,
@@ -79,6 +80,7 @@ async def chat_stream(
     Returns:
         EventSourceResponse: Server-sent event response with chatbot responses.
     """
+    print("CHAT STREAM ACTIVAVTED")
     (
         session,
         chat_request,
@@ -90,6 +92,23 @@ async def chat_stream(
         should_store,
         managed_tools,
     ) = process_chat(session, chat_request, request)
+
+    msg = conversation_crud.get_conversation(session, conversation_id, user_id)
+
+    mock_request = BaseAnnotationRequest(
+    message_id=msg.messages[0].id,
+    conversation_id=conversation_id,
+    htext='This is highlighted text.',
+    annotation='This is the annotation text.',
+    start=0,
+    end=25
+    )
+
+
+    # annotation routing testing
+    id = str(uuid4())
+    print("annotate req", id)
+    await annotate(session, id, mock_request, request)
 
     return EventSourceResponse(
         generate_chat_stream(
@@ -154,6 +173,7 @@ def chat(
         should_store=should_store,
     )
 
+from backend.routers.annotations import annotate, delete_annotation
 
 def process_chat(
     session: DBSessionDep, chat_request: BaseChatRequest, request: Request
@@ -180,6 +200,10 @@ def process_chat(
     
     # Get position to put next message in
     next_message_position = get_next_message_position(conversation)
+    #BUGFIX for next message positioning, i think this fixes it
+    #next_message_position = len(chat_request.chat_history) if chat_request.chat_history else 0 
+    id_msg = str(uuid4())
+    id_bot = str(uuid4())
     user_message = create_message(
         session,
         chat_request,
@@ -189,7 +213,7 @@ def process_chat(
         chat_request.message,
         MessageAgent.USER,
         should_store,
-        id=str(uuid4()),
+        id=id_msg,
     )
     chatbot_message = create_message(
         session,
@@ -200,8 +224,9 @@ def process_chat(
         "",
         MessageAgent.CHATBOT,
         False,
-        id=str(uuid4()),
+        id=id_bot,
     )
+
 
     file_paths = None
     if isinstance(chat_request, CohereChatRequest):
@@ -216,7 +241,7 @@ def process_chat(
 
     # co.chat expects either chat_history or conversation_id, not both
     chat_request.chat_history = chat_history
-    chat_request.conversation_id = ""
+    #chat_request.conversation_id = ""
 
     tools = chat_request.tools
     managed_tools = (
@@ -427,7 +452,8 @@ def create_chat_history(
 
     #Ignore user message postion. This messed up chat_history for open AI calls. We can ignore it.
     text_messages = [
-        message for message in conversation.messages #[:user_message_position] #LEAVE THIS COMMENTED OUT.
+        message for message in conversation.messages#[:user_message_position] #LEAVE THIS COMMENTED OUT OR SAY GOODBYE TO CONTEXT.
+        #user mesage position might be messed up, remove if problems found!
     ]
 
     # print("TEXT MESSAGES: ")
@@ -459,15 +485,20 @@ def update_conversation_after_turn(
         conversation_id (str): Conversation ID.
         final_message_text (str): Final message text.
     """
+
+    print('update after turn')
+    print(response_message.text)
+    print(response_message.position)
+    print('fmsg', final_message_text)
     message_crud.create_message(session, response_message)
 
     # Update conversation description with final message
-    conversation = conversation_crud.get_conversation(session, conversation_id, user_id)
-    new_conversation = UpdateConversation(
-        description=final_message_text,
-        user_id=conversation.user_id,
-    )
-    conversation_crud.update_conversation(session, conversation, new_conversation)
+    # conversation = conversation_crud.get_conversation(session, conversation_id, user_id)
+    # new_conversation = UpdateConversation(
+    #     description=final_message_text,
+    #     user_id=conversation.user_id,
+    # )
+    # conversation_crud.update_conversation(session, conversation, new_conversation)
 
 
 def generate_chat_stream(
@@ -483,6 +514,7 @@ def generate_chat_stream(
     print("used this method (chat stream) !!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("conv id :", conversation_id)
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
 
     """
     Generate chat stream from model deployment stream.

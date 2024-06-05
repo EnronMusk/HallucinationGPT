@@ -77,6 +77,34 @@ def list_conversations(
         session, offset=offset, limit=limit, user_id=user_id
     )
 
+#fixes the order of conversations (weird bug)
+def fixConversationOutOfOrder(conversation: Conversation) -> Conversation:
+    """
+    
+    This can fix your conversation when messages are out of order.
+    
+    """
+    new_msgs = []
+    msgs = conversation.messages
+    n = len(msgs)
+
+    for i in range(n-1):
+        if(msgs[i].agent != msgs[i+1].agent):
+            new_msgs.append(msgs[i])
+        else:
+            new_msgs.append(msgs[i+1])
+            new_msgs.append(msgs[i])
+            i+=1
+    
+    if len(new_msgs) < n:
+        new_msgs.append(msgs[i+1])
+
+    for msg in new_msgs:
+        print(msg.agent) 
+
+    conversation.messages = new_msgs #reassign the msgs
+
+    return conversation
 
 @router.put("/{conversation_id}", response_model=Conversation)
 def update_conversation(
@@ -100,6 +128,12 @@ def update_conversation(
     Raises:
         HTTPException: If the conversation with the given ID is not found.
     """
+
+    print("^&^&^*&^&*%&^%&^%&%^&%^%*^*&^*&^*&^*&^*&^*&^&*^&*^*&^*&^&%&^%^&%^&%&^%&*^&*^*&^&*^&*^^&%^&%^&%*^&*^&*^&*^*&^*")
+    print("CONV UPDATED!!!!!!!!!")
+
+    #new_conversation = fixConversationOutOfOrder(new_conversation) #fix out of order if it exists.
+
     user_id = request.headers.get("User-Id")
     conversation = conversation_crud.get_conversation(session, conversation_id, user_id)
 

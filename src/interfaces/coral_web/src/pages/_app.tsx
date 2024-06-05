@@ -41,6 +41,10 @@ export const appSSR = {
     const cohereClient = makeCohereClient();
     return { queryClient, cohereClient };
   },
+  init_client: () =>{
+    const client = makeCohereClient();
+    return {client}
+  }
 };
 
 type Props = AppProps<PageAppProps>;

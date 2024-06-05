@@ -125,9 +125,8 @@
 }
 
 th {
-  border: 0px solid #ddd;
-  font-size: 14px;
-  padding: 4px;
+  border-bottom: 2px solid black;
+  font-size: 16px;
   text-align: center;
   vertical-align: top;
   overflow-wrap: break-word;
@@ -136,7 +135,7 @@ th {
 }
 
 td {
-  border: 0px solid #757575;
+  border-bottom: 1px solid #9E9E9E;
   padding-left: 16px;
   text-align: left;
   vertical-align: top;

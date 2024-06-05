@@ -154,14 +154,25 @@ export class CohereClient {
       conversationId: conversationId,
       requestBody,
     });
+
   }
 
-  public listTools({ agentId }: { agentId?: string | null }) {
-    return this.cohereService.default.listToolsV1ToolsGet({ agentId });
-  }
+  //deletes annotations
+  public async deleteAnnotation(annotation_id: string ): Promise<void> {
+    console.log('deleting annotaiton')
+    const response = await this.fetch(`${this.getEndpoint('annotations')}/${annotation_id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
 
-  public listDeployments({ all }: { all?: boolean }) {
-    return this.cohereService.default.listDeploymentsV1DeploymentsGet({ all });
+    const body = await response.json();
+
+    if (response.status !== 200) {
+      throw new CohereNetworkError(
+        body?.message || body?.error || 'Something went wrong',
+        response.status
+      );
+    }
   }
 
   public updateDeploymentEnvVariables(requestBody: UpdateDeploymentEnv, name: string) {
@@ -169,10 +180,6 @@ export class CohereClient {
       name: name,
       requestBody,
     });
-  }
-
-  public getExperimentalFeatures() {
-    return this.cohereService.default.listExperimentalFeaturesV1ExperimentalFeaturesGet() as CancelablePromise<ExperimentalFeatures>;
   }
 
   public login({ email, password }: { email: string; password: string }) {
@@ -198,6 +205,44 @@ export class CohereClient {
     });
   }
 
+  //
+
+
+  //For adding annotations!
+
+  //
+
+  public async annotate(
+    annotation_id: string,
+    annotationRequest: {
+      message_id: string,
+      conversation_id: string,
+      htext: string,
+      annotation: string,
+      start: number,
+      end: number
+    }): Promise<void>  {
+    console.log('reqeusting end???')
+    const endpoint = `${this.getEndpoint('annotations')}/${annotation_id}/add`;
+    console.log('reqeusting end', endpoint)
+    const requestBody = {
+      message_id: annotationRequest.message_id,
+      conversation_id: annotationRequest.conversation_id,
+      htext: annotationRequest.htext,
+      annotation: annotationRequest.annotation,
+      start: annotationRequest.start,
+      end: annotationRequest.end
+    };
+  
+    const response = await this.fetch(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(requestBody),
+      headers: this.getHeaders(),
+    });
+
+    const body = await response.json();
+  }
+
   public async googleSSOAuth({ code }: { code: string }) {
     const response = await this.fetch(`${this.getEndpoint('google/auth')}?code=${code}`, {
       method: 'POST',
@@ -205,7 +250,6 @@ export class CohereClient {
     });
 
     const body = await response.json();
-    this.authToken = body.token;
 
     if (response.status !== 200) {
       throw new CohereNetworkError('Something went wrong', response.status);
@@ -216,89 +260,8 @@ export class CohereClient {
     // this.cohereService.default.googleAuthorizeV1GoogleAuthGet();
   }
 
-  public async oidcSSOAuth({
-    code,
-    strategy,
-    codeVerifier,
-  }: {
-    code: string;
-    strategy: string;
-    codeVerifier?: string;
-  }) {
-    const body: any = {};
 
-    if (codeVerifier) {
-      // Conditionally add codeVerifier to the body
-      body.code_verifier = codeVerifier;
-    }
-
-    const response = await this.fetch(
-      `${this.getEndpoint('oidc/auth')}?code=${code}&strategy=${strategy}`,
-      {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(body),
-      }
-    );
-
-    const payload = await response.json();
-    this.authToken = body.token;
-
-    if (response.status !== 200) {
-      throw new CohereNetworkError('Something went wrong', response.status);
-    }
-
-    return payload as { token: string };
-    // FIXME(@tomtobac): generated code doesn't have code as query parameter (TLK-765)
-    // this.cohereService.default.oidcAuthorizeV1OidcAuthGet();
-  }
-
-  public getAgent(agentId: string) {
-    return this.cohereService.default.getAgentByIdV1AgentsAgentIdGet({ agentId });
-  }
-
-  public createAgent(requestBody: CreateAgent) {
-    return this.cohereService.default.createAgentV1AgentsPost({ requestBody });
-  }
-
-  public listAgents({ offset, limit = 100 }: { offset?: number; limit?: number }) {
-    return this.cohereService.default.listAgentsV1AgentsGet({ offset, limit });
-  }
-
-  public updateAgent(requestBody: UpdateAgent, agentId: string) {
-    return this.cohereService.default.updateAgentV1AgentsAgentIdPut({
-      agentId: agentId,
-      requestBody,
-    });
-  }
-
-  public generateTitle({ conversationId }: { conversationId: string }) {
-    return this.cohereService.default.generateTitleV1ConversationsConversationIdGenerateTitlePost({
-      conversationId,
-    });
-  }
-
-  public listSnapshots() {
-    return this.cohereService.default.listSnapshotsV1SnapshotsGet();
-  }
-
-  public createSnapshot(requestBody: CreateSnapshot) {
-    return this.cohereService.default.createSnapshotV1SnapshotsPost({ requestBody });
-  }
-
-  public getSnapshot({ linkId }: { linkId: string }) {
-    return this.cohereService.default.getSnapshotV1SnapshotsLinkLinkIdGet({ linkId });
-  }
-
-  public deleteSnapshotLink({ linkId }: { linkId: string }) {
-    return this.cohereService.default.deleteSnapshotLinkV1SnapshotsLinkLinkIdDelete({ linkId });
-  }
-
-  public deleteSnapshot({ snapshotId }: { snapshotId: string }) {
-    return this.cohereService.default.deleteSnapshotV1SnapshotsSnapshotIdDelete({ snapshotId });
-  }
-
-  private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth') {
+  private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth' | 'annotations') {
     return `${this.hostname}/v1/${endpoint}`;
   }
 
@@ -311,3 +274,5 @@ export class CohereClient {
     return headers;
   }
 }
+
+

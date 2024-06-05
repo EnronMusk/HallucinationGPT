@@ -39,3 +39,7 @@ class Message(MessageBase):
     class Config:
         from_attributes = True
 
+
+class UpdateMessage(MessageBase):
+    pass
+

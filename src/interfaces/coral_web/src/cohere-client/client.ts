@@ -176,6 +176,18 @@ export class CohereClient {
     return this.cohereService.default.listToolsV1ToolsGet({ agentId });
   }
 
+  //deletes annotations
+  public async deleteAnnotation(annotation_id: string ): Promise<void> {
+    console.log('deleting annotaiton')
+    const response = await this.fetch(`${this.getEndpoint('annotations')}/${annotation_id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    const body = await response.json();
+    console.log('deeltedi h tkn')
+
+  }
+
   public listDeployments({ all }: { all?: boolean }) {
     return this.cohereService.default.listDeploymentsV1DeploymentsGet({ all });
   }
@@ -212,6 +224,44 @@ export class CohereClient {
     return this.cohereService.default.createUserV1UsersPost({
       requestBody,
     });
+  }
+
+  //
+
+
+  //For adding annotations!
+
+  //
+
+  public async annotate(
+    annotation_id: string,
+    annotationRequest: {
+      message_id: string,
+      conversation_id: string,
+      htext: string,
+      annotation: string,
+      start: number,
+      end: number
+    }): Promise<void>  {
+    console.log('reqeusting end???')
+    const endpoint = `${this.getEndpoint('annotations')}/${annotation_id}/add`;
+    console.log('reqeusting end', endpoint)
+    const requestBody = {
+      message_id: annotationRequest.message_id,
+      conversation_id: annotationRequest.conversation_id,
+      htext: annotationRequest.htext,
+      annotation: annotationRequest.annotation,
+      start: annotationRequest.start,
+      end: annotationRequest.end
+    };
+  
+    const response = await this.fetch(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(requestBody),
+      headers: this.getHeaders(),
+    });
+
+    const body = await response.json();
   }
 
   public async googleSSOAuth({ code }: { code: string }) {
@@ -322,7 +372,7 @@ export class CohereClient {
     return this.cohereService.default.deleteSnapshotV1SnapshotsSnapshotIdDelete({ snapshotId });
   }
 
-  private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth') {
+  private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth' | 'annotations') {
     return `${this.hostname}/v1/${endpoint}`;
   }
 
@@ -336,3 +386,5 @@ export class CohereClient {
     return headers;
   }
 }
+
+

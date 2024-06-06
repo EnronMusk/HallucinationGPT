@@ -56,7 +56,7 @@ const ConversationPage: NextPage<Props> = () => {
   useEffect(() => {
     if (!conversation) return;
 
-    const messages = mapHistoryToMessages(
+    const messages = mapHistoryToMessages(conversation.id, //provide the conversation id for submission to AHA
       conversation?.messages?.sort((a, b) => a.position - b.position)
     );
     setConversation({ name: conversation.title, messages });

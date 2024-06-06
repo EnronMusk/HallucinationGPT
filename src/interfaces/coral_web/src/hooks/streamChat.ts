@@ -1,6 +1,6 @@
 import { EventSourceMessage } from '@microsoft/fetch-event-source';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   ChatResponseEvent as ChatResponse,
@@ -15,6 +15,8 @@ import {
   useCohereClient,
 } from '@/cohere-client';
 import { useExperimentalFeatures } from '@/hooks/experimentalFeatures';
+
+import { v4 as uuidv4 } from 'uuid';
 
 interface StreamingParams {
   onRead: (data: ChatResponse) => void;
@@ -42,11 +44,14 @@ const getUpdatedConversations =
     });
   };
 
-export const useStreamChat = () => {
+export const useStreamChat = (user_msg_id: string, bot_msg_id: string) => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const cohereClient = useCohereClient();
   const queryClient = useQueryClient();
-  const { data: experimentalFeatures } = useExperimentalFeatures();
+
+
+
+  console.log("CALLL!!17239871289739812739871298371892739817298371982378912739871298378912y786iuadiugsahgasjhjhcavshjdjhsaghjasgdhjzxnmcbmzxbczxgjchgkgadsiutqwyeiqyweiu")
 
   useEffect(() => {
     return () => {
@@ -83,6 +88,15 @@ export const useStreamChat = () => {
 
         const { request, headers, onRead, onError, onFinish } = params;
 
+        //
+
+        //Here we assign user and bot msg ids. this is so streamingm essages have these ids!!!!
+
+        //
+        console.log("ijijijijijijijijijjijijjijijijijijijijijijijijijijijijijijijij")
+
+        /////////
+
         const chatStreamParams = {
           request,
           headers,
@@ -112,11 +126,21 @@ export const useStreamChat = () => {
           },
         };
 
-        if (experimentalFeatures?.USE_EXPERIMENTAL_LANGCHAIN) {
-          await cohereClient.langchainChat(chatStreamParams);
-        } else {
-          await cohereClient.chat(chatStreamParams);
-        }
+        ///
+
+        ///
+
+        /// this is hwere we assign the ids
+
+        ///
+
+        request.user_msg_id = user_msg_id //assign the ids we want for the messages!!!!
+        request.bot_msg_id = bot_msg_id
+        console.log('request asigned', request.bot_msg_id)
+
+
+        await cohereClient.chat(chatStreamParams);
+        
       } catch (e) {
         if (isUnauthorizedError(e)) {
           await queryClient.invalidateQueries({ queryKey: ['defaultAPIKey'] });
@@ -127,6 +151,7 @@ export const useStreamChat = () => {
     retry,
     onSuccess: updateConversationHistory,
   });
+  console.log('before reutnr', user_msg_id)
 
   return {
     chatMutation,

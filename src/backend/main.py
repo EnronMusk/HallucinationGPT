@@ -12,6 +12,7 @@ from backend.routers.deployment import router as deployment_router
 from backend.routers.experimental_features import router as experimental_feature_router
 from backend.routers.tool import router as tool_router
 from backend.routers.user import router as user_router
+from backend.routers.annotations import router as annotations_router
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ def create_app():
     app.include_router(tool_router)
     app.include_router(deployment_router)
     app.include_router(experimental_feature_router)
+    app.include_router(annotations_router) #add annotations router
 
     app.add_middleware(
         CORSMiddleware,

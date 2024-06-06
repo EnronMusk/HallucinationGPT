@@ -40,6 +40,8 @@ export const createConversationSlice: StateCreator<StoreState, [], [], Conversat
   set
 ) => ({
   setConversation(conversation) {
+    console.log('set CONVERSSATION IN conversationSLICE', conversation)
+    console.log(conversation.messages?.at(0)?.message_id)
     set((state) => ({
       conversation: {
         ...state.conversation,

@@ -14,6 +14,8 @@ import { useCitationsStore } from '@/stores';
 import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotation} from '@/types/message';
 import { cn } from '@/utils';
 
+import { appSSR } from '@/pages/_app'; //for db
+
 type Props = {
   isStreaming: boolean;
   startOptionsEnabled: boolean;
@@ -148,6 +150,7 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
   ref
 ) {
   const isConversationEmpty = messages.length === 0;
+  const client = appSSR.init_client().client;
   //console.log("THE MSGS")
   //console.log(messages)
   //console.log(streamingMessage)
@@ -163,8 +166,6 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;
           const is2ndLast = i === messages.length - 2;
-          const isTrue2nd = is2ndLast || (isLastInList && streamingMessage);
-          m.annotations = {} //Initialize the annotations here!
           return (
             <MessageRow
               key={i}
@@ -183,12 +184,13 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
                   streamingMessage.generationId === m.generationId,
               })}
               onRetry={onRetry}
+              client={client}
             />
           );
         })}
       {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {streamingMessage && (
-        <MessageRow key={messages.length} order={messages.length} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} />
+        <MessageRow key={messages.length} order={messages.length} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} client={client} />
       )}
       </div>
     </div>

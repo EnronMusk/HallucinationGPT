@@ -18,7 +18,8 @@ type BaseMessage = {
   type: MessageType;
   text: string;
   error?: string;
-  annotations?: { [key: string]: Annotation };
+  message_id?: string; //for accessing db
+  conversation_id?: string; //for submission to AHA
 };
 
 export type Annotation = {

@@ -5,6 +5,7 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import { string } from 'is';
 import type { ChatMessage } from './ChatMessage';
 import type { CohereChatPromptTruncation } from './CohereChatPromptTruncation';
 import type { Tool } from './Tool';
@@ -15,6 +16,8 @@ import type { Tool } from './Tool';
  */
 export type CohereChatRequest = {
   message: string;
+  user_msg_id: string; //to assign ids while streaming. for db get.
+  bot_msg_id: string;
   chat_history?: Array<ChatMessage> | null;
   conversation_id?: string;
   tools?: Array<Tool> | null;

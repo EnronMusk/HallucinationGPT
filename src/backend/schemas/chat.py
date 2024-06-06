@@ -249,9 +249,6 @@ class BaseAnnotationRequest(BaseModel):
     message_id: str = Field(
         title="The message id.",
     )
-    conversation_id: str = Field(
-        title="To store a conversation then create a conversation id and use it for every related request",
-    )
     htext: str = Field(
         title="The highlighted text.",
     )
@@ -273,6 +270,12 @@ class BaseChatRequest(BaseModel):
     # )
     message: str = Field(
         title="The message to send to the chatbot.",
+    )
+    user_msg_id: str = Field(
+        title="user msg id",
+    )
+    bot_msg_id: str = Field(
+        title="bot msg id",
     )
     chat_history: List[ChatMessage] | None = Field(
         default=None,

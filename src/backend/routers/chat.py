@@ -95,20 +95,20 @@ async def chat_stream(
 
     msg = conversation_crud.get_conversation(session, conversation_id, user_id)
 
-    mock_request = BaseAnnotationRequest(
-    message_id=msg.messages[0].id,
-    conversation_id=conversation_id,
-    htext='This is highlighted text.',
-    annotation='This is the annotation text.',
-    start=0,
-    end=25
-    )
+    # mock_request = BaseAnnotationRequest(
+    # message_id=msg.messages[0].id,
+    # conversation_id=conversation_id,
+    # htext='This is highlighted text.',
+    # annotation='This is the annotation text.',
+    # start=0,
+    # end=25
+    # )
 
 
     # annotation routing testing
-    id = str(uuid4())
-    print("annotate req", id)
-    await annotate(session, id, mock_request, request)
+    # id = str(uuid4())
+    # print("annotate req", id)
+    # await annotate(session, id, mock_request, request)
 
     return EventSourceResponse(
         generate_chat_stream(
@@ -202,8 +202,6 @@ def process_chat(
     next_message_position = get_next_message_position(conversation)
     #BUGFIX for next message positioning, i think this fixes it
     #next_message_position = len(chat_request.chat_history) if chat_request.chat_history else 0 
-    id_msg = str(uuid4())
-    id_bot = str(uuid4())
     user_message = create_message(
         session,
         chat_request,
@@ -213,8 +211,9 @@ def process_chat(
         chat_request.message,
         MessageAgent.USER,
         should_store,
-        id=id_msg,
+        id=chat_request.user_msg_id,
     )
+    print("user id msg", chat_request.user_msg_id)
     chatbot_message = create_message(
         session,
         chat_request,
@@ -224,7 +223,7 @@ def process_chat(
         "",
         MessageAgent.CHATBOT,
         False,
-        id=id_bot,
+        id=chat_request.bot_msg_id,
     )
 
 

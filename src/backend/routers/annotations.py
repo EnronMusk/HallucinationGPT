@@ -112,10 +112,11 @@ def process_annotation(
     message = message_crud.get_message(session,annotation_request.message_id,user_id)
     print(annotation_request.message_id)
     print(message)
+    print("PROCESSING MSG")
 
     new_annotation = create_annotation(
         session,
-        annotation_request.conversation_id,
+        message.conversation_id,
         annotation_request.message_id,
         user_id,
         annotation_request.htext,

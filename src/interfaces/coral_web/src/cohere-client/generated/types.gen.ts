@@ -101,6 +101,8 @@ export enum CohereChatPromptTruncation {
  */
 export type CohereChatRequest = {
   message: string;
+  user_msg_id: string; //to assign ids while streaming. for db get.
+  bot_msg_id: string;
   chat_history?: Array<ChatMessage> | null;
   conversation_id?: string;
   tools?: Array<Tool> | null;

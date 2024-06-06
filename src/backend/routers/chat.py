@@ -65,6 +65,23 @@ async def chat_stream(
         next_message_position,
     ) = process_chat(session, chat_request, request, agent_id)
 
+    msg = conversation_crud.get_conversation(session, conversation_id, user_id)
+
+    mock_request = BaseAnnotationRequest(
+    message_id=msg.messages[0].id,
+    conversation_id=conversation_id,
+    htext='This is highlighted text.',
+    annotation='This is the annotation text.',
+    start=0,
+    end=25
+    )
+
+
+    # annotation routing testing
+    id = str(uuid4())
+    print("annotate req", id)
+    await annotate(session, id, mock_request, request)
+
     return EventSourceResponse(
         generate_chat_stream(
             session,

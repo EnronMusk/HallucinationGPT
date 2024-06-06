@@ -24,6 +24,7 @@ from backend.routers.experimental_features import router as experimental_feature
 from backend.routers.snapshot import router as snapshot_router
 from backend.routers.tool import router as tool_router
 from backend.routers.user import router as user_router
+from backend.routers.annotations import router as annotations_router
 from backend.services.logger import LoggingMiddleware
 from backend.services.metrics import MetricsMiddleware
 

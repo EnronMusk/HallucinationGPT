@@ -20,6 +20,8 @@ import {
 
 import { mapToChatRequest } from './mappings';
 
+import {v4 as uuidv4} from 'uuid';
+
 export class CohereClient {
   private readonly hostname: string;
   private readonly fetch: Fetch;
@@ -103,6 +105,8 @@ export class CohereClient {
     });
 
     const endpoint = `${this.getEndpoint('chat-stream')}${agentId ? `?agent_id=${agentId}` : ''}`;
+    console.log("UMSG ID",chatRequest.user_msg_id)
+    console.log("BMSG ID",chatRequest.bot_msg_id)
     return await fetchEventSource(endpoint, {
       method: 'POST',
       headers: { ...this.getHeaders(), ...headers },
@@ -178,14 +182,10 @@ export class CohereClient {
 
   //deletes annotations
   public async deleteAnnotation(annotation_id: string ): Promise<void> {
-    console.log('deleting annotaiton')
     const response = await this.fetch(`${this.getEndpoint('annotations')}/${annotation_id}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
-    const body = await response.json();
-    console.log('deeltedi h tkn')
-
   }
 
   public listDeployments({ all }: { all?: boolean }) {
@@ -237,18 +237,14 @@ export class CohereClient {
     annotation_id: string,
     annotationRequest: {
       message_id: string,
-      conversation_id: string,
       htext: string,
       annotation: string,
       start: number,
       end: number
     }): Promise<void>  {
-    console.log('reqeusting end???')
     const endpoint = `${this.getEndpoint('annotations')}/${annotation_id}/add`;
-    console.log('reqeusting end', endpoint)
     const requestBody = {
       message_id: annotationRequest.message_id,
-      conversation_id: annotationRequest.conversation_id,
       htext: annotationRequest.htext,
       annotation: annotationRequest.annotation,
       start: annotationRequest.start,
@@ -261,7 +257,7 @@ export class CohereClient {
       headers: this.getHeaders(),
     });
 
-    const body = await response.json();
+    //const body = await response.json();
   }
 
   public async googleSSOAuth({ code }: { code: string }) {

@@ -16,6 +16,8 @@ import { useAgentsStore, useCitationsStore } from '@/stores';
 import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotation} from '@/types/message';
 import { cn } from '@/utils';
 
+import { makeCohereClient } from '@/app/_providers'; //for db
+
 type Props = {
   isStreaming: boolean;
   isStreamingToolEvents: boolean;
@@ -172,6 +174,8 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
   { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents },
   ref
 ) {
+  const isConversationEmpty = messages.length === 0;
+  const client = makeCohereClient();
   const isChatEmpty = messages.length === 0;
   //console.log("THE MSGS")
   //console.log(messages)
@@ -191,8 +195,6 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;
           const is2ndLast = i === messages.length - 2;
-          const isTrue2nd = is2ndLast || (isLastInList && streamingMessage);
-          m.annotations = {} //Initialize the annotations here!
           return (
             <MessageRow
               key={i}
@@ -212,6 +214,7 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
                   streamingMessage.generationId === m.generationId,
               })}
               onRetry={onRetry}
+              client={client}
             />
           );
         })}
@@ -221,7 +224,7 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
           isLast
           isStreamingToolEvents={isStreamingToolEvents}
           message={streamingMessage}
-          is2ndLast={false} onRetry={onRetry}
+          is2ndLast={false} onRetry={onRetry} client={client}
         />
       )}
       </div>

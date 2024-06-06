@@ -20,7 +20,7 @@ import { ContextStore } from '@/context';
 import { env } from '@/env.mjs';
 import { useLazyRef } from '@/hooks/lazyRef';
 
-const makeCohereClient = (authToken?: string) => {
+export const makeCohereClient = (authToken?: string) => {
   const apiFetch: Fetch = async (resource, config) => await fetch(resource, config);
   return new CohereClient({
     hostname: env.NEXT_PUBLIC_API_HOSTNAME,

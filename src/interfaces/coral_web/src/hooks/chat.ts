@@ -1,5 +1,6 @@
 import { UseMutateAsyncFunction, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import React from 'react';
 
 import {
   ChatResponseEvent,
@@ -46,6 +47,8 @@ import {
   replaceTextWithCitations,
   shouldUpdateConversationTitle,
 } from '@/utils';
+
+import { v4 as uuidv4 } from 'uuid';
 import { replaceCodeBlockWithIframe } from '@/utils/preview';
 import { parsePythonInterpreterToolFields } from '@/utils/tools';
 
@@ -72,7 +75,18 @@ export type HandleSendChat = (
 ) => Promise<void>;
 
 export const useChat = (config?: { onSend?: (msg: string) => void }) => {
-  const { chatMutation, abortController } = useStreamChat();
+
+  const [UserMessageId, setUserMessageId] = useState<string>(uuidv4().toString())
+  const [BotMessageId, setBotMessageId] = useState<string>(uuidv4().toString())
+
+  const { chatMutation, abortController } = useStreamChat(UserMessageId, BotMessageId);
+
+
+  console.log('oneinusestream USER', UserMessageId)
+  console.log('oneinusestream BOT', BotMessageId)
+  console.log("MUTATION", chatMutation.context)
+
+
   const { mutateAsync: streamChat } = chatMutation;
 
   const {
@@ -262,7 +276,9 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 isRAGOn,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
+              
               break;
             }
 
@@ -354,6 +370,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 generationId,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId,
               });
               break;
             }
@@ -412,6 +429,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 generationId,
                 originalText: botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
               break;
             }
@@ -478,7 +496,11 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 isRAGOn,
                 originalText: isRAGOn ? responseText : botResponse,
                 toolEvents,
+                message_id: BotMessageId
               });
+
+              setUserMessageId(uuidv4().toString()) //reset available uuids for messages on finsih!
+              setBotMessageId(uuidv4().toString())
 
               if (shouldUpdateConversationTitle(newMessages)) {
                 handleUpdateConversationTitle(conversationId);
@@ -494,6 +516,16 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
         },
         onError: (e) => {
           citations = [];
+
+          /// on error we need to rest the avaialbe msg ids
+
+          ///
+          
+          ///
+
+          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
+          setBotMessageId(uuidv4().toString())
+
           if (isCohereNetworkError(e)) {
             const networkError = e;
             let errorMessage = USER_ERROR_MESSAGE;
@@ -568,6 +600,8 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       file_ids: fileIds && fileIds.length > 0 ? fileIds : undefined,
       temperature,
       model,
+      bot_msg_id: BotMessageId,
+      user_msg_id: UserMessageId,
       agent_id: agentId,
       ...restOverrides,
     };
@@ -600,6 +634,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       type: MessageType.USER,
       text: message,
       files: composerFiles,
+      message_id: UserMessageId //set it to user msg for streaming messages
     });
 
     await handleStreamConverse({

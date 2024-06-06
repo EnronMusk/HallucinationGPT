@@ -33,7 +33,6 @@ import { cn } from '@/utils';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
-import { appSSR } from '@/pages/_app';
 import { CohereClient } from '@/cohere-client';
 
 type Props = {
@@ -46,17 +45,20 @@ type Props = {
   order?: number;
   onCopy?: VoidFunction;
   onRetry?: VoidFunction;
+  client: CohereClient;
 };
 
 /**
  * Renders a single message row from the user or from our models.
  */
 const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal(
-  { message, delay = false, isLast, isStreamingToolEvents, is2ndLast, className = '', order, onCopy, onRetry },
+  { message, delay = false, isLast, isStreamingToolEvents, is2ndLast, className = '', order, onCopy, onRetry, client },
   ref
 ) {
   const breakpoint = useBreakpoint();
-  const client = appSSR.init_client().client;
+
+  console.log('okay?')
+
 
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
@@ -633,16 +635,21 @@ const filteredMappingV2 = (text:string) => {
 
         //add annotation to db!
 
-        const annotation_request = {
-          message_id : '072284f1-483e-4587-b950-1baa7c73a571',
-          conversation_id : '17e15e3e-c8c7-4dd1-ad7e-b988c14cec45',
+        const annotationRequest = { //make the request here.
+          message_id : message.message_id||"",
           htext : annotation_inst.htext,
           annotation : annotation_inst.annotation,
           start : annotation_inst.start,
           end : annotation_inst.end
       
         }
-        client.annotate(annotationKey, annotation_request) //add it to DB
+        console.log("MID", message.message_id)
+        console.log("CID", message.conversation_id)
+        if (message.message_id){
+        client.annotate(annotationKey, annotationRequest) //add it to DB
+        } else{
+          console.log("FAILED !!!!")
+        }
 
         
 
@@ -814,7 +821,6 @@ const handleAnnotationDelete = (key: string) => {
   removeAnnotation(key, annotSortDict);
   handleRemovePromptAnnotation(key) //remove it if added to prompt
   client.deleteAnnotation(key) //remove it from db
-
 }
 
 //Handles the addition and removal of annotations uuid from 'add to prompt' list

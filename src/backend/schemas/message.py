@@ -34,6 +34,8 @@ class Message(MessageBase):
     tool_calls: List[ToolCall]
     tool_plan: Union[str, None]
 
+    is_annotation_response: bool
+
     agent: MessageAgent
 
     class Config:

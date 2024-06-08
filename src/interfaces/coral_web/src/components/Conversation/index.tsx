@@ -26,6 +26,8 @@ import { ConfigurableParams } from '@/stores/slices/paramsSlice';
 import { ChatMessage } from '@/types/message';
 import { cn } from '@/utils';
 
+import { appSSR } from '@/pages/_app'; //for db
+
 type Props = {
   startOptionsEnabled?: boolean;
   conversationId?: string;

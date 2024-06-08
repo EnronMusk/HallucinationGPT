@@ -15,6 +15,7 @@ import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotat
 import { cn } from '@/utils';
 
 import { appSSR } from '@/pages/_app'; //for db
+import { CohereClient } from '@/cohere-client';
 
 type Props = {
   isStreaming: boolean;
@@ -27,6 +28,7 @@ type Props = {
   composer: ReactNode;
   conversationId?: string;
   scrollViewClassName?: string;
+  client: CohereClient;
 };
 
 /**
@@ -169,17 +171,16 @@ type MessagesProps = Props;
  * This component is in charge of rendering the messages.
  */
 const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
-  { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents },
+  { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents, client },
   ref
 ) {
   const isConversationEmpty = messages.length === 0;
-  const client = appSSR.init_client().client;
   //console.log("THE MSGS")
   //console.log(messages)
   //console.log(streamingMessage)
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
-      {startOptionsEnabled && (
+      {(
         <div className="flex h-full w-full flex-col justify-center p-4">
           <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
         </div>
@@ -196,6 +197,7 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
               isLast={isLastInList && !streamingMessage}
               is2ndLast={is2ndLast && !streamingMessage || (isLastInList && !!streamingMessage)}
               order={i + 1}
+              isStreamingToolEvents={isStreamingToolEvents}
               className={cn({
                 // Hide the last message if it is the same as the separate streamed message
                 // to avoid a flash of duplicate messages.
@@ -213,7 +215,7 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
         })}
       {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {streamingMessage && (
-        <MessageRow key={messages.length} order={messages.length} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} client={client} />
+        <MessageRow key={messages.length} order={messages.length} isStreamingToolEvents={isStreamingToolEvents} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} client={client} />
       )}
       </div>
     </div>

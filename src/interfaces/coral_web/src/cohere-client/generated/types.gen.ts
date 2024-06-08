@@ -298,6 +298,14 @@ export type ManagedTool = {
   auth_url?: string | null;
 };
 
+export type Annotation = {
+  id?: string; //used for db pull and push.
+  htext: string;
+  annotation: string;
+  start: number;
+  end: number;
+};
+
 export type Message = {
   text: string;
   id: string;
@@ -312,6 +320,8 @@ export type Message = {
   tool_calls: Array<ToolCall>;
   tool_plan: string | null;
   agent: MessageAgent;
+  annotations: Array<Annotation>;
+  is_annotation_response: boolean;
 };
 
 export enum MessageAgent {

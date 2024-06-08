@@ -258,6 +258,14 @@ export class CohereClient {
     // this.cohereService.default.googleAuthorizeV1GoogleAuthGet();
   }
 
+  public listTools({ agentId }: { agentId?: string | null }) {
+    return this.cohereService.default.listToolsV1ToolsGet({ agentId });
+  }
+
+  public listDeployments({ all }: { all?: boolean }) {
+    return this.cohereService.default.listDeploymentsV1DeploymentsGet({ all });
+  }
+
 
   private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth' | 'annotations') {
     return `${this.hostname}/v1/${endpoint}`;
@@ -267,7 +275,7 @@ export class CohereClient {
     const headers: HeadersInit = {
       ...(omitContentType ? {} : { 'Content-Type': 'application/json' }),
       ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
-      'User-Id': 'user-id',
+      'User-Id': 'user-id', //this.source
     };
     return headers;
   }

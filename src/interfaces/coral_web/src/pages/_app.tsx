@@ -27,15 +27,23 @@ import { env } from '@/env.mjs';
 import { useLazyRef } from '@/hooks/lazyRef';
 import '@/styles/main.css';
 
+import { getUserId, hasAcceptedUserAgreement, acceptUserAgreement } from './cookies'; //cookies stuff
+import UserAgreementModal from './ua';
+
+import React from 'react';
+
+
 /**
  * Create a CohereAPIClient with the given access token.
  */
 const makeCohereClient = (authToken?: string) => {
   const apiFetch: Fetch = async (resource, config) => await fetch(resource, config);
+  // const userId = authToken || getUserId() || "";
+
   return new CohereClient({
     hostname: env.NEXT_PUBLIC_API_HOSTNAME,
     fetch: apiFetch,
-    authToken,
+    authToken: authToken,
   });
 };
 
@@ -83,6 +91,20 @@ const App: React.FC<Props> = ({ Component, pageProps, ...props }) => {
       })
   );
 
+  //user aggrement setup!
+  const [showUserAgreement, setShowUserAgreement] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!hasAcceptedUserAgreement()) {
+      setShowUserAgreement(true);
+    }
+  }, []);
+
+  const handleAcceptUserAgreement = () => {
+    acceptUserAgreement();
+    setShowUserAgreement(false);
+  };
+
   const reactQueryState = pageProps.appProps?.reactQueryState;
   if (!reactQueryState && !['/404', '/500', '/_error', '/_ping'].includes(props.router.route)) {
     // Ensure every page calls `appSSR.getAppProps`, except for 404, 500, _ping and _error pages which cannot
@@ -100,7 +122,8 @@ const App: React.FC<Props> = ({ Component, pageProps, ...props }) => {
             <WebManifestHead />
             <ToastNotification />
             <ReactQueryDevtools />
-            <Component {...pageProps} />
+            {!showUserAgreement && <Component {...pageProps} />}
+            {showUserAgreement && <UserAgreementModal onAccept={handleAcceptUserAgreement} />}
           </ContextStore>
         </HydrationBoundary>
       </QueryClientProvider>

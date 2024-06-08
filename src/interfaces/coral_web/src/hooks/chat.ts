@@ -82,12 +82,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
 
   const { chatMutation, abortController } = useStreamChat(UserMessageId, BotMessageId);
 
-
-  console.log('oneinusestream USER', UserMessageId)
-  console.log('oneinusestream BOT', BotMessageId)
-  console.log("MUTATION", chatMutation.context)
-
-
   const { mutateAsync: streamChat } = chatMutation;
 
   const {
@@ -624,7 +618,8 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       type: MessageType.USER,
       text: message,
       files: composerFiles,
-      message_id: UserMessageId //set it to user msg for streaming messages
+      message_id: UserMessageId, //set it to user msg for streaming messages
+      is_annotation_response: message.includes('| Annotated Text | Annotation |\n|----------|----------|\n')
     });
 
     await handleStreamConverse({

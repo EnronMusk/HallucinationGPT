@@ -66,11 +66,11 @@ const useHeaderMenu = ({ agentId }: { agentId?: string }) => {
   const handleOpenSettings = () => {
     setSettings({ isConfigDrawerOpen: true });
 
-    if (welcomeGuideState === WelcomeGuideStep.ONE && router.pathname === '/') {
-      progressWelcomeGuideStep();
-    } else if (welcomeGuideState !== WelcomeGuideStep.DONE) {
-      finishWelcomeGuide();
-    }
+    // if (welcomeGuideState === WelcomeGuideStep.ONE && router.pathname === '/') {
+    //   progressWelcomeGuideStep();
+    // } else if (welcomeGuideState !== WelcomeGuideStep.DONE) {
+    //   finishWelcomeGuide();
+    // }
   };
 
   const handleOpenAgentDrawer = () => {

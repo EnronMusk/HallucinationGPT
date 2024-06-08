@@ -20,9 +20,11 @@ type BaseMessage = {
   error?: string;
   message_id?: string; //for accessing db
   conversation_id?: string; //for submission to AHA
+  annotations?: Annotation[];
 };
 
 export type Annotation = {
+  id?: string; //used for db pull and push.
   htext: string;
   annotation: string;
   start: number;
@@ -95,6 +97,7 @@ export type ErrorMessage = BaseMessage & {
 export type UserMessage = BaseMessage & {
   type: MessageType.USER;
   files?: File[];
+  is_annotation_response: boolean;
 };
 
 export type ChatMessage = UserMessage | BotMessage;

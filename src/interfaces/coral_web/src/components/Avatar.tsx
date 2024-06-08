@@ -27,7 +27,7 @@ export const Avatar: React.FC<Props> = ({ message }) => {
   const isRAGOn = hasRAGOnProperty && Boolean(message.isRAGOn);
   // Not having the tools property means that this message is loaded from conversation history
   // and with the current info we get from the backend we don't know if it has tools or not.
-  const isGroundingOn = !hasRAGOnProperty || isRAGOn;
+  const isGroundingOn = !hasRAGOnProperty || false; //|| is RagoON
 
   return (
     <div

@@ -27,6 +27,8 @@ import {
 import { ChatMessage } from '@/types/message';
 import { cn } from '@/utils';
 
+import { appSSR } from '@/pages/_app'; //for db
+
 type Props = {
   startOptionsEnabled?: boolean;
   conversationId?: string;
@@ -167,6 +169,8 @@ const Conversation: React.FC<Props> = ({ conversationId, startOptionsEnabled = f
     setUserMessage(option.prompt);
   };
 
+  const client = appSSR.init_client().client; //add a client to be passed for db access
+
   return (
     <div className="flex h-full w-full flex-col">
       <HotKeysProvider customHotKeys={chatHotKeys} />
@@ -205,12 +209,13 @@ const Conversation: React.FC<Props> = ({ conversationId, startOptionsEnabled = f
           messages={messages}
           streamingMessage={streamingMessage}
           onPromptSelected={handlePromptSelected}
+          client={client}
           composer={
             <>
               <WelcomeGuideTooltip step={3} className="absolute bottom-full mb-4" />
               <Composer
                 isStreaming={isStreaming}
-                value={userMessage}
+                valueInit={userMessage}
                 messages={messages}
                 streamingMessage={streamingMessage}
                 onChange={(e) => setUserMessage(e.target.value)}

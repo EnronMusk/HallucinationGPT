@@ -39,6 +39,8 @@ class Message(Base):
     files: Mapped[List["File"]] = relationship()
     annotations: Mapped[List["Annotation"]] = relationship()
 
+    is_annotation_response: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
+
     agent: Mapped[MessageAgent] = mapped_column(
         Enum(MessageAgent, native_enum=False),
     )

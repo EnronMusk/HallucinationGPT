@@ -30,19 +30,19 @@ const useMenuItems = ({ conversationId }: { conversationId?: string }) => {
     }
 
     return [
-      {
-        label: 'Tools',
-        icon: <Dot on={isGroundingOn} />,
-        onClick: () => {
-          setSettings({ isConfigDrawerOpen: true });
+      // {
+      //   label: 'Tools',
+      //   icon: <Dot on={isGroundingOn} />,
+      //   onClick: () => {
+      //     setSettings({ isConfigDrawerOpen: true });
 
-          if (welcomeGuideState === WelcomeGuideStep.ONE && router.pathname === '/') {
-            progressWelcomeGuideStep();
-          } else if (welcomeGuideState !== WelcomeGuideStep.DONE) {
-            finishWelcomeGuide();
-          }
-        },
-      },
+      //     if (welcomeGuideState === WelcomeGuideStep.ONE && router.pathname === '/') {
+      //       progressWelcomeGuideStep();
+      //     } else if (welcomeGuideState !== WelcomeGuideStep.DONE) {
+      //       finishWelcomeGuide();
+      //     }
+      //   },
+      // },
       {
         label: 'Delete chat',
         iconName: 'trash',

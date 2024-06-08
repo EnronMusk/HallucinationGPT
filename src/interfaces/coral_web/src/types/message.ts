@@ -23,6 +23,7 @@ type BaseMessage = {
 };
 
 export type Annotation = {
+  id?: string; //used for db pull and push.
   htext: string;
   annotation: string;
   start: number;
@@ -47,6 +48,8 @@ export type FulfilledMessage = BaseMessage & {
   isRAGOn?: boolean;
   originalText: string;
   toolEvents?: StreamToolInput[];
+
+  annotations?: Annotation[];
 };
 
 /**
@@ -95,6 +98,7 @@ export type ErrorMessage = BaseMessage & {
 export type UserMessage = BaseMessage & {
   type: MessageType.USER;
   files?: File[];
+  is_annotation_response: boolean;
 };
 
 export type ChatMessage = UserMessage | BotMessage;

@@ -166,8 +166,6 @@ export class CohereClient {
     const requestBody = JSON.stringify({
       ...chatRequest,
     });
-    console.log("UMSG ID",chatRequest.user_msg_id)
-    console.log("BMSG ID",chatRequest.bot_msg_id)
     
     return await fetchEventSource(this.getEndpoint('chat-stream'), {
         method: 'POST',
@@ -437,7 +435,8 @@ export class CohereClient {
   private getHeaders(omitContentType = false) {
     const headers: HeadersInit = {
       ...(omitContentType ? {} : { 'Content-Type': 'application/json' }),
-      'User-Id': 'user-id',
+      'User-Id': this.source, //pull the id from cookies or local storage in the init of the cohere client
+      //'User-Id' : uuidv4().toString() //generate a new user uuid for each session.
     };
     return headers;
   }

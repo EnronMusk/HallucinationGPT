@@ -190,6 +190,7 @@ def process_chat(
         Tuple: Tuple containing necessary data to construct the responses.
     """
     user_id = request.headers.get("User-Id", "")
+    print("USER ID HERE", user_id)
     deployment_name = request.headers.get("Deployment-Name", "")
     should_store = chat_request.chat_history is None and not is_custom_tool_call(
         chat_request
@@ -304,6 +305,7 @@ def get_or_create_conversation(
         conversation = Conversation(
             user_id=user_id,
             id=chat_request.conversation_id,
+            title=chat_request.message[:28], #add paritial convo name
         )
 
         if should_store:
@@ -371,8 +373,9 @@ def create_message(
         position=user_message_position,
         is_active=True,
         agent=agent,
+        is_annotation_response= True if '| Annotated Text | Annotation |\n|----------|----------|\n' in text else False
     )
-
+    
     if should_store:
         return message_crud.create_message(session, message)
     return message

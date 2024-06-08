@@ -49,10 +49,6 @@ export const useStreamChat = (user_msg_id: string, bot_msg_id: string) => {
   const cohereClient = useCohereClient();
   const queryClient = useQueryClient();
 
-
-
-  console.log("CALLL!!17239871289739812739871298371892739817298371982378912739871298378912y786iuadiugsahgasjhjhcavshjdjhsaghjasgdhjzxnmcbmzxbczxgjchgkgadsiutqwyeiqyweiu")
-
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
@@ -136,8 +132,6 @@ export const useStreamChat = (user_msg_id: string, bot_msg_id: string) => {
 
         request.user_msg_id = user_msg_id //assign the ids we want for the messages!!!!
         request.bot_msg_id = bot_msg_id
-        console.log('request asigned', request.bot_msg_id)
-
 
         await cohereClient.chat(chatStreamParams);
         

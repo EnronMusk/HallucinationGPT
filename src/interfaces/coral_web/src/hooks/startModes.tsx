@@ -59,12 +59,14 @@ const UNGROUNDED_PROMPTS: Prompt[] = [
   },
 ];
 
+const OTHER: Prompt[] = []
+
 const WEB_SEARCH_PROMPTS: Prompt[] = [
   {
-    title: 'Stay up to date',
-    description: 'US tech company employee count',
-    icon: 'newspaper',
-    prompt: 'Give me the number of employees at Apple, Amazon, and Google in a table.',
+    title: 'Code Generation',
+    description: 'Help me clean up some data in Python',
+    icon: 'code',
+    prompt: "I want to figure out how to remove nan values from my array. For example, My array looks something like this:\n\n```python\nx = [1400, 1500, 1600, nan, nan, nan ,1700] #Not in this exact configuration\n```\n\nHow can I remove the nan values from x to get something like:\n\n```python\nx = [1400, 1500, 1600, 1700]\n```",
   },
   {
     title: 'Research',
@@ -86,15 +88,15 @@ export const useStartModes = () => {
   const modes: Mode[] = [
     {
       id: StartMode.UNGROUNDED,
-      title: 'Just Chat',
-      description: 'Use Coral without any access to external sources.',
-      params: { fileIds: [], tools: [] },
-      promptOptions: UNGROUNDED_PROMPTS,
+      title: 'How to annotate',
+      description: 'You can annotate text (*provide comments*) to prompts and model outputs. You can utilize this to help the model produce more accurate results and provide very precise outputs. **Here is how:**\n\n\u200B\n\n1. Simply [H]+x$s^&@2fc856f8-a03d-44bf-a037-c084dd72cd5a@&^s$x+030This is an example annotation!highlight[/H] any text in the conversation, an annotation box will then appear.\n2. Type your comment into the annotation box, **only 1 comment per annotation box is reconmended**.\n3. Click the `+` button to prompt the model, you can add multiple annotations.\n4. Submit the prompt by clicking the `->` button or press `Enter`, thats it!\n\n\u200B\n\nFor the best results we recommend annotating whole sentences, bullet-points, paragraphs or code chunks for large prompts/outputs so the model can more easily identify the area of the highlighted issue.',
+      params: { },
+      promptOptions: OTHER,
     },
     {
       id: StartMode.WEB_SEARCH,
-      title: 'Wikpedia',
-      description: 'Use multiple sources and tools to answer questions with citations.',
+      title: 'How to chat',
+      description: '- Simply type prompts into the prompt container below, or select one of the prompts right here. \n- Your conversations will be automatically saved and can be viewed to the left.\n- You may also modify the titles of conversations to keep track of them, or delete them.',
       params: { fileIds: [], tools: [{ name: DEFAULT_CHAT_TOOL }] },
       promptOptions: WEB_SEARCH_PROMPTS,
     },

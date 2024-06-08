@@ -23,6 +23,7 @@ import {
   isFulfilledOrTypingMessage,
   isUserMessage,
   Annotation,
+  MessageType,
 } from '@/types/message';
 import { cn } from '@/utils';
 
@@ -52,8 +53,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
   ref
 ) {
   const breakpoint = useBreakpoint();
-
-  console.log('okay?')
 
 
   const [isShowing, setIsShowing] = useState(false);
@@ -174,16 +173,40 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     end: number,
   }
 
+  let annotations: Annotation[] = [];
+
+
+  //converts a list of annotations into a annotdict
+  const convertToAnnotDict = (annotations: Annotation[]): AnnotDict => {
+    return annotations.reduce((acc: AnnotDict, annotation: Annotation) => {
+      acc[annotation.id||""] = annotation;
+      return acc;
+    }, {});
+  };
+
+  console.log('okay? we we ran this message row component!!!!')
+  if(isFulfilledMessage(message)){
+    annotations = message.annotations || []
+  }
+  if(message.type===MessageType.BOT){
+    console.log('state',message.state)
+    console.log("x")
+  }
+  console.log('annots')
+  console.log(annotations)
+
   // State to manage the selected text and annotations
   const [annotationVisible, setAnnotationVisible] = useState<boolean | null>(null);
   const [annotationKey, setAnnotationKey] = useState<string>("");  
   //Store our annots here!
-  const [annotDict, setAnnotDict] = useState<AnnotDict>({});
+  const [annotDict, setAnnotDict] = useState<AnnotDict>(() => {const initialDict = convertToAnnotDict(annotations);
+    return initialDict});
+
   const [addedAnnots, setAddedAnnots] = useState<Set<string>>(new Set()); //Checks for added annots to the prompt.
 
   const [preprocessedMessage, setPreprocessedMessage] = useState<string>(message.text); //default is normal message.text it is updated with higlights.
-  const [annotSortDict, setSortAnnotDict] = useState<AnnotDict>(() => sortAnnotDict({}));
-
+  const [annotSortDict, setSortAnnotDict] = useState<AnnotDict>({});
+  
 
 
   const annotDictLength = useMemo(() => {
@@ -316,7 +339,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
         highlightedSelection = highlightedSelection.replaceAll("**", "[@@@%ga%^$]"); //for bold
 
-        highlightedSelection = highlightedSelection.replaceAll("\n-", "[%s%^$]"); //for lists
+        //highlightedSelection = highlightedSelection.replaceAll("\n-", "[%s%^$]"); //for lists
         
         highlightedSelection = highlightedSelection.replaceAll("*", "[/H]*[H]" + annotationSection); //for italics
 
@@ -334,13 +357,19 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
         highlightedSelection = highlightedSelection.replaceAll("[$$$%g%%$$$]", "```"); //restore them
 
-        highlightedSelection = highlightedSelection.replaceAll("- ", "[/H]- [H]" + annotationSection); //For lists
+       // highlightedSelection = highlightedSelection.replaceAll(" - ", "[/H] - [H]" + annotationSection); //For lists
 
-        highlightedSelection = highlightedSelection.replaceAll("[%s%^$]", "[/H]\n- [H]" + annotationSection); //For lists
+        highlightedSelection = highlightedSelection.replaceAll("\n\n  - ", "[/H]\n\n  - [H]" + annotationSection); //For lists
+        
+        highlightedSelection = highlightedSelection.replaceAll("\n  - ", "[/H]\n  - [H]" + annotationSection); //For lists
 
-        highlightedSelection = highlightedSelection.replaceAll(/\n(\d{1,2})\. /g, '[/H]\n$1. [H]' + annotationSection) //lists
+        highlightedSelection = highlightedSelection.replaceAll("\n- ", "[/H]\n- [H]" + annotationSection); //For lists
 
-        highlightedSelection = highlightedSelection.replaceAll(/\n\n(\d{1,2})\. /g, '[/H]\n\n$1. [H]' + annotationSection) //lists
+        highlightedSelection = highlightedSelection.replaceAll("\n   - ", "[/H]\n   - [H]" + annotationSection); //For lists
+
+        highlightedSelection = highlightedSelection.replaceAll(/\n(\d{1,2})\. /g, '[/H]\n$1. [H]' + annotationSection) //lists numbered
+
+        highlightedSelection = highlightedSelection.replaceAll(/\n\n(\d{1,2})\. /g, '[/H]\n\n$1. [H]' + annotationSection) //lists numbered
 
         highlightedSelection = highlightedSelection.replaceAll("\n\n", "[/H]\n\n[H]" + annotationSection);  //for highlgihts through line breaks.
         //highlightedSection = highlightedSection.replaceAll(":", "[/H]:[H]"); //list item titles
@@ -798,6 +827,7 @@ const calculateStartAndEnd = (sc: Node, startOffset:number, st:string, n_msg:str
     text = ""
   }
 
+
   return {start: (p_idx + c_idx + text.length + trueOffset), end: (p_idx + c_idx + text.length + trueOffset + st.length)}
 }
 
@@ -1043,11 +1073,27 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
       return;
     }
 
+    //No annoations on annotation requests! (breaks the model every time)
+    if(message.type === MessageType.USER){
+      if(message.is_annotation_response === true){
+        return;
+      }
+    }
+
+    //Cannot annotate while streaming
+    if(!isFulfilledMessage(message)){
+      return;
+    }
+
 
     const selectedText = selection.toString();
     const lenst = selectedText.length;
     const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
+    
+    //This highlight spans multiple rows.
+    if (range.commonAncestorContainer.parentElement?.id === 'message-list'){
+      return;
+    }
     
   
     const startContainer = range.startContainer;

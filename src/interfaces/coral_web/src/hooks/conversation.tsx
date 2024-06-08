@@ -76,7 +76,6 @@ export const useConversation = ({
 export const useEditConversation = () => {
   const client = useCohereClient();
   const queryClient = useQueryClient();
-  console.log("edit used")
   return useMutation<
     Conversation,
     CohereNetworkError,

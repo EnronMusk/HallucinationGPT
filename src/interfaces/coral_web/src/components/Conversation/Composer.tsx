@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import React from 'react';
 import { Tool } from '@/cohere-client';
 import { ComposerFiles } from '@/components/Conversation/ComposerFiles';
@@ -13,7 +13,7 @@ import { cn } from '@/utils';
 
 type Props = {
   isStreaming: boolean;
-  value: string;
+  valueInit: string;
   messages: ChatMessage[];
   streamingMessage: ChatMessage | null;
   onStop: VoidFunction;
@@ -23,10 +23,10 @@ type Props = {
 };
 
 const Composer: React.FC<Props> = ({
-  value,
   isStreaming,
+  valueInit,
   onSend,
-  onChange,
+  onChange, //ignore this method- its laggy 
   onStop,
   onUploadFile,
 }) => {
@@ -36,9 +36,33 @@ const Composer: React.FC<Props> = ({
   } = useSettingsStore();
   const { uploadingFiles, composerFiles, deleteComposerFile, deleteUploadingFile } =
     useFileActions();
+
+  const [value, setValue] = useState('');
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(event.target.value);
+};
+
   const isDesktop = useIsDesktop();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const canSend = isReadyToReceiveMessage && value.trim().length > 0;
+
+  //For pre-made prompts, manually insert them.
+  if (textareaRef?.current && valueInit !== ""){
+    textareaRef.current.value = valueInit;
+    const textarea = textareaRef.current;
+
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+
+      // if the content overflows the max height, show the scrollbar
+      if (textarea.scrollHeight > textarea.clientHeight + 2) {
+        textarea.style.overflowY = 'scroll';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    
+  }
+
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
@@ -54,14 +78,16 @@ const Composer: React.FC<Props> = ({
       if (canSend) {
         cref?.setAttribute('data-user', '')
         cref?.setAttribute('data-model', '')
-        onSend(undefined);
+        onSend(value);
       } else if(textareaRef.current?.value != ""){ //manually check value in case of no update to the DOM.
         cref?.setAttribute('data-user', '')
         cref?.setAttribute('data-model', '')
-        onSend(cref?.value);
+        onSend(textareaRef.current?.value);
       }
     }
   };
+
+
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -107,7 +133,8 @@ const Composer: React.FC<Props> = ({
   return (
     <div className="flex w-full flex-col gap-y-2">
       <div className="flex items-end gap-x-2 md:gap-x-4">
-        {<Icon name='help' size='lg' kind='default' className='position-relative hover:' style={{bottom:'25%', transform:'translateY(-100%)'}} />}
+        {/**The icon below is right beside the text container, this is where we should put the submit to AHA button. */}
+        {/* {<Icon name='help' size='lg' kind='default' className='position-relative hover:' style={{bottom:'25%', transform:'translateY(-100%)'}} />} */}
         <div
           className={cn(
             'flex w-full items-end',
@@ -122,7 +149,7 @@ const Composer: React.FC<Props> = ({
               id={CHAT_COMPOSER_TEXTAREA_ID}
               dir="auto"
               ref={textareaRef}
-              value={value}
+              //value={value}
               placeholder="Prompt here..."
               className={cn(
                 'min-h-[3rem] md:min-h-[4rem]',
@@ -138,7 +165,7 @@ const Composer: React.FC<Props> = ({
               )}
               rows={1}
               onKeyDown={handleKeyDown}
-              onChange={onChange}
+              onChange={handleChange}
             />
             <ComposerFiles
               uploadingFiles={uploadingFiles}

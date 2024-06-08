@@ -10,7 +10,7 @@ import type { Document } from './Document';
 import type { File } from './File';
 import type { MessageAgent } from './MessageAgent';
 import type { MessageType } from './MessageType';
-import type { Annotation } from './Annotation'
+import { Annotation } from '@/types/message';
 
 export type Message = {
   type?: MessageType;
@@ -24,6 +24,7 @@ export type Message = {
   documents: Array<Document>;
   citations: Array<Citation>;
   annotations: Array<Annotation>;
+  is_annotation_response: boolean;
   files: Array<File>;
   agent: MessageAgent;
 };

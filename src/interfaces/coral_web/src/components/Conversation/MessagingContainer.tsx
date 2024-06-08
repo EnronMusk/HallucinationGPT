@@ -15,6 +15,7 @@ import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotat
 import { cn } from '@/utils';
 
 import { appSSR } from '@/pages/_app'; //for db
+import { CohereClient } from '@/cohere-client';
 
 type Props = {
   isStreaming: boolean;
@@ -26,6 +27,7 @@ type Props = {
   conversationId?: string;
   scrollViewClassName?: string;
   onPromptSelected?: (option: PromptOption) => void;
+  client: CohereClient;
 };
 
 /**
@@ -146,11 +148,10 @@ type MessagesProps = Props & { startOptionsEnabled: boolean };
  * This component is in charge of rendering the messages.
  */
 const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
-  { startOptionsEnabled, onRetry, messages, streamingMessage, onPromptSelected },
+  { startOptionsEnabled, onRetry, messages, streamingMessage, onPromptSelected, client },
   ref
 ) {
   const isConversationEmpty = messages.length === 0;
-  const client = appSSR.init_client().client;
   //console.log("THE MSGS")
   //console.log(messages)
   //console.log(streamingMessage)

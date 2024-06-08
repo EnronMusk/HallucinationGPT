@@ -1,7 +1,6 @@
 import { Transition } from '@headlessui/react';
 import React, { useState } from 'react';
-
-import { Icon, IconName, Tabs, Text } from '@/components/Shared';
+import { Icon, IconName, Tabs, Text, Markdown } from '@/components/Shared';
 import { useStartModes } from '@/hooks/startModes';
 import { useParamsStore } from '@/stores';
 import { ConfigurableParams } from '@/stores/slices/paramsSlice';
@@ -44,11 +43,13 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
       leaveTo="opacity-0"
       className={cn('flex flex-col items-center gap-y-6', className)}
     >
-      <Text styleAs="h5" className="text-center">
-        Choose an option to get started
+      <Text styleAs="h5" className="text-center font-bold" >
+        Welcome to WildChat
       </Text>
 
-      <div className={cn('w-full max-w-[820px]', 'rounded-lg border border-marble-400')}>
+      <div className={cn('w-full max-w-[820px]', 'rounded-lg border border-marble-400 bg-white',
+        
+      )}>
         <Tabs
           tabs={modes.map((m) => m.title)}
           selectedIndex={selectedMode}
@@ -60,7 +61,7 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
         >
           {modes.map((m) => (
             <div key={m.title} className="flex flex-col gap-y-5">
-              <Text>{m.description}</Text>
+              <Markdown text={m.description} renderLaTex={true}/>
               <div className="flex flex-col gap-2.5 md:flex-row">
                 {m.promptOptions.map((promptOption) => (
                   <PromptOptionButton

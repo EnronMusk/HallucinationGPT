@@ -68,26 +68,26 @@ const ConversationPage: NextPage<Props> = () => {
     }
   }, [deployment]);
 
-  useEffect(() => {
-    let documentsMap: { [documentId: string]: Document } = {};
-    (conversation?.messages ?? []).forEach((message) => {
-      documentsMap =
-        message.documents?.reduce<{ [documentId: string]: Document }>(
-          (idToDoc, doc) => ({ ...idToDoc, [doc.document_id ?? '']: doc }),
-          {}
-        ) ?? {};
-      message.citations?.forEach((citation) => {
-        const startEndKey = createStartEndKey(citation.start ?? 0, citation.end ?? 0);
-        const documents = citation.document_ids?.map((id) => documentsMap[id]) ?? [];
-        addCitation(message.generation_id ?? '', startEndKey, documents);
-      });
-    });
-  }, [conversation]);
+  // useEffect(() => {
+  //   let documentsMap: { [documentId: string]: Document } = {};
+  //   (conversation?.messages ?? []).forEach((message) => {
+  //     documentsMap =
+  //       message.documents?.reduce<{ [documentId: string]: Document }>(
+  //         (idToDoc, doc) => ({ ...idToDoc, [doc.document_id ?? '']: doc }),
+  //         {}
+  //       ) ?? {};
+  //     message.citations?.forEach((citation) => {
+  //       const startEndKey = createStartEndKey(citation.start ?? 0, citation.end ?? 0);
+  //       const documents = citation.document_ids?.map((id) => documentsMap[id]) ?? [];
+  //       addCitation(message.generation_id ?? '', startEndKey, documents);
+  //     });
+  //   });
+  // }, [conversation]);
 
-  useEffect(() => {
-    if (!isLangchainModeOn) return;
-    setMessage('You are using an experimental langchain multihop flow. There will be bugs.');
-  }, [isLangchainModeOn]);
+  // useEffect(() => {
+  //   if (!isLangchainModeOn) return;
+  //   setMessage('You are using an experimental langchain multihop flow. There will be bugs.');
+  // }, [isLangchainModeOn]);
 
   return (
     <Layout>

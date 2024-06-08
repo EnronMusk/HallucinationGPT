@@ -13,7 +13,7 @@ export const mapHistoryToMessages = (conversation_id: string, history?: Message[
         return {
           ...(message.agent === MessageAgent.CHATBOT
             ? { type: MessageType.BOT, state: BotState.FULFILLED, originalText: message.text ?? '' }
-            : { type: MessageType.USER }),
+            : { type: MessageType.USER, }),
           text: replaceTextWithCitations(
             message.text ?? '',
             message.citations ?? [],
@@ -24,6 +24,8 @@ export const mapHistoryToMessages = (conversation_id: string, history?: Message[
           files: message.files,
           message_id: message.id,
           conversation_id: conversation_id,
+          annotations: message.annotations,
+          is_annotation_response: message.is_annotation_response||false,
         };
       })
     : [];

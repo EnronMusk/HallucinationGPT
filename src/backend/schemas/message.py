@@ -31,6 +31,8 @@ class Message(MessageBase):
     files: List[File]
     annotations: List[Annotation] #added annotaitons
 
+    is_annotation_response: bool
+
     agent: MessageAgent
 
     class Config:

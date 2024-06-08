@@ -32,7 +32,7 @@ export type UserOrBotMessage = UserMessage | FulfilledMessage;
 /**
  * @description Maps chat history given by the API to a list of messages that can be displayed in the chat.
  */
-export const mapHistoryToMessages = (history?: Message[]): UserOrBotMessage[] => {
+export const mapHistoryToMessages = (conversation_id: string, history?: Message[]): UserOrBotMessage[] => {
   if (!history) return [];
 
   let messages: UserOrBotMessage[] = [];
@@ -53,6 +53,10 @@ export const mapHistoryToMessages = (history?: Message[]): UserOrBotMessage[] =>
           generationId: message.generation_id ?? '',
           citations: message.citations,
           toolEvents: tempToolEvents,
+          message_id: message.id,
+          conversation_id: conversation_id,
+          annotations: message.annotations,
+          is_annotation_response: false,
         });
         tempToolEvents = undefined;
       } else {
@@ -75,6 +79,10 @@ export const mapHistoryToMessages = (history?: Message[]): UserOrBotMessage[] =>
           message.generation_id ?? ''
         ),
         files: message.files,
+        message_id: message.id,
+        conversation_id: conversation_id,
+        annotations: message.annotations,
+        is_annotation_response: message.is_annotation_response||false,
       });
     }
   }

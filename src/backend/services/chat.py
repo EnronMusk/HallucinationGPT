@@ -137,7 +137,7 @@ def process_chat(
         chat_request.message,
         MessageAgent.USER,
         should_store,
-        id=str(uuid4()),
+        id=chat_request.user_msg_id,
     )
     chatbot_message = create_message(
         session,
@@ -148,7 +148,7 @@ def process_chat(
         "",
         MessageAgent.CHATBOT,
         False,
-        id=str(uuid4()),
+        id=chat_request.bot_msg_id,
     )
 
     file_paths = None

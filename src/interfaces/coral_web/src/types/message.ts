@@ -20,9 +20,12 @@ type BaseMessage = {
   error?: string;
   message_id?: string; //for accessing db
   conversation_id?: string; //for submission to AHA
+  annotations?: Annotation[];
+  is_annotation_response?: boolean;
 };
 
 export type Annotation = {
+  id?: string; //used for db pull and push.
   htext: string;
   annotation: string;
   start: number;

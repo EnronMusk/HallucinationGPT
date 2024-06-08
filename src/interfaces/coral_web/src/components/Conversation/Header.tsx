@@ -67,11 +67,11 @@ const useHeaderMenu = ({ agentId }: { agentId?: string }) => {
   const handleToggleConfigSettings = () => {
     setSettings({ isConfigDrawerOpen: !isConfigDrawerOpen });
 
-    if (welcomeGuideState === WelcomeGuideStep.ONE && pathname === '/') {
-      progressWelcomeGuideStep();
-    } else if (welcomeGuideState !== WelcomeGuideStep.DONE) {
-      finishWelcomeGuide();
-    }
+    // if (welcomeGuideState === WelcomeGuideStep.ONE && pathname === '/') {
+    //   progressWelcomeGuideStep();
+    // } else if (welcomeGuideState !== WelcomeGuideStep.DONE) {
+    //   finishWelcomeGuide();
+    // }
   };
 
   const handleOpenAgentDrawer = () => {

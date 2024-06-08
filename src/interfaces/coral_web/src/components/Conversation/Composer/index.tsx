@@ -23,7 +23,7 @@ import { cn } from '@/utils';
 type Props = {
   isFirstTurn: boolean;
   isStreaming: boolean;
-  value: string;
+  valueInit: string;
   streamingMessage: ChatMessage | null;
   onStop: VoidFunction;
   onSend: (message?: string, overrides?: Partial<ConfigurableParams>) => void;
@@ -33,9 +33,9 @@ type Props = {
   chatWindowRef?: React.RefObject<HTMLDivElement>;
 };
 
-export const Composer: React.FC<Props> = ({
+const Composer: React.FC<Props> = ({
   isFirstTurn,
-  value,
+  valueInit,
   isStreaming,
   requiredTools,
   onSend,
@@ -63,6 +63,8 @@ export const Composer: React.FC<Props> = ({
   const [isDragDropInputActive, setIsDragDropInputActive] = useState(false);
   const [showDataSourceMenu, setShowDataSourceMenu] = useState(false);
 
+  const [value, setValue] = useState('');
+
   const isReadyToReceiveMessage = !isStreaming;
   const isAgentsModeOn = !!experimentalFeatures?.USE_AGENTS_VIEW;
   const isComposerDisabled = isToolAuthRequired && isAgentsModeOn;
@@ -76,20 +78,54 @@ export const Composer: React.FC<Props> = ({
     setIsComposing(false);
   };
 
+  //For pre-made prompts, manually insert them.
+  if (textareaRef?.current && valueInit !== ""){
+    textareaRef.current.value = valueInit;
+    const textarea = textareaRef.current;
+
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+
+      // if the content overflows the max height, show the scrollbar
+      if (textarea.scrollHeight > textarea.clientHeight + 2) {
+        textarea.style.overflowY = 'scroll';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    
+  }
+  
+
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !isComposing) {
       // Do expected default behaviour (add a newline inside of the textarea)
       if (e.shiftKey || isSmallBreakpoint) return;
 
+      console.log(textareaRef.current?.value)
+      console.log(canSend)
+
+      let cref = textareaRef.current;
+
       e.preventDefault();
       if (canSend) {
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
         onSend(value);
+        setTagQuery('');
+        setShowDataSourceMenu(false);
+        onChange('');
+      } else if(textareaRef.current?.value != ""){ //manually check value in case of no update to the DOM.
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
+        onSend(textareaRef.current?.value);
         setTagQuery('');
         setShowDataSourceMenu(false);
         onChange('');
       }
     }
   };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (isComposerDisabled) {
@@ -275,3 +311,5 @@ const Square = () => (
     <path d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48z" />
   </svg>
 );
+
+export default React.memo(Composer);

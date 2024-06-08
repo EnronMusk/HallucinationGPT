@@ -9,6 +9,7 @@ import { CitationPanel } from '@/components/Citations/CitationPanel';
 import MessageRow from '@/components/MessageRow';
 import { Button } from '@/components/Shared';
 import { Welcome } from '@/components/Welcome';
+import { PromptOption, StartModes } from '@/components/StartModes';
 import { ReservedClasses } from '@/constants';
 import { MESSAGE_LIST_CONTAINER_ID, useCalculateCitationStyles } from '@/hooks/citations';
 import { useFixCopyBug } from '@/hooks/fixCopyBug';
@@ -17,10 +18,12 @@ import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotat
 import { cn } from '@/utils';
 
 import { makeCohereClient } from '@/app/_providers'; //for db
+import { CohereClient } from '@/cohere-client';
 
 type Props = {
   isStreaming: boolean;
   isStreamingToolEvents: boolean;
+  client: CohereClient;
   startOptionsEnabled: boolean;
   messages: ChatMessage[];
   streamingMessage: StreamingMessage | null;
@@ -29,6 +32,7 @@ type Props = {
   composer: ReactNode;
   conversationId?: string;
   scrollViewClassName?: string;
+  onPromptSelected?: (option: PromptOption) => void;
 };
 
 /**
@@ -171,11 +175,10 @@ type MessagesProps = Props;
  * This component is in charge of rendering the messages.
  */
 const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
-  { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents },
+  { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents, client },
   ref
 ) {
   const isConversationEmpty = messages.length === 0;
-  const client = makeCohereClient();
   const isChatEmpty = messages.length === 0;
   //console.log("THE MSGS")
   //console.log(messages)

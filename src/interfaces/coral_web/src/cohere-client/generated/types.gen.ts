@@ -357,6 +357,7 @@ export type Message = {
   tool_calls: Array<ToolCall>;
   tool_plan: string | null;
   agent: MessageAgent;
+  is_annotation_response?: boolean;
 };
 
 export enum MessageAgent {

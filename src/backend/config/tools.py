@@ -28,17 +28,18 @@ Don't forget to add the implementation to this AVAILABLE_TOOLS dictionary!
 
 
 class ToolName(StrEnum):
-    Wiki_Retriever_LangChain = LangChainWikiRetriever.NAME
-    Search_File = SearchFileTool.NAME
-    Read_File = ReadFileTool.NAME
-    Python_Interpreter = PythonInterpreter.NAME
-    Calculator = Calculator.NAME
-    Tavily_Internet_Search = TavilyInternetSearch.NAME
-    Google_Drive = GoogleDrive.NAME
+    Wiki_Retriever_LangChain = "wikipedia"
+    Search_File = "search_file"
+    Read_File = "read_document"
+    Python_Interpreter = "toolkit_python_interpreter"
+    Calculator = "toolkit_calculator"
+    Tavily_Internet_Search = "web_search"
+    Google_Drive = GOOGLE_DRIVE_TOOL_ID
 
 
 ALL_TOOLS = {
     ToolName.Tavily_Internet_Search: ManagedTool(
+        name=ToolName.Tavily_Internet_Search,
         display_name="Web Search",
         implementation=TavilyInternetSearch,
         parameter_definitions={
@@ -51,7 +52,10 @@ ALL_TOOLS = {
         is_visible=True,
         is_available=TavilyInternetSearch.is_available(),
         error_message="TavilyInternetSearch not available, please make sure to set the TAVILY_API_KEY environment variable.",
+        is_available=TavilyInternetSearch.is_available(),
+        error_message="TavilyInternetSearch not available, please make sure to set the TAVILY_API_KEY environment variable.",
         category=Category.DataLoader,
+        description="Returns a list of relevant document snippets for a textual query retrieved from the internet using Tavily.",
         description="Returns a list of relevant document snippets for a textual query retrieved from the internet using Tavily.",
     ),
     ToolName.Search_File: ManagedTool(
@@ -108,6 +112,7 @@ ALL_TOOLS = {
         description="Runs python code in a sandbox.",
     ),
     ToolName.Wiki_Retriever_LangChain: ManagedTool(
+        name=ToolName.Wiki_Retriever_LangChain,
         display_name="Wikipedia",
         implementation=LangChainWikiRetriever,
         parameter_definitions={
@@ -138,6 +143,7 @@ ALL_TOOLS = {
         is_available=Calculator.is_available(),
         error_message="Calculator tool not available.",
         category=Category.Function,
+        description="This is a powerful multi-purpose calculator which is capable of a wide array of math calculations.",
         description="This is a powerful multi-purpose calculator which is capable of a wide array of math calculations.",
     ),
     ToolName.Google_Drive: ManagedTool(

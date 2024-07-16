@@ -53,6 +53,11 @@ class Message(Base):
     def annotations_ordered(self):
         return sorted(self.annotations, key=lambda x: x.position)
 
+    #For ordering of annotations.
+    @property
+    def annotations_ordered(self):
+        return sorted(self.annotations, key=lambda x: x.position)
+
     __table_args__ = (
         Index("message_conversation_id_user_id", conversation_id, user_id),
         Index("message_conversation_id", conversation_id),

@@ -16,6 +16,7 @@ import { cn } from '@/utils';
 
 import { appSSR } from '@/pages/_app'; //for db
 import { CohereClient } from '@/cohere-client';
+import { StartModes } from '@/components/StartModes';
 
 type Props = {
   isStreaming: boolean;
@@ -178,11 +179,14 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
   //console.log("THE MSGS")
   //console.log(messages)
   //console.log(streamingMessage)
+  //console.log("THE MSGS")
+  //console.log(messages)
+  //console.log(streamingMessage)
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
       {(
         <div className="flex h-full w-full flex-col justify-center p-4">
-          <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
+          <StartModes show={isConversationEmpty} />
         </div>
       )}
 
@@ -213,6 +217,7 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
             />
           );
         })}
+      {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {streamingMessage && (
         <MessageRow key={messages.length} order={messages.length} isStreamingToolEvents={isStreamingToolEvents} message={streamingMessage} isLast={true} is2ndLast={false} onRetry={onRetry} client={client} />

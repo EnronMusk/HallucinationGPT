@@ -311,6 +311,24 @@ class BaseAnnotationRequest(BaseModel):
         title="end.",
     )
 
+class BaseAnnotationRequest(BaseModel):
+
+    message_id: str = Field(
+        title="The message id.",
+    )
+    htext: str = Field(
+        title="The highlighted text.",
+    )
+    annotation: str = Field(
+        title="The annotation text.",
+    )
+    start: int = Field(
+        title="start.",
+    )
+    end: int = Field(
+        title="end.",
+    )
+
 
 class BaseChatRequest(BaseModel):
 
@@ -319,6 +337,12 @@ class BaseChatRequest(BaseModel):
     # )
     message: str = Field(
         title="The message to send to the chatbot.",
+    )
+    user_msg_id: str = Field(
+        title="user msg id",
+    )
+    bot_msg_id: str = Field(
+        title="bot msg id",
     )
     user_msg_id: str = Field(
         title="user msg id",

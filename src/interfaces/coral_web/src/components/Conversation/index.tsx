@@ -28,6 +28,8 @@ import { cn } from '@/utils';
 
 import { appSSR } from '@/pages/_app'; //for db
 
+import { appSSR } from '@/pages/_app'; //for db
+
 type Props = {
   startOptionsEnabled?: boolean;
   conversationId?: string;

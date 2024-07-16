@@ -45,3 +45,4 @@ class Message(MessageBase):
 class UpdateMessage(MessageBase):
     pass
 
+

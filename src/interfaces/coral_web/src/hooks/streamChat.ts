@@ -92,6 +92,15 @@ export const useStreamChat = (user_msg_id: string, bot_msg_id: string) => {
 
         /////////
 
+        //
+
+        //Here we assign user and bot msg ids. this is so streamingm essages have these ids!!!!
+
+        //
+        console.log("ijijijijijijijijijjijijjijijijijijijijijijijijijijijijijijijij")
+
+        /////////
+
         const chatStreamParams = {
           request,
           headers,
@@ -155,9 +164,11 @@ export const useStreamChat = (user_msg_id: string, bot_msg_id: string) => {
     onSuccess: updateConversationHistory,
   });
   console.log('before reutnr', user_msg_id)
+  console.log('before reutnr', user_msg_id)
 
   return {
     chatMutation,
     abortController: abortControllerRef,
   };
 };
+

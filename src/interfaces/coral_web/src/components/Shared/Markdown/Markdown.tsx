@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, useState, useEffect, ReactNode } from 'react';
+import { ComponentPropsWithoutRef, useState, useEffect, ReactNode } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
@@ -19,6 +20,8 @@ import { renderTableTools   } from './directives/table-tools';
 import { renderRemarkTags } from './directives/tag';
 import { renderRemarkUnknowns } from './directives/unknown';
 import { P } from './tags/P';
+import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
+import { Code } from './tags/Code';
 import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
 import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
@@ -79,11 +82,14 @@ export const getActiveMarkdownPlugins = (
 
 
 
+
+
 /**
  * Convenience component to help apply the styling to markdown texts.
  */
 export const Markdown = ({
   className = '',
+  text, //preprocessed is passed
   text, //preprocessed is passed
   customComponents,
   customRemarkPlugins = [],
@@ -92,6 +98,7 @@ export const Markdown = ({
   allowedElements,
   unwrapDisallowed,
   ...rest
+}: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
 }: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
   const { remarkPlugins, rehypePlugins } = getActiveMarkdownPlugins(renderLaTex);
 
@@ -178,6 +185,7 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
       <ReactMarkdown
         remarkPlugins={[...remarkPlugins, ...customRemarkPlugins]}
         //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
+        //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
         components={components}
@@ -185,9 +193,11 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
         skipHtml={false}
       >
         {text} 
+        {text} 
       </ReactMarkdown>
     </Text>
   );
 };
 
+export default Markdown;
 export default Markdown;

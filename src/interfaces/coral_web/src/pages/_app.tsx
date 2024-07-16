@@ -33,6 +33,12 @@ import UserAgreementModal from './ua';
 import React from 'react';
 
 
+import { getUserId, hasAcceptedUserAgreement, acceptUserAgreement } from './cookies'; //cookies stuff
+import UserAgreementModal from './ua';
+
+import React from 'react';
+
+
 /**
  * Create a CohereAPIClient with the given access token.
  */
@@ -58,6 +64,10 @@ export const appSSR = {
     const cohereClient = makeCohereClient();
     return { queryClient, cohereClient };
   },
+  init_client: () =>{
+    const client = makeCohereClient();
+    return {client}
+  }
   init_client: () =>{
     const client = makeCohereClient();
     return {client}
@@ -122,6 +132,8 @@ const App: React.FC<Props> = ({ Component, pageProps, ...props }) => {
             <WebManifestHead />
             <ToastNotification />
             <ReactQueryDevtools />
+            {!showUserAgreement && <Component {...pageProps} />}
+            {showUserAgreement && <UserAgreementModal onAccept={handleAcceptUserAgreement} />}
             {!showUserAgreement && <Component {...pageProps} />}
             {showUserAgreement && <UserAgreementModal onAccept={handleAcceptUserAgreement} />}
           </ContextStore>

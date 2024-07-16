@@ -1,7 +1,6 @@
 import { UseMutateAsyncFunction, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import React from 'react';
-import React from 'react';
 
 import {
   ChatResponseEvent,
@@ -77,12 +76,6 @@ export type HandleSendChat = (
 ) => Promise<void>;
 
 export const useChat = (config?: { onSend?: (msg: string) => void }) => {
-
-  const [UserMessageId, setUserMessageId] = useState<string>(uuidv4().toString())
-  const [BotMessageId, setBotMessageId] = useState<string>(uuidv4().toString())
-
-  const { chatMutation, abortController } = useStreamChat(UserMessageId, BotMessageId);
-
 
   const [UserMessageId, setUserMessageId] = useState<string>(uuidv4().toString())
   const [BotMessageId, setBotMessageId] = useState<string>(uuidv4().toString())
@@ -279,7 +272,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 originalText: botResponse,
                 toolEvents,
                 message_id: BotMessageId
-                message_id: BotMessageId
               });
               
               
@@ -362,7 +354,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 originalText: botResponse,
                 toolEvents,
                 message_id: BotMessageId,
-                message_id: BotMessageId,
               });
               break;
             }
@@ -433,7 +424,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 originalText: botResponse,
                 toolEvents,
                 message_id: BotMessageId
-                message_id: BotMessageId
               });
               break;
             }
@@ -500,7 +490,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 isRAGOn,
                 originalText: isRAGOn ? responseText : botResponse,
                 toolEvents,
-                message_id: BotMessageId
                 message_id: BotMessageId
               });
 
@@ -612,8 +601,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       model,
       bot_msg_id: BotMessageId,
       user_msg_id: UserMessageId,
-      bot_msg_id: BotMessageId,
-      user_msg_id: UserMessageId,
       ...restOverrides,
     };
   };
@@ -645,8 +632,6 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       type: MessageType.USER,
       text: message,
       files: composerFiles,
-      message_id: UserMessageId, //set it to user msg for streaming messages
-      is_annotation_response: message.includes('| Annotated Text | Annotation |\n|----------|----------|\n')
       message_id: UserMessageId, //set it to user msg for streaming messages
       is_annotation_response: message.includes('| Annotated Text | Annotation |\n|----------|----------|\n')
     });

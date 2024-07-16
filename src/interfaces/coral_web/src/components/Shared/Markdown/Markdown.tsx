@@ -1,6 +1,5 @@
 import { ComponentPropsWithoutRef, useState, useEffect, ReactNode } from 'react';
-import { ComponentPropsWithoutRef, useState, useEffect, ReactNode } from 'react';
-import ReactMarkdown, { Components } from 'react-markdown';
+import ReactMarkdown, { Components, UrlTransform } from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
@@ -20,8 +19,6 @@ import { renderTableTools   } from './directives/table-tools';
 import { renderRemarkTags } from './directives/tag';
 import { renderRemarkUnknowns } from './directives/unknown';
 import { P } from './tags/P';
-import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
-import { Code } from './tags/Code';
 import { CustomOl, CustomLi, CustomUl, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Title, dl, dd, dt, strong, em, td, th  } from './tags/list';
 import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
@@ -90,15 +87,14 @@ export const getActiveMarkdownPlugins = (
 export const Markdown = ({
   className = '',
   text, //preprocessed is passed
-  text, //preprocessed is passed
   customComponents,
   customRemarkPlugins = [],
   customRehypePlugins = [],
   renderLaTex = true,
   allowedElements,
   unwrapDisallowed,
+  urlTransform,
   ...rest
-}: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
 }: MarkdownTextProps & { highlightedRanges?: { start: number; end: number }[] }) => {
   const { remarkPlugins, rehypePlugins } = getActiveMarkdownPlugins(renderLaTex);
 
@@ -134,33 +130,6 @@ export const Markdown = ({
     [customComponents]
   );
 
-// Function to insert highlight markers into text based on ranges
-const insertHighlightMarkers = (text: string, ranges: { start: number; end: number }[]) => {
-  let highlightedText = '';
-  let currentIndex = 0;
-
-  ranges.forEach(range => {
-    // Add the text before the range
-    highlightedText += text.substring(currentIndex, range.start);
-    // Add the start marker for the highlighted text
-    highlightedText += '[[H]]';
-    // Add the highlighted text
-    highlightedText += text.substring(range.start, range.end);
-    // Add the end marker for the highlighted text
-    highlightedText += '[[/H]]';
-    currentIndex = range.end;
-  });
-
-  // Add the remaining text after the last range
-  highlightedText += text.substring(currentIndex);
-
-  return highlightedText;
-};
-
-  const processedText = insertHighlightMarkers(text, highlightedRanges);
-  //console.log("processed text", processedText)
-
-
   return (
     <Text
       as="div"
@@ -185,7 +154,6 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
       <ReactMarkdown
         remarkPlugins={[...remarkPlugins, ...customRemarkPlugins]}
         //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
-        //rehypePlugins={[...rehypePlugins, ...customRehypePlugins]} //screw the code formatting!
         unwrapDisallowed={unwrapDisallowed}
         allowedElements={allowedElements}
         components={components}
@@ -193,11 +161,9 @@ const insertHighlightMarkers = (text: string, ranges: { start: number; end: numb
         skipHtml={false}
       >
         {text} 
-        {text} 
       </ReactMarkdown>
     </Text>
   );
 };
 
-export default Markdown;
 export default Markdown;

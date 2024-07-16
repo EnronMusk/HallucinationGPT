@@ -29,7 +29,7 @@ type Props = {
   chatWindowRef?: React.RefObject<HTMLDivElement>;
 };
 
-export const Composer: React.FC<Props> = ({
+const Composer: React.FC<Props> = ({
   isFirstTurn,
   value,
   isStreaming,
@@ -60,6 +60,25 @@ export const Composer: React.FC<Props> = ({
   const isReadyToReceiveMessage = !isStreaming;
   const canSend = isReadyToReceiveMessage && value.trim().length > 0 && !isToolAuthRequired;
 
+  //For pre-made prompts, manually insert them and adjust textbox size
+  if (textareaRef?.current && value !== ""){
+    textareaRef.current.value = value;
+    const textarea = textareaRef.current;
+
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+
+      // if the content overflows the max height, show the scrollbar
+      if (textarea.scrollHeight > textarea.clientHeight + 2) {
+        textarea.style.overflowY = 'scroll';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    
+  }
+
+
+
   const handleCompositionStart = () => {
     setIsComposing(true);
   };
@@ -73,12 +92,21 @@ export const Composer: React.FC<Props> = ({
       // Do expected default behaviour (add a newline inside of the textarea)
       if (e.shiftKey || isSmallBreakpoint) return;
 
+      let cref = textareaRef.current;
+
       e.preventDefault();
       if (canSend) {
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
         onSend(value);
         setTagQuery('');
         setShowDataSourceMenu(false);
         onChange('');
+
+      } else if(textareaRef.current?.value != ""){ //manually check value in case of no update to the DOM.
+        cref?.setAttribute('data-user', '')
+        cref?.setAttribute('data-model', '')
+        onSend(textareaRef.current?.value);
       }
     }
   };
@@ -185,8 +213,8 @@ export const Composer: React.FC<Props> = ({
             id={CHAT_COMPOSER_TEXTAREA_ID}
             dir="auto"
             ref={textareaRef}
-            value={value}
-            placeholder="Message..."
+            // value={value}
+            placeholder="Prompt here. . ."
             className={cn(
               'w-full flex-1 resize-none overflow-hidden',
               'self-center',
@@ -260,3 +288,5 @@ const Square = () => (
     <path d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48z" />
   </svg>
 );
+
+export default React.memo(Composer);

@@ -47,6 +47,7 @@ def create_app():
         experimental_feature_router,
         agent_router,
         snapshot_router,
+        annotations_router,
     ]
 
     # Dynamically set router dependencies

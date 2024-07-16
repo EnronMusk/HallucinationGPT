@@ -2,7 +2,7 @@ import { Transition, TransitionChild } from '@headlessui/react';
 import React, { useCallback, useEffect, useRef } from 'react';
 
 import { UpdateAgentPanel } from '@/components/Agents/UpdateAgentPanel';
-import { Composer } from '@/components/Conversation/Composer';
+import Composer from '@/components/Conversation/Composer/index';
 import { Header } from '@/components/Conversation/Header';
 import MessagingContainer from '@/components/Conversation/MessagingContainer';
 import { Spinner } from '@/components/Shared';
@@ -25,8 +25,6 @@ import {
 import { ConfigurableParams } from '@/stores/slices/paramsSlice';
 import { ChatMessage } from '@/types/message';
 import { cn } from '@/utils';
-
-import { appSSR } from '@/pages/_app'; //for db
 
 import { appSSR } from '@/pages/_app'; //for db
 
@@ -158,6 +156,8 @@ const Conversation: React.FC<Props> = ({
     send({ suggestedMessage: msg }, overrides);
   };
 
+  const client = appSSR.init_client().client; //add a client to be passed for db access
+
   return (
     <div className="flex h-full w-full">
       <div className="flex h-full w-full min-w-0 flex-col">
@@ -174,6 +174,7 @@ const Conversation: React.FC<Props> = ({
             messages={messages}
             streamingMessage={streamingMessage}
             agentId={agentId}
+            client={client}
             composer={
               <>
                 <WelcomeGuideTooltip step={3} className="absolute bottom-full mb-4" />

@@ -22,7 +22,7 @@ type Props = {
   onUploadFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-const Composer: React.FC<Props> = ({
+const ComposerOrg: React.FC<Props> = ({
   isStreaming,
   valueInit,
   onSend,
@@ -207,4 +207,4 @@ const Square = () => (
   </svg>
 );
 
-export default React.memo(Composer);
+export default React.memo(ComposerOrg);

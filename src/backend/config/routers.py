@@ -22,6 +22,7 @@ class RouterName(StrEnum):
     USER = "user"
     AGENT = "agent"
     SNAPSHOT = "snapshot"
+    ANNOTATION = 'annotation'
 
 
 # Router dependency mappings
@@ -47,6 +48,16 @@ ROUTER_DEPENDENCIES = {
         ],
     },
     RouterName.CONVERSATION: {
+        "default": [
+            Depends(get_session),
+            Depends(validate_user_header),
+        ],
+        "auth": [
+            Depends(get_session),
+            Depends(validate_authorization),
+        ],
+    },
+    RouterName.ANNOTATION: {
         "default": [
             Depends(get_session),
             Depends(validate_user_header),

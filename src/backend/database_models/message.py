@@ -8,7 +8,7 @@ from backend.database_models.base import Base
 from backend.database_models.citation import Citation
 from backend.database_models.document import Document
 from backend.database_models.file import File
-from backend.models.annotation import Annotation
+from backend.database_models.annotation import Annotation
 from backend.database_models.tool_call import ToolCall
 
 

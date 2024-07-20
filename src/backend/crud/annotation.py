@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from backend.models.annotation import Annotation
+from backend.database_models.annotation import Annotation
 
 def create_annotation(db: Session, annotation: Annotation) -> Annotation:
     """

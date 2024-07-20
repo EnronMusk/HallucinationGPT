@@ -1236,7 +1236,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           <Avatar message={message} />
           <div className="flex w-full min-w-0 max-w-message flex-1 flex-col items-center gap-x-3 md:flex-row">
             <div className="w-full">
-              {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents}/>}
+              {/* {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents}/>} */}
 
               {//This is where we render the annotated box
               }

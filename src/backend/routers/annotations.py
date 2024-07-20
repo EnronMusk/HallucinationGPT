@@ -21,12 +21,12 @@ from backend.crud import message as message_crud
 from backend.crud import annotation as annotation_crud
 
 from backend.models import get_session
-from backend.models.citation import Citation
-from backend.models.conversation import Conversation
-from backend.models.database import DBSessionDep
-from backend.models.document import Document
-from backend.models.annotation import Annotation
-from backend.models.message import Message
+from backend.database_models.citation import Citation
+from backend.database_models.conversation import Conversation
+from backend.database_models.database import DBSessionDep
+from backend.database_models.document import Document
+from backend.database_models.annotation import Annotation
+from backend.database_models.message import Message
 from backend.schemas.chat import (
     BaseAnnotationRequest,
     ChatMessage,
@@ -50,19 +50,13 @@ from backend.schemas.file import UpdateFile
 from backend.schemas.langchain_chat import LangchainChatRequest
 from backend.schemas.search_query import SearchQuery
 from backend.schemas.tool import ToolCall
-from backend.services.request_validators import (
-    validate_chat_request,
-    validate_deployment_header,
-    validate_user_header,
-)
+
+from backend.config.routers import RouterName
 
 router = APIRouter(
-    prefix="/annotations",
-    dependencies=[
-        Depends(get_session),
-        Depends(validate_user_header),
-    ]
+    prefix="/v1/annotations",
 )
+router.name = RouterName.ANNOTATION
 
 
 @router.put("/{annotation_id}/add")

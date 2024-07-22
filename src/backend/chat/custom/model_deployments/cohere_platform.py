@@ -17,6 +17,13 @@ from openai.types.chat import ChatCompletion, ChatCompletionMessage
 from openai.types.chat.chat_completion import Choice
 from backend.chat.enums import StreamEvent
 import uuid
+#Imports for our openAI api call
+from backend.schemas.chat import ChatMessage, ChatRole
+from cohere import NonStreamedChatResponse, FinishReason
+from openai.types.chat import ChatCompletion, ChatCompletionMessage
+from openai.types.chat.chat_completion import Choice
+from backend.chat.enums import StreamEvent
+import uuid
 
 class CohereDeployment(BaseDeployment):
     """Cohere Platform Deployment."""
@@ -130,12 +137,15 @@ class CohereDeployment(BaseDeployment):
         self, chat_request: CohereChatRequest, **kwargs: Any
     ) -> Generator[StreamedChatResponse, None, None]:
 
+
         stream = self.client.chat_stream(
             **chat_request.model_dump(exclude={"stream"}),
             **kwargs,
         )
         print(chat_request.prompt_truncation)
+        print(chat_request.prompt_truncation)
         for event in stream:
+            print(event.__dict__)
             print(event.__dict__)
             yield event.__dict__
 

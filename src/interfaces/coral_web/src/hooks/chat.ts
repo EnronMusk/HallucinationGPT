@@ -530,6 +530,16 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
           setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
           setBotMessageId(uuidv4().toString())
 
+
+          /// on error we need to rest the avaialbe msg ids
+
+          ///
+          
+          ///
+
+          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
+          setBotMessageId(uuidv4().toString())
+
           if (isCohereNetworkError(e)) {
             const networkError = e;
             let errorMessage = USER_ERROR_MESSAGE;

@@ -365,6 +365,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
                 originalText: botResponse,
                 toolEvents,
                 message_id: BotMessageId,
+                message_id: BotMessageId,
               });
               break;
             }
@@ -510,6 +511,16 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
         },
         onError: (e) => {
           citations = [];
+
+          /// on error we need to rest the avaialbe msg ids
+
+          ///
+          
+          ///
+
+          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
+          setBotMessageId(uuidv4().toString())
+
 
           /// on error we need to rest the avaialbe msg ids
 

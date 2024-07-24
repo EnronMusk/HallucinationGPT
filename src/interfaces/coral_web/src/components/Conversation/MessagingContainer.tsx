@@ -23,7 +23,6 @@ import { CohereClient } from '@/cohere-client';
 type Props = {
   isStreaming: boolean;
   isStreamingToolEvents: boolean;
-  client: CohereClient;
   startOptionsEnabled: boolean;
   messages: ChatMessage[];
   streamingMessage: StreamingMessage | null;
@@ -33,6 +32,7 @@ type Props = {
   conversationId?: string;
   scrollViewClassName?: string;
   onPromptSelected?: (option: PromptOption) => void;
+  client: CohereClient;
 };
 
 /**

@@ -26,7 +26,6 @@ import { ConfigurableParams } from '@/stores/slices/paramsSlice';
 import { ChatMessage } from '@/types/message';
 import { cn } from '@/utils';
 
-import { appSSR } from '@/pages/_app'; //for db
 import { makeCohereClient } from '@/app/_providers';
 
 type Props = {
@@ -161,7 +160,7 @@ const Conversation: React.FC<Props> = ({
             streamingMessage={streamingMessage}
             agentId={agentId}
             client={client}
-            composer={
+          composer={
               <>
                 <WelcomeGuideTooltip step={3} className="absolute bottom-full mb-4" />
                 <Composer

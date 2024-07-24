@@ -132,6 +132,34 @@ def fixConversationOutOfOrder(conversation: Conversation) -> Conversation:
     conversation.messages = new_msgs #reassign the msgs
 
     return conversation
+#fixes the order of conversations (weird bug)
+def fixConversationOutOfOrder(conversation: Conversation) -> Conversation:
+    """
+    
+    This can fix your conversation when messages are out of order.
+    
+    """
+    new_msgs = []
+    msgs = conversation.messages
+    n = len(msgs)
+
+    for i in range(n-1):
+        if(msgs[i].agent != msgs[i+1].agent):
+            new_msgs.append(msgs[i])
+        else:
+            new_msgs.append(msgs[i+1])
+            new_msgs.append(msgs[i])
+            i+=1
+    
+    if len(new_msgs) < n:
+        new_msgs.append(msgs[i+1])
+
+    for msg in new_msgs:
+        print(msg.agent) 
+
+    conversation.messages = new_msgs #reassign the msgs
+
+    return conversation
 
 @router.put("/{conversation_id}", response_model=ConversationPublic)
 async def update_conversation(

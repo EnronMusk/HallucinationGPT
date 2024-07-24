@@ -20,8 +20,6 @@ import {
 
 import { mapToChatRequest } from './mappings';
 
-import {v4 as uuidv4} from 'uuid';
-
 export class CohereClient {
   private readonly hostname: string;
   private readonly fetch: Fetch;
@@ -382,5 +380,7 @@ export class CohereClient {
     return headers;
   }
 }
+
+
 
 

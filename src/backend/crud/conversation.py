@@ -95,6 +95,7 @@ def update_conversation(
 ) -> Conversation:
     """
     Update a conversation by ID. (WITH COHERE BUGFIX)
+    Update a conversation by ID. (WITH COHERE BUGFIX)
 
     Args:
         db (Session): Database session.
@@ -114,8 +115,20 @@ def update_conversation(
         for a in msg.annotations:
             print(a.htext[:20])
 
+    
+    # fix the stupid cohere chat history bug :(
+    #conversation = fixConversationOutOfOrder(conversation)
+    print('UPDATED CONVO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print('!!!!!!!!!!!!!!!!!!!!!!!!!')
+    for msg in conversation.messages:
+        print(msg.text[:20])
+        for a in msg.annotations:
+            print(a.htext[:20])
+
     for attr, value in new_conversation.model_dump().items():
         if value is not None:
+            print('attr', attr)
+            print('val',value)
             print('attr', attr)
             print('val',value)
             setattr(conversation, attr, value)

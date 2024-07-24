@@ -31,6 +31,8 @@ import {
 } from '@/types/message';
 import { cn } from '@/utils';
 
+import { useCitationsStore } from '@/stores';
+
 import { v4 as uuidv4 } from 'uuid';
 
 import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
@@ -93,7 +95,9 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
       setTimeout(() => setIsShowing(true), 300);
     }
     setPreprocessedMessage(message.text)
+    setPreprocessedMessage(message.text)
   }, []);
+  
   
   useEffect(() => {
     if (isLast) {
@@ -1239,7 +1243,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           <Avatar message={message} />
           <div className="flex w-full min-w-0 max-w-message flex-1 flex-col items-center gap-x-3 md:flex-row">
             <div className="w-full">
-              {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents}/>}
+              {/* {hasSteps && <ToolEvents show={isStepsExpanded} events={message.toolEvents}/>} */}
 
               {//This is where we render the annotated box
               }

@@ -20,13 +20,11 @@ from backend.config.tools import AVAILABLE_TOOLS
 from backend.crud import message as message_crud
 from backend.crud import annotation as annotation_crud
 
-from backend.models import get_session
-from backend.models.citation import Citation
-from backend.models.conversation import Conversation
-from backend.models.database import DBSessionDep
-from backend.models.document import Document
-from backend.models.annotation import Annotation
-from backend.models.message import Message
+from backend.config.routers import RouterName
+from backend.database_models.database import DBSessionDep
+from backend.database_models.annotation import Annotation
+
+from backend.database_models.message import Message
 from backend.schemas.chat import (
     BaseAnnotationRequest,
     ChatMessage,
@@ -44,12 +42,7 @@ from backend.schemas.chat import (
     StreamToolResult,
     ToolInputType,
 )
-from backend.schemas.cohere_chat import CohereChatRequest
-# from backend.schemas.message import UpdateMessageAnnotations
-from backend.schemas.file import UpdateFile
-from backend.schemas.langchain_chat import LangchainChatRequest
-from backend.schemas.search_query import SearchQuery
-from backend.schemas.tool import ToolCall
+
 from backend.services.request_validators import (
     validate_chat_request,
     validate_deployment_header,
@@ -57,13 +50,11 @@ from backend.services.request_validators import (
 )
 
 router = APIRouter(
-    prefix="/annotations",
-    dependencies=[
-        Depends(get_session),
-        Depends(validate_user_header),
-    ]
+    prefix="/v1/annotations",
+
 )
 
+router.name = RouterName.ANNOTATION
 
 @router.put("/{annotation_id}/add")
 async def annotate(

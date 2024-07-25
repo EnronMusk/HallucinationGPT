@@ -8,13 +8,15 @@ class Annotation(Base):
     __tablename__ = "annotations"
 
     # TODO: Swap to foreign key once User management implemented
-    user_id: Mapped[str] = mapped_column(String)
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
     message_id: Mapped[str] = mapped_column(
         ForeignKey("messages.id", ondelete="CASCADE")
     )
-    conversation_id: Mapped[str] = mapped_column(
-        ForeignKey("conversations.id", ondelete="CASCADE")
-    )
+    # conversation_id: Mapped[str] = mapped_column(
+    #     ForeignKey("conversations.id", ondelete="CASCADE")
+    # )
 
     start: Mapped[int] = mapped_column(Integer)
     end: Mapped[int] = mapped_column(Integer)
@@ -22,8 +24,9 @@ class Annotation(Base):
     annotation: Mapped[str] = mapped_column(String)
 
     __table_args__ = (
-        Index("annotations_conversation_id_message_id", conversation_id, message_id),   
-        Index("annotations_conversation_id", conversation_id),
+        # Index("annotations_conversation_id_message_id", conversation_id, message_id),   
+        # Index("annotations_conversation_id", conversation_id),
+        Index("annotations_user_message_id", user_id, message_id),
         Index("annotations_message_id", message_id),
         Index("annotations_user_id", user_id),
     )

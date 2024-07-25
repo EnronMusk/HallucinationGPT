@@ -34,11 +34,12 @@ module.exports = {
         },
         // Marble White
         marble: {
-          500: '#BDBDBD',
-          400: '#E0E0E0',
-          300: '#EEEEEE',
-          200: '#F5F5F5',
-          100: '#F5F4F2',
+          1000: '#FFFFFF',
+          980: '#F9F9FB',
+          950: '#EFEFF5',
+          900: '#DFDFEC',
+          850: '#D0D0E2',
+          800: '#C4C4C4',
         },
         // Volcanic Black
         volcanic: {

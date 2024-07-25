@@ -13,7 +13,7 @@ import { BannerContext } from '@/context/BannerContext';
 import { useConversation } from '@/hooks/conversation';
 import { useListDeployments } from '@/hooks/deployments';
 import { useExperimentalFeatures } from '@/hooks/experimentalFeatures';
-import { appSSR } from '@/pages/_app';
+import { appSSR } from '@/pages_old/_app';
 import { useCitationsStore, useConversationStore, useParamsStore } from '@/stores';
 import { createStartEndKey, mapHistoryToMessages } from '@/utils';
 

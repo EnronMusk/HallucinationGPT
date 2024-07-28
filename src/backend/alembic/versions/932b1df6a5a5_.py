@@ -31,12 +31,11 @@ def upgrade() -> None:
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['conversation_id'], ['conversations.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['message_id'], ['messages.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(["message_id"], ["messages.id"], ondelete="CASCADE"),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('annotations_conversation_id', 'annotations', ['conversation_id'], unique=False)
     op.create_index('annotations_conversation_id_message_id', 'annotations', ['conversation_id', 'message_id'], unique=False)
+    op.create_index('annotations_user_id_message_id', 'annotations', ['user_id', 'message_id'], unique=False)
     op.create_index('annotations_message_id', 'annotations', ['message_id'], unique=False)
     op.create_index('annotations_user_id', 'annotations', ['user_id'], unique=False)
     op.add_column('messages', sa.Column('is_annotation_response', sa.Boolean(), nullable=True))

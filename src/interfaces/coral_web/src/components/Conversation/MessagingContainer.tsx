@@ -174,7 +174,7 @@ type MessagesProps = Props;
 /**
  * This component is in charge of rendering the messages.
  */
-const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
+const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
   { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents, client },
   ref
 ) {
@@ -184,13 +184,13 @@ const Messages = React.memo(forwardRef<HTMLDivElement, MessagesProps>(function M
   //console.log(messages)
   //console.log(streamingMessage)
 
-  if (isChatEmpty) {
-    return (
-      <div className="m-auto p-4">
-        <Welcome show={isChatEmpty} agentId={agentId} />
-      </div>
-    );
-  }
+  // if (isChatEmpty) {
+  //   return (
+  //     <div className="m-auto p-4">
+  //       <Welcome show={isChatEmpty} agentId={agentId} />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 

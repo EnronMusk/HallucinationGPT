@@ -52,6 +52,8 @@ async def chat_stream(
     Returns:
         EventSourceResponse: Server-sent event response with chatbot responses.
     """
+    print('chat stream active')
+    print(chat_request.__dict__)
     trace_id = None
     if hasattr(request.state, "trace_id"):
         trace_id = request.state.trace_id
@@ -76,6 +78,8 @@ async def chat_stream(
         deployment_config,
         next_message_position,
     ) = process_chat(session, chat_request, request, agent_id)
+
+    print("processed")
 
     return EventSourceResponse(
         generate_chat_stream(

@@ -39,7 +39,7 @@ class Message(Base):
     annotations: Mapped[List["Annotation"]] = relationship()
     tool_calls: Mapped[List["ToolCall"]] = relationship()
 
-    is_annotation_response: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
+    is_annotation_response: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     agent: Mapped[MessageAgent] = mapped_column(
         Enum(MessageAgent, native_enum=False),

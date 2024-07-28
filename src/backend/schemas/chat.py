@@ -345,15 +345,11 @@ class BaseChatRequest(BaseModel):
     )
     user_msg_id: str = Field(
         title="user msg id",
+        default="",
     )
     bot_msg_id: str = Field(
         title="bot msg id",
-    )
-    user_msg_id: str = Field(
-        title="user msg id",
-    )
-    bot_msg_id: str = Field(
-        title="bot msg id",
+        default="",
     )
     chat_history: List[ChatMessage] | None = Field(
         default=None,

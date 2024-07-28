@@ -374,7 +374,7 @@ export class CohereClient {
     const headers: HeadersInit = {
       ...(omitContentType ? {} : { 'Content-Type': 'application/json' }),
       ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
-      'User-Id': this.authToken || 'user-id',
+      'User-Id': 'user-id', //this.auth_token
       Connection: 'keep-alive',
     };
     return headers;

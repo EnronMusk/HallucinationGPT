@@ -35,7 +35,9 @@ class CustomChat(BaseChat):
             Generator[StreamResponse, None, None]: Chat response.
         """
         # Choose the deployment model - validation already performed by request validator
+        print("DEPLOYMENT", kwargs.get("deployment_name"))
         deployment_model = get_deployment(kwargs.get("deployment_name"), **kwargs)
+        print(deployment_model)
         send_log_message(
             logger,
             f"Using deployment {deployment_model.__class__.__name__}",
@@ -51,36 +53,36 @@ class CustomChat(BaseChat):
 
         self.chat_request = chat_request
         self.is_first_start = True
+        
+        # try:
+        stream = self.call_chat(self.chat_request, deployment_model, **kwargs)
 
-        try:
-            stream = self.call_chat(self.chat_request, deployment_model, **kwargs)
+        async for event in stream:
+            result = self.handle_event(event, chat_request)
 
-            async for event in stream:
-                result = self.handle_event(event, chat_request)
+            if result:
+                yield result
 
-                if result:
-                    yield result
-
-                if event[
-                    "event_type"
-                ] == StreamEvent.STREAM_END and self.is_final_event(
-                    event, chat_request
-                ):
-                    send_log_message(
-                        logger,
-                        f"Final event: {event}",
-                        level="info",
-                        conversation_id=kwargs.get("conversation_id"),
-                        user_id=kwargs.get("user_id"),
-                    )
-                    break
-        except Exception as e:
-            yield {
-                "event_type": StreamEvent.STREAM_END,
-                "finish_reason": "ERROR",
-                "error": str(e),
-                "status_code": 500,
-            }
+            if event[
+                "event_type"
+            ] == StreamEvent.STREAM_END and self.is_final_event(
+                event, chat_request
+            ):
+                send_log_message(
+                    logger,
+                    f"Final event: {event}",
+                    level="info",
+                    conversation_id=kwargs.get("conversation_id"),
+                    user_id=kwargs.get("user_id"),
+                )
+                break
+        # except Exception as e:
+        #     yield {
+        #         "event_type": StreamEvent.STREAM_END,
+        #         "finish_reason": "ERROR",
+        #         "error": str(e),
+        #         "status_code": 500,
+        #     }
 
     def is_final_event(
         self, event: Dict[str, Any], chat_request: CohereChatRequest
@@ -137,6 +139,8 @@ class CustomChat(BaseChat):
         agent_id = kwargs.get("agent_id", "")
         managed_tools = self.get_managed_tools(chat_request)
 
+        print("CALL CHAT")
+
         tool_names = []
         if managed_tools:
             chat_request.tools = managed_tools
@@ -159,7 +163,7 @@ class CustomChat(BaseChat):
                 for tool in chat_request.tools
                 if tool.name != ToolName.Read_File and tool.name != ToolName.Search_File
             ]
-
+        print('xxxxxxxxxxxcxccxcxcxcxcxcxcxcxc')
         # Loop until there are no new tool calls
         for step in range(MAX_STEPS):
             send_log_message(
@@ -179,6 +183,9 @@ class CustomChat(BaseChat):
 
             # Invoke chat stream
             has_tool_calls = False
+            print("invoking chat stream")
+            # req = CohereChatRequest(message='tell me about onions.')
+            print(deployment_model)
             async for event in deployment_model.invoke_chat_stream(
                 chat_request, trace_id=trace_id, user_id=user_id, agent_id=agent_id
             ):

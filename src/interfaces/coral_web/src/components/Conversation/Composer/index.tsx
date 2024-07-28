@@ -98,6 +98,7 @@ const Composer: React.FC<Props> = ({
 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    console.log("key down!!!! compsoser ")
     if (e.key === 'Enter' && !isComposing) {
       // Do expected default behaviour (add a newline inside of the textarea)
       if (e.shiftKey || isSmallBreakpoint) return;
@@ -128,9 +129,11 @@ const Composer: React.FC<Props> = ({
 
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    console.log("changed")
     if (isComposerDisabled) {
       return;
     }
+    console.log("not disabled")
 
     onChange(e.target.value);
     if (textareaRef.current) {
@@ -229,8 +232,8 @@ const Composer: React.FC<Props> = ({
             id={CHAT_COMPOSER_TEXTAREA_ID}
             dir="auto"
             ref={textareaRef}
-            value={value}
-            placeholder="Message..."
+            // value={value}
+            placeholder="Prompt Here..."
             className={cn(
               'w-full flex-1 resize-none overflow-hidden',
               'self-center',
@@ -252,7 +255,7 @@ const Composer: React.FC<Props> = ({
             }}
             rows={1}
             onKeyDown={handleKeyDown}
-            onChange={handleChange}
+            // onChange={handleChange}
             disabled={isComposerDisabled}
           />
           <button
@@ -312,4 +315,4 @@ const Square = () => (
   </svg>
 );
 
-export default React.memo(Composer);
+export default (Composer);

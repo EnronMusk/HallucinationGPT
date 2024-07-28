@@ -33,7 +33,7 @@ logger = get_logger()
 load_dotenv()
 
 # CORS Origins
-ORIGINS = ["*"]
+ORIGINS = ["http://54.201.168.230:4000"]
 
 
 def create_app():

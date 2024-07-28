@@ -76,7 +76,7 @@ const Chat: React.FC<{ agentId?: string; conversationId?: string }> = ({
   useEffect(() => {
     if (!conversation) return;
 
-    const messages = mapHistoryToMessages(
+    const messages = mapHistoryToMessages(conversation.id,
       conversation?.messages?.sort((a, b) => a.position - b.position)
     );
 

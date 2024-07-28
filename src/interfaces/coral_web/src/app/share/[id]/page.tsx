@@ -28,8 +28,8 @@ const ShareConversationPage: NextPage = () => {
   useEffect(() => {
     if (!data) return;
 
-    setMessages(mapHistoryToMessages(data.snapshot.messages));
-
+    setMessages(mapHistoryToMessages(data.id, data.snapshot.messages));
+    
     let documentsMap: { [documentId: string]: Document } = {};
     (data.snapshot.messages ?? []).forEach((message) => {
       message.documents?.forEach((doc) => {

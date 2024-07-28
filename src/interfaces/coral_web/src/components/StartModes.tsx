@@ -41,7 +41,7 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
       leave="transition-opacity duration-300 delay-100"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
-      className={cn('flex flex-col items-center gap-y-6', className)}
+      //className={cn('flex flex-col items-center gap-y-6', className)}
     >
       <Text styleAs="h5" className="text-center font-bold" >
         Welcome to WildChat

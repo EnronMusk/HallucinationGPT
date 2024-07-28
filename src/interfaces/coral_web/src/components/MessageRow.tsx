@@ -48,7 +48,7 @@ type Props = {
   order?: number;
   onCopy?: VoidFunction;
   onRetry?: VoidFunction;
-  client: CohereClient;
+  client?: CohereClient;
 };
 
 /**
@@ -60,7 +60,7 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 ) {
   const breakpoint = useBreakpoint();
 
-
+  const isReadOnly = client === null;
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
   const [isStepsExpanded, setIsStepsExpanded] = useState<boolean>(true);
@@ -94,7 +94,6 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     if (delay) {
       setTimeout(() => setIsShowing(true), 300);
     }
-    setPreprocessedMessage(message.text)
     setPreprocessedMessage(message.text)
   }, []);
   
@@ -678,10 +677,8 @@ const filteredMappingV2 = (text:string) => {
         }
         console.log("MID", message.message_id)
         console.log("CID", message.conversation_id)
-        if (message.message_id){
-        client.annotate(annotationKey, annotationRequest) //add it to DB
-        } else{
-          console.log("FAILED !!!!")
+        if (message.message_id && client){
+          client.annotate(annotationKey, annotationRequest) //add it to DB
         }
 
         
@@ -854,7 +851,9 @@ const handleAnnotationDelete = (key: string) => {
   setAnnotationVisible(false);
   removeAnnotation(key, annotSortDict);
   handleRemovePromptAnnotation(key) //remove it if added to prompt
-  client.deleteAnnotation(key) //remove it from db
+  if (client) {
+    client.deleteAnnotation(key) //remove it from db
+  }
 }
 
 //Handles the addition and removal of annotations uuid from 'add to prompt' list
@@ -1088,8 +1087,8 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
       }
     }
 
-    //Cannot annotate while streaming
-    if(!isFulfilledMessage(message)){
+    //Cannot annotate while streaming or if read only
+    if(!isFulfilledMessage(message) || isReadOnly){
       return;
     }
 

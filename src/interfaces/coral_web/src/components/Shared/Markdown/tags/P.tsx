@@ -2,7 +2,6 @@ import { ComponentPropsWithoutRef, useState, useRef, useEffect, useLayoutEffect 
 import React from 'react';
 import { MESSAGE_LIST_CONTAINER_ID, useCalculateCitationStyles } from '@/hooks/citations';
 import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
-import StaticGenerationSearchParamsBailoutProvider from 'next/dist/client/components/static-generation-searchparams-bailout-provider';
 import { left } from '@popperjs/core'; 
 import { Highlight } from './Highlight';
 

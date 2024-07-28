@@ -72,6 +72,8 @@ export const ReadOnlyConversation: React.FC<Props> = ({ title, messages }) => {
             <div key={i} className="flex items-start justify-between gap-x-3">
               <MessageRow
                 message={m}
+                is2ndLast={false}
+                client={undefined}
                 isLast={i === messages.length - 1}
                 isStreamingToolEvents={false}
                 className={cn('max-w-full md:max-w-[80%]', { 'md:max-w-full': !hasCitations })}

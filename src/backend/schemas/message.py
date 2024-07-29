@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Union
+from typing import List, Union, Optional
 
 from pydantic import BaseModel
 
@@ -34,7 +34,7 @@ class Message(MessageBase):
     tool_calls: List[ToolCall]
     tool_plan: Union[str, None]
 
-    is_annotation_response: bool
+    is_annotation_response: Optional[bool] = None
 
     agent: MessageAgent
 

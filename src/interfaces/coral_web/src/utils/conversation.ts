@@ -56,7 +56,6 @@ export const mapHistoryToMessages = (conversation_id: string, history?: Message[
           message_id: message.id,
           conversation_id: conversation_id,
           annotations: message.annotations,
-          is_annotation_response: false,
         });
         tempToolEvents = undefined;
       } else {

@@ -21,7 +21,6 @@ type BaseMessage = {
   message_id?: string; //for accessing db
   conversation_id?: string; //for submission to AHA
   annotations?: Annotation[];
-  is_annotation_response?: boolean;
 };
 
 export type Annotation = {

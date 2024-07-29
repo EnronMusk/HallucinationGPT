@@ -67,7 +67,7 @@ export default memo(MessagingContainer);
  * This component lays out the messages, citations, and composer.
  * In order to access the state hooks for the scroll to bottom component, we need to wrap the content in a component.
  */
-const Content: React.FC<Props> = memo((props) => {
+const Content: React.FC<Props> = ((props) => {
   const { isStreaming, messages, composer, streamingMessage } = props;
   const scrollToBottom = useScrollToBottom();
   const {
@@ -175,7 +175,7 @@ type MessagesProps = Props;
  * This component is in charge of rendering the messages.
  */
 const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInternal(
-  { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents, client },
+  { onRetry, messages, streamingMessage, agentId, isStreamingToolEvents, onPromptSelected, client },
   ref
 ) {
   const isConversationEmpty = messages.length === 0;
@@ -192,8 +192,15 @@ const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInt
   //   );
   // }
 
+  console.log("is it empty", isChatEmpty)
+
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
+      {isChatEmpty && (
+        <div className="flex h-full w-full flex-col justify-center p-4">
+          <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
+        </div>
+      )}
       <div className="mt-auto flex flex-col gap-y-4 md:gap-y-6">
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;

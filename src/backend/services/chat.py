@@ -323,6 +323,7 @@ def create_message(
         is_active=True,
         agent=agent,
         tool_plan=tool_plan,
+        is_annotation_response= True if '| Annotated Text | Annotation |\n|----------|----------|\n' in text else False
     )
 
     if should_store:

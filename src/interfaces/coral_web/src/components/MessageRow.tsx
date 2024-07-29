@@ -1417,4 +1417,4 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
 });
 
 
-export default memo(MessageRow);
+export default (MessageRow);

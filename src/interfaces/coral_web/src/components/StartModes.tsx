@@ -18,30 +18,21 @@ type Props = {
  * @description Renders start mode options and prompts for new conversations.
  */
 export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSelected }) => {
-  const { modes, getSelectedModeIndex } = useStartModes();
+  const { modes } = useStartModes();
   const { setParams } = useParamsStore();
-  const [selectedMode, setSelectedMode] = useState(getSelectedModeIndex);
-
-  const handleTabChange = (index: number) => {
-    setSelectedMode(index);
-
-    if (modes[index].params) {
-      setParams(modes[index].params);
-    }
-    modes[index].onChange?.();
-  };
 
   return (
     <Transition
       appear
       show={show}
+      as='div'
       enter="transition-all duration-200 ease-out delay-200"
       enterFrom="opacity-0 translate-y-2"
       enterTo="opacity-100 translate-y-0"
       leave="transition-opacity duration-300 delay-100"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
-      //className={cn('flex flex-col items-center gap-y-6', className)}
+      className={cn('flex flex-col items-center gap-y-6', className)}
     >
       <Text styleAs="h5" className="text-center font-bold" >
         Welcome to WildChat
@@ -52,8 +43,6 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
       )}>
         <Tabs
           tabs={modes.map((m) => m.title)}
-          selectedIndex={selectedMode}
-          onChange={handleTabChange}
           panelsClassName="lg:pt-5 pt-5 pb-4"
           fitTabsContent={false}
           tabClassName="pt-1"

@@ -7,7 +7,7 @@ import { ComposerError } from '@/components/Conversation/Composer/ComposerError'
 import { ComposerFiles } from '@/components/Conversation/Composer/ComposerFiles';
 import { ComposerToolbar } from '@/components/Conversation/Composer/ComposerToolbar';
 import { DragDropFileUploadOverlay } from '@/components/Conversation/Composer/DragDropFileUploadOverlay';
-import { FirstTurnSuggestions } from '@/components/FirstTurnSuggestions';
+// import { FirstTurnSuggestions } from '@/components/FirstTurnSuggestions';
 import { Icon, STYLE_LEVEL_TO_CLASSES } from '@/components/Shared';
 import { CHAT_COMPOSER_TEXTAREA_ID } from '@/constants';
 import { useBreakpoint, useIsDesktop } from '@/hooks/breakpoint';
@@ -206,7 +206,7 @@ const Composer: React.FC<Props> = ({
 
   return (
     <div className="flex w-full flex-col">
-      {!agentId && <FirstTurnSuggestions isFirstTurn={isFirstTurn} onSuggestionClick={onSend} />}
+      {/* {!agentId && <FirstTurnSuggestions isFirstTurn={isFirstTurn} onSuggestionClick={onSend} />} */}
       <div
         className={cn(
           'relative flex w-full flex-col',

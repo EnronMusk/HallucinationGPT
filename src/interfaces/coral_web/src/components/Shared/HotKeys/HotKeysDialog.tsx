@@ -31,10 +31,10 @@ export const HotKeysDialog: React.FC<Props> = ({ isOpen, close, customActions = 
   };
 
   return (
-    <Transition.Root show={isOpen} as={Fragment} appear>
+    <Transition.Root show={isOpen} as='div' appear>
       <Dialog as="div" className="relative z-modal" onClose={close}>
         <Transition.Child
-          as={Fragment}
+          as='div'
           enter="ease-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -47,7 +47,7 @@ export const HotKeysDialog: React.FC<Props> = ({ isOpen, close, customActions = 
 
         <div className="fixed inset-0 flex items-start justify-center overflow-y-auto p-4">
           <Transition.Child
-            as={Fragment}
+            as='div'
             enter="ease-out duration-300"
             enterFrom="opacity-0 scale-90"
             enterTo="opacity-100 scale-100"

@@ -13,10 +13,10 @@ type Props = PropsWithChildren<{
 
 export const LongPressMenu: React.FC<Props> = ({ isOpen, close, children, className }) => {
   return (
-    <Transition appear show={isOpen} as={Fragment}>
+    <Transition appear show={isOpen} as='div'>
       <Dialog as="div" className={cn('relative z-modal', className)} onClose={close}>
         <Transition.Child
-          as={Fragment}
+          as='div'
           enter="ease-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -30,7 +30,7 @@ export const LongPressMenu: React.FC<Props> = ({ isOpen, close, children, classN
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center px-2 text-center">
             <Transition.Child
-              as={Fragment}
+              as='div'
               enter="ease-out duration-300"
               enterFrom="opacity-0 translate-y-1/2"
               enterTo="opacity-100 translate-y-0"

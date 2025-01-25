@@ -184,23 +184,26 @@ const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInt
   //console.log(messages)
   //console.log(streamingMessage)
 
-  // if (isChatEmpty) {
-  //   return (
-  //     <div className="m-auto p-4">
-  //       <Welcome show={isChatEmpty} agentId={agentId} />
-  //     </div>
-  //   );
-  // }
+  if (isChatEmpty) {
+    return (
+      // <div className="m-auto p-4">
+      //   <Welcome show={isChatEmpty} agentId={agentId} />
+      // </div>
+      <div className="flex h-full w-full flex-col justify-center p-4">
+          <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
+      </div>
+    );
+  }
 
   console.log("is it empty", isChatEmpty)
 
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
-      {isChatEmpty && (
+      {/* {isChatEmpty && (
         <div className="flex h-full w-full flex-col justify-center p-4">
           <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
         </div>
-      )}
+      )} */}
       <div className="mt-auto flex flex-col gap-y-4 md:gap-y-6">
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;

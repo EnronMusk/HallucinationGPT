@@ -99,10 +99,10 @@ export const Modal: React.FC<ModalProps> = ({
   const isCitation = kind === 'coral-mobile-only' || kind === 'coral';
 
   return (
-    <Transition.Root appear show={isOpen} as={Fragment}>
+    <Transition.Root appear show={isOpen} as='div'>
       <Dialog onClose={onClose} className={cn(dialogStyle({ kind }))}>
         <Transition.Child
-          as={Fragment}
+          as='div'
           enter="ease-out transition-opacity duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -119,7 +119,7 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Full-screen container to center the panel */}
         <div className="fixed inset-0 flex items-center justify-center overflow-auto p-4">
           <Transition.Child
-            as={Fragment}
+            as='div'
             enter="ease-out duration-300"
             enterFrom="opacity-0 scale-90"
             enterTo="opacity-100 scale-100"

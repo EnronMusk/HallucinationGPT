@@ -83,7 +83,6 @@ const WEB_SEARCH_PROMPTS: Prompt[] = [
 ];
 
 export const useStartModes = () => {
-  const { params } = useParamsStore();
 
   const modes: Mode[] = [
     {
@@ -102,13 +101,6 @@ export const useStartModes = () => {
     },
   ];
 
-  const getSelectedModeIndex = (): number => {
-    let selectedTabKey = StartMode.UNGROUNDED;
-    if (params.tools && params.tools.length > 0) {
-      selectedTabKey = StartMode.WEB_SEARCH;
-    }
-    return modes.findIndex((m) => m.id === selectedTabKey);
-  };
 
-  return { modes, getSelectedModeIndex };
+  return { modes };
 };

@@ -53,14 +53,8 @@ export const Welcome: React.FC<Props> = ({ show, agentId }) => {
         )}
       </div>
 
-      <Text
-        styleAs="p-lg"
-        className={cn(
-          'text-center text-mushroom-400 md:!text-h4',
-          isAgent && getCohereColor(agent.id, { background: false })
-        )}
-      >
-        {!isAgent ? 'Need help? Your wish is my command.' : agent.name}
+      <Text styleAs="h5" className="text-center font-bold" >
+        Welcome to WildChat
       </Text>
       {isAgent && (
         <Text className="!text-p-md text-center text-volcanic-100 md:!text-p-lg">

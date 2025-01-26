@@ -38,7 +38,7 @@ export const renderRemarkCites: Plugin<void[], Root> = () => {
         // Note: down the line this may interfere with some markdown styling but this is a safer alternative.
         node.children = (node.children ?? []).map((c: any) => ({
           ...c,
-          value: decodeURIComponent(c.value),
+          value: safeDecodeURIComponent(c.value),
         }));
 
         data.hName = 'cite';
@@ -52,3 +52,12 @@ export const renderRemarkCites: Plugin<void[], Root> = () => {
     });
   };
 };
+
+function safeDecodeURIComponent(str: string): string {
+  try {
+    return decodeURIComponent(str);
+  } catch (e) {
+    console.warn('Failed to decode URI component:', str);
+    return str; // Return original string if decoding fails
+  }
+}

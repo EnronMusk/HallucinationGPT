@@ -1,4 +1,4 @@
-from src.backend.crud.conversation import extract_conversations, Conversation
+from backend.crud.conversation import extract_conversations, Conversation
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -9,7 +9,7 @@ from datetime import datetime
 
 load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5433"
+SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, echo=False

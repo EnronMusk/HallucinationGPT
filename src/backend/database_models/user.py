@@ -1,6 +1,6 @@
 from typing import List, Optional
-
-from sqlalchemy import Column, ForeignKey, Table, UniqueConstraint
+from uuid import uuid4
+from sqlalchemy import Column, ForeignKey, Table, UniqueConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database_models.base import Base
@@ -20,7 +20,8 @@ class UserOrganizationAssociation(Base):
 class User(Base):
     __tablename__ = "users"
 
-    fullname: Mapped[str] = mapped_column()
-    email: Mapped[Optional[str]] = mapped_column()
-    hashed_password: Mapped[Optional[bytes]] = mapped_column()
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
+    fullname: Mapped[str] = mapped_column(nullable=True)
+    email: Mapped[Optional[str]] = mapped_column(nullable=True)
+    hashed_password: Mapped[Optional[bytes]] = mapped_column(nullable=True)
     __table_args__ = (UniqueConstraint("email", name="unique_user_email"),)

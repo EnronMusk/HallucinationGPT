@@ -24,7 +24,7 @@ export const Pre: Component<ComponentPropsWithoutRef<'pre'> & ExtraProps> = ({ c
     <pre className="group/copy relative">
       <Button
         kind="secondary"
-        className="absolute right-3 top-3 hidden group-hover/copy:block"
+        className="absolute right-3 top-3 group-hover/copy:block"
         onClick={handleCopy}
       >
         <div className="flex items-center gap-1">

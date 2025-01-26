@@ -63,12 +63,12 @@ def create_app():
         )
         dependencies_type = "auth"
     for router in routers:
-        if getattr(router, "name", "") in ROUTER_DEPENDENCIES.keys():
-            router_name = router.name
-            dependencies = ROUTER_DEPENDENCIES[router_name][dependencies_type]
-            app.include_router(router, dependencies=dependencies)
-        else:
-            app.include_router(router)
+        # if getattr(router, "name", "") in ROUTER_DEPENDENCIES.keys():
+        #     router_name = router.name
+        #     dependencies = ROUTER_DEPENDENCIES[router_name][dependencies_type]
+        #     app.include_router(router, dependencies=dependencies)
+        # else:
+        app.include_router(router)
 
     # Add middleware
     app.add_middleware(

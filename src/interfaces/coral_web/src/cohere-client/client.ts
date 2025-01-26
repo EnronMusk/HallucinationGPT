@@ -19,11 +19,12 @@ import {
 } from '@/cohere-client';
 
 import { mapToChatRequest } from './mappings';
+import { getUserId } from '@/pages_old/cookies';
 
 export class CohereClient {
   private readonly hostname: string;
   private readonly fetch: Fetch;
-  private authToken?: string;
+  private source: string;
 
   public cohereService: CohereClientGenerated;
   public request?: any;
@@ -31,15 +32,15 @@ export class CohereClient {
   constructor({
     hostname,
     fetch,
-    authToken,
+    source,
   }: {
     hostname: string;
     fetch: Fetch;
-    authToken?: string;
+    source: string;
   }) {
     this.hostname = hostname;
     this.fetch = fetch;
-    this.authToken = authToken;
+    this.source = source;
     this.cohereService = new CohereClientGenerated({
       BASE: hostname,
       HEADERS: async () => this.getHeaders(true),
@@ -374,7 +375,7 @@ export class CohereClient {
     const headers: HeadersInit = {
       ...(omitContentType ? {} : { 'Content-Type': 'application/json' }),
       ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
-      'User-Id': 'user-id', //this.auth_token
+      'User-Id': this.source, //this.auth_token
       Connection: 'keep-alive',
     };
     return headers;

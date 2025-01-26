@@ -19,13 +19,22 @@ import { LOCAL_STORAGE_KEYS } from '@/constants';
 import { ContextStore } from '@/context';
 import { env } from '@/env.mjs';
 import { useLazyRef } from '@/hooks/lazyRef';
-
+import { getUserId } from '@/pages_old/cookies';
 export const makeCohereClient = (authToken?: string) => {
-  const apiFetch: Fetch = async (resource, config) => await fetch(resource, config);
+  const userId = getUserId();
+  const apiFetch: Fetch = async (resource, config: RequestInit = {}) => {
+    // Ensure headers are defined
+    config.headers = {
+      ...config.headers, // Preserve any existing headers
+      'User-Id': userId // Set the User-Id header
+    };
+
+    return await fetch(resource, config);
+  };
   return new CohereClient({
     hostname: env.NEXT_PUBLIC_API_HOSTNAME,
     fetch: apiFetch,
-    authToken,
+    source: userId,
   });
 };
 

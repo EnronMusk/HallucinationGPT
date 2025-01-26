@@ -27,6 +27,7 @@ from backend.services.chat import (
     generate_langchain_chat_stream,
     process_chat,
 )
+from backend.crud.user import get_or_create_user
 from backend.services.request_validators import validate_deployment_header
 
 router = APIRouter(
@@ -59,6 +60,9 @@ async def chat_stream(
         trace_id = request.state.trace_id
     add_model_to_request_state(request, chat_request.model)
     user_id = request.headers.get("User-Id", None)
+
+    user = get_or_create_user(session, user_id)
+
     agent_id = chat_request.agent_id
     if agent_id:
         agent = agent_crud.get_agent_by_id(session, agent_id)

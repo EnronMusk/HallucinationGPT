@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { CohereClient } from '@/cohere-client';
 
  const setCookie = (name: string, value: string, days: number) => {
   if (typeof document !== 'undefined') {
@@ -35,11 +36,13 @@ import { v4 as uuidv4 } from 'uuid';
   export const getUserId = () => {
     const userIdKey = 'user-id';
     let userId = getLocalStorage(userIdKey) || getCookie(userIdKey);
+    
     if (!userId) {
       userId = uuidv4().toString();
       setLocalStorage(userIdKey, userId);
-      setCookie(userIdKey, userId, 365); // Store cookie for 7 days
+      setCookie(userIdKey, userId, 365);
     }
+    
     return userId;
   };
 

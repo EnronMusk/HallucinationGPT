@@ -80,3 +80,13 @@ def delete_user(db: Session, user_id: str) -> None:
     user = db.query(User).filter(User.id == user_id)
     user.delete()
     db.commit()
+
+
+def get_or_create_user(db: Session, user_id: str) -> User:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        user = User(id=user_id)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user

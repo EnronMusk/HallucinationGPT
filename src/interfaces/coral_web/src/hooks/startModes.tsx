@@ -2,6 +2,7 @@ import { DEFAULT_CHAT_TOOL } from '@/cohere-client';
 import { IconName } from '@/components/Shared';
 import { useParamsStore } from '@/stores';
 import { ConfigurableParams } from '@/stores/slices/paramsSlice';
+import { useState } from 'react';
 
 export enum StartMode {
   UNGROUNDED = 'ungrounded',
@@ -83,6 +84,7 @@ const WEB_SEARCH_PROMPTS: Prompt[] = [
 ];
 
 export const useStartModes = () => {
+  const [selectedMode, setSelectedMode] = useState(0);
 
   const modes: Mode[] = [
     {
@@ -101,6 +103,9 @@ export const useStartModes = () => {
     },
   ];
 
-
-  return { modes };
+  return { 
+    modes,
+    selectedMode,
+    setSelectedMode 
+  };
 };

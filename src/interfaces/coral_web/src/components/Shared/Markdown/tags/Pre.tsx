@@ -1,5 +1,3 @@
-'use client';
-
 import type { Component, ExtraProps } from 'hast-util-to-jsx-runtime/lib/components';
 import { ComponentPropsWithoutRef, useRef, useState } from 'react';
 
@@ -24,12 +22,12 @@ export const Pre: Component<ComponentPropsWithoutRef<'pre'> & ExtraProps> = ({ c
     <pre className="group/copy relative">
       <Button
         kind="secondary"
-        className="absolute right-3 top-3 group-hover/copy:block"
+        className="absolute right-3 top-3 hidden group-hover/copy:block"
         onClick={handleCopy}
       >
         <div className="flex items-center gap-1">
-          {copied && <Text className="text-mushroom-300">Copied!</Text>}
-          <Icon name={copied ? 'check-mark' : 'copy'} size="md" className="text-mushroom-300" />
+          {copied && <Text className="text-white">Copied!</Text>}
+          <Icon name={copied ? 'check-mark' : 'copy'} size="md" className="text-white" />
         </div>
       </Button>
       <div ref={ref}>{children}</div>

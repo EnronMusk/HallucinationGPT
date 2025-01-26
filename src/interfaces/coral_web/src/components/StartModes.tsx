@@ -18,16 +18,15 @@ type Props = {
  * @description Renders start mode options and prompts for new conversations.
  */
 export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSelected }) => {
-  const { modes, getSelectedModeIndex } = useStartModes();
+  const { modes, selectedMode, setSelectedMode } = useStartModes();
   const { setParams } = useParamsStore();
-  const [selectedMode, setSelectedMode] = useState(getSelectedModeIndex);
 
-  const handleTabChange = (index: number) => {
-    setSelectedMode(index);
-    if (modes[index].params) {
-      setParams(modes[index].params);
-    }
-    modes[index].onChange?.();
+  const handlePromptClick = (prompt: string, modeParams: Partial<ConfigurableParams>) => {
+    console.log('Handling prompt click:', { prompt, modeParams });
+    onPromptSelected?.({
+      prompt,
+      params: modeParams || {}
+    });
   };
 
   return (
@@ -53,7 +52,7 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
         <Tabs
           tabs={modes.map((m) => m.title)}
           selectedIndex={selectedMode}
-          onChange={handleTabChange}
+          onChange={setSelectedMode}
           panelsClassName="lg:pt-5 pt-5 pb-4"
           fitTabsContent={false}
           tabClassName="pt-1"
@@ -67,9 +66,7 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
                   <PromptOptionButton
                     {...promptOption}
                     key={promptOption.title}
-                    onClick={() => {
-                      onPromptSelected?.({ prompt: promptOption.prompt, params: m.params });
-                    }}
+                    onClick={() => handlePromptClick(promptOption.prompt, m.params)}
                   />
                 ))}
               </div>
@@ -96,13 +93,18 @@ const PromptOptionButton: React.FC<PromptOptionButtonProps> = ({
   prompt,
   onClick,
 }) => {
+  const handleClick = () => {
+    console.log('PromptOptionButton clicked:', prompt); // Debug log
+    onClick(prompt);
+  };
+
   return (
     <button
       className={cn(
         'flex w-full gap-2 rounded-md border border-marble-400 p-3 text-left md:flex-col md:p-4',
         'bg-marble-200 transition-colors ease-in-out hover:bg-marble-300'
       )}
-      onClick={() => onClick(prompt)}
+      onClick={handleClick}
     >
       <div className="flex h-8 w-8 flex-none items-center justify-center rounded bg-secondary-500/25 text-secondary-600">
         <Icon name={icon} kind="outline" />

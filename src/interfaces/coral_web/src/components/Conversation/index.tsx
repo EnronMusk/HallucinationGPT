@@ -12,7 +12,9 @@ import { WelcomeGuideTooltip } from '@/components/WelcomeGuideTooltip';
 import { ReservedClasses } from '@/constants';
 import { useChatHotKeys } from '@/hooks/actions';
 import { useAgent, useRecentAgents } from '@/hooks/agents';
+import { PromptOption } from '@/components/StartModes';
 import { useChat } from '@/hooks/chat';
+import { useFocusComposer } from '@/hooks/actions';
 import { useDefaultFileLoaderTool, useFileActions } from '@/hooks/files';
 import { WelcomeGuideStep, useWelcomeGuideState } from '@/hooks/ftux';
 import {
@@ -129,6 +131,12 @@ const Conversation: React.FC<Props> = ({
     const newFileIds = await uploadFiles(files, conversationId);
     if (!newFileIds) return;
     enableDefaultFileLoaderTool();
+    
+  };
+
+  const handlePromptSelected = (option: PromptOption) => {
+    useFocusComposer();
+    setUserMessage(option.prompt);
   };
 
   const handleSend = (msg?: string, overrides?: Partial<ConfigurableParams>) => {
@@ -160,7 +168,8 @@ const Conversation: React.FC<Props> = ({
             streamingMessage={streamingMessage}
             agentId={agentId}
             client={client}
-          composer={
+            onPromptSelected={handlePromptSelected}
+            composer={
               <>
                 <WelcomeGuideTooltip step={3} className="absolute bottom-full mb-4" />
                 <Composer

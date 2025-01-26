@@ -20,7 +20,7 @@ import { Code } from './tags/Code';
 import { Pre } from './tags/Pre';
 import { References } from './tags/References';
 
-import 'highlight.js/styles/github-dark.css';
+//import 'highlight.js/styles/github-dark.css';
 
 type MarkdownTextProps = {
   text: string;

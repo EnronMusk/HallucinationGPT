@@ -74,14 +74,31 @@ const Chat: React.FC<{ agentId?: string; conversationId?: string }> = ({
   }, [conversationId, setConversation, resetCitations, agent, tools]);
 
   useEffect(() => {
-    if (!conversation) return;
+    if (!conversation) {
+      // Clear everything when no conversation is loaded
+      setConversation({ name: '', messages: [] });
+      return;
+    }
 
-    const messages = mapHistoryToMessages(conversation.id,
+    // Sort and map messages
+    const messages = mapHistoryToMessages(
+      conversation.id,
       conversation?.messages?.sort((a, b) => a.position - b.position)
     );
 
-    setConversation({ name: conversation.title, messages });
+    // Clear previous conversation state before setting new one
+    setConversation({ name: '', messages: [] });
+    
+    // Small delay to ensure clean state
+    setTimeout(() => {
+      setConversation({ 
+        name: conversation.title, 
+        messages,
+        id: conversation.id 
+      });
+    }, 0);
 
+    // Reset document maps
     let documentsMap: { [documentId: string]: Document } = {};
     let outputFilesMap: OutputFiles = {};
 

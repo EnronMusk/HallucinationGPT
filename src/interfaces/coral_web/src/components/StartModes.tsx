@@ -18,8 +18,17 @@ type Props = {
  * @description Renders start mode options and prompts for new conversations.
  */
 export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSelected }) => {
-  const { modes } = useStartModes();
+  const { modes, getSelectedModeIndex } = useStartModes();
   const { setParams } = useParamsStore();
+  const [selectedMode, setSelectedMode] = useState(getSelectedModeIndex);
+
+  const handleTabChange = (index: number) => {
+    setSelectedMode(index);
+    if (modes[index].params) {
+      setParams(modes[index].params);
+    }
+    modes[index].onChange?.();
+  };
 
   return (
     <Transition
@@ -43,6 +52,8 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
       )}>
         <Tabs
           tabs={modes.map((m) => m.title)}
+          selectedIndex={selectedMode}
+          onChange={handleTabChange}
           panelsClassName="lg:pt-5 pt-5 pb-4"
           fitTabsContent={false}
           tabClassName="pt-1"

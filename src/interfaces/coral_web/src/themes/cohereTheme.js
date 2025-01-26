@@ -123,6 +123,7 @@ module.exports = {
           950: '#FFE5E5',
           500: '#FF0000',
           350: '#B30000',
+          50: '#FFF1F1',
         },
       },
       fontSize: {

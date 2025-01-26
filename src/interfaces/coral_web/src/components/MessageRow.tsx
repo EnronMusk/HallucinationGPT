@@ -77,10 +77,9 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
 
   const getMessageText = () => {
     if (isFulfilledMessage(message)) {
-      return message.originalText;
+      return message.text || '';
     }
-
-    return message.text;
+    return '';
   };
 
   const enableLongPress =
@@ -89,13 +88,23 @@ const MessageRow = forwardRef<HTMLDivElement, Props>(function MessageRowInternal
     onLongPress: () => setIsLongPressMenuOpen(true),
   });
 
-  // Delay the appearance of the message to make it feel more natural.
+  // Add conversation ID to component state
+  const conversationId = message.conversationId;
+  
   useEffect(() => {
+    if (!conversationId) return;
+    
+    // Reset component state when conversation changes
+    setAnnotationVisible(null);
+    setAnnotationKey("");
+    setAnnotDict({});
+    setAddedAnnots(new Set());
+    
     if (delay) {
       setTimeout(() => setIsShowing(true), 300);
     }
-    setPreprocessedMessage(message.text)
-  }, []);
+    setPreprocessedMessage(message.text);
+  }, [conversationId]);
   
   
   useEffect(() => {
@@ -1007,11 +1016,28 @@ function isAnnotAdded(key: string, ad: Set<string>): boolean {
 
 ///Custom copier because the cohere  1 is too annoying to use wtihout breaking other stuff
 
-const handleCopy = async (e: MouseEvent<HTMLElement>) => {
+const handleMessageCopy = async () => {
+  const textToCopy = getMessageText();
+  console.log('Attempting to copy message:', textToCopy); // Debug log
+  
   try {
-    await window?.navigator?.clipboard.writeText(e.currentTarget.id ?? '');
+    // Try modern clipboard API first
+    if (window?.navigator?.clipboard) {
+      await window.navigator.clipboard.writeText(textToCopy);
+    } else {
+      // Fallback to textarea method
+      const textarea = document.createElement('textarea');
+      textarea.value = textToCopy;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    console.log('Successfully copied message');
   } catch (e) {
-    console.error(e);
+    console.error('Failed to copy message:', e);
   }
 };
 
@@ -1206,7 +1232,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
               label="Copy text"
               kind="secondary"
               iconAtStart
-              onClick={onCopy}
+              onClick={handleMessageCopy}
             />
             {hasSteps && (
               <Button
@@ -1361,18 +1387,17 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                       lineHeight: '1.5', // Adjust the line height as needed
                       fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
                     }}/>)}
-                    <Icon size={'md'} name='copy' kind="outline" id={annotation.htext} onClick={handleCopy} className={cn(
+                    <Icon size={'md'} name='copy' kind="outline" onClick={() => handleCopy(annotation.htext)} className={cn(
                       'transition ease-in-out',
                       'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
-                      //'bg-secondary-200',
                     )} style={{                               
-                      fontSize: '13px', // Adjust the font size as needed
-                      height: '1rem', // Adjust the height as needed
-                      width: '200px', // Adjust the width as needed
-                      padding: '0.3rem', // Adjust the padding as needed
+                      fontSize: '13px',
+                      height: '1rem',
+                      width: '200px',
+                      padding: '0.3rem',
                       marginTop: '15px',
-                      lineHeight: '1.5', // Adjust the line height as needed
-                      fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                      lineHeight: '1.5',
+                      fontFamily: 'Arial, sans-serif',
                     }}/>
 
                 </div>
@@ -1407,7 +1432,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                   />
                 </Tooltip>
               )} */}
-              {<CopyToClipboardIconButton value={getMessageText()} onClick={onCopy} />}
+              {<CopyToClipboardIconButton value={getMessageText()} onClick={handleMessageCopy} />}
             </div>
           </div>
         </div>

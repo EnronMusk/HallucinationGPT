@@ -44,10 +44,14 @@ class CohereDeployment(BaseDeployment):
     def __init__(self, **kwargs: Any):
         # Override the environment variable from the request
         print("init client")
-        oai_key = get_model_config_var(OPENAI_API_KEY)
+        # oai_key = get_model_config_var(OPENAI_API_KEY)
 
         self.client = cohere.Client(api_key=self.api_key, client_name=self.client_name)
-        self.oai_client = ai.Client(api_key=oai_key)
+
+        try:
+            self.oai_client = ai.Client(api_key=oai_key)
+        except:
+            print("OpenAI API key not found, using Cohere API only.")
 
     @property
     def rerank_enabled(self) -> bool:
@@ -104,6 +108,22 @@ class CohereDeployment(BaseDeployment):
             **chat_request.model_dump(exclude={"stream", "file_ids", "agent_id"}),
         )
         yield to_dict(response)
+
+    async def invoke_chat_stream(
+        self, chat_request: CohereChatRequest, **kwargs: Any
+    ) -> Any:
+
+        stream = self.client.chat_stream(
+            **chat_request.model_dump(exclude={"stream", "file_ids", "agent_id", "user_msg_id", 'bot_msg_id'}),
+        )
+
+        for event in stream:
+            event_dict = to_dict(event)
+
+            event_dict_log = event_dict.copy()
+            event_dict_log.pop("conversation_id", None)
+
+            yield event_dict
 
 
     async def invoke_chat_stream_openai(

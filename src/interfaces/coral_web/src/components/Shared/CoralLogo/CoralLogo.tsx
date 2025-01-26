@@ -1,5 +1,3 @@
-'use client';
-
 import { cn } from '@/utils';
 
 export const CoralLogo: React.FC<{
@@ -14,10 +12,10 @@ export const CoralLogo: React.FC<{
     className={cn(
       'h-5 w-5',
       {
-        'fill-coral-800': style === 'primary',
-        'dark:fill-blue-900': style === 'primary' && isDarkModeEnabled,
-        'fill-marble-950': style === 'grayscale',
-        'fill-mushroom-300': style === 'secondary',
+        'fill-primary-200': style === 'primary',
+        'dark:fill-blue-200': style === 'primary' && isDarkModeEnabled,
+        'fill-marble-400': style === 'grayscale',
+        'fill-secondary-800': style === 'secondary',
       },
       className
     )}

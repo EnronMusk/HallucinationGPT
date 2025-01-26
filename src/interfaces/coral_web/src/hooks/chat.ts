@@ -510,35 +510,10 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
         },
         onError: (e) => {
           citations = [];
-
-          /// on error we need to rest the avaialbe msg ids
-
-          ///
           
-          ///
-
-          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
-          setBotMessageId(uuidv4().toString())
-
-
-          /// on error we need to rest the avaialbe msg ids
-
-          ///
-          
-          ///
-
-          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
-          setBotMessageId(uuidv4().toString())
-
-
-          /// on error we need to rest the avaialbe msg ids
-
-          ///
-          
-          ///
-
-          setUserMessageId(uuidv4().toString()) //reset available uuids for messages!!!!
-          setBotMessageId(uuidv4().toString())
+          // Single reset of message IDs
+          setUserMessageId(uuidv4().toString());
+          setBotMessageId(uuidv4().toString());
 
           if (isCohereNetworkError(e)) {
             const networkError = e;

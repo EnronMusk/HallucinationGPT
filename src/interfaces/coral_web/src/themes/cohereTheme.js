@@ -158,7 +158,7 @@ module.exports = {
       fontFamily: {
         body: ['Arial', ...defaultTheme.fontFamily.serif],
         variable: ['Cambria', ...defaultTheme.fontFamily.serif],
-        code: defaultTheme.fontFamily.serif,
+        code: ['CohereMono', ...defaultTheme.fontFamily.mono],
         iconOutline: ['CohereIconOutline'],
         iconDefault: ['CohereIconDefault'],
       },

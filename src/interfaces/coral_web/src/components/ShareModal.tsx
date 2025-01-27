@@ -1,5 +1,6 @@
 'use client';
 
+import { Dialog } from '@headlessui/react';
 import React, { useEffect, useState } from 'react';
 
 import { Button, Icon, Input, Spinner, Text } from '@/components/Shared';
@@ -68,75 +69,86 @@ export const ShareModal: React.FC<ShareModalProps> = ({ conversationId }) => {
     }
   };
 
-  if (loadingSnapshots || snapshotLinksExists === undefined || status === 'modal-loading') {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  const renderContent = () => {
+    if (loadingSnapshots || snapshotLinksExists === undefined || status === 'modal-loading') {
+      return (
+        <div className="flex h-full w-full items-center justify-center">
+          <Spinner />
+        </div>
+      );
+    }
 
-  if (status === 'modal-error') {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Text className="text-danger-350">
-          Unable to generate share link. Please try again later.
-        </Text>
-      </div>
-    );
-  }
+    if (status === 'modal-error') {
+      return (
+        <div className="flex h-full w-full items-center justify-center">
+          <Text className="text-danger-350">
+            Unable to generate share link. Please try again later.
+          </Text>
+        </div>
+      );
+    }
 
-  return (
-    <div className="flex flex-col gap-y-8">
-      {snapshotLinksExists && (
-        <Text>
-          You may have shared a part of this chat before. To share the current, full version of the
-          chat, update the link below.
-        </Text>
-      )}
-      <div className="flex flex-col gap-y-2">
-        <Input
-          truncate
-          readOnly
-          label="Share link"
-          value={`${env.NEXT_PUBLIC_FRONTEND_HOSTNAME}/share/${linkId}`}
-          actionType="copy"
-          disabled={status === 'update-url-loading'}
-        />
-        <div className="flex justify-between">
-          <Button
-            kind="secondary"
-            label="See preview"
-            href={`${env.NEXT_PUBLIC_FRONTEND_HOSTNAME}/share/${linkId}`}
-            target="_blank"
-            endIcon="arrow-up-right"
+    return (
+      <div className="flex flex-col gap-y-8">
+        {snapshotLinksExists && (
+          <Text>
+            You may have shared a part of this chat before. To share the current, full version of the
+            chat, update the link below.
+          </Text>
+        )}
+        <div className="flex flex-col gap-y-2">
+          <Input
+            truncate
+            readOnly
+            label="Share link"
+            value={`${env.NEXT_PUBLIC_FRONTEND_HOSTNAME}/share/${linkId}`}
+            actionType="copy"
             disabled={status === 'update-url-loading'}
-            animate={false}
           />
-          {snapshotLinksExists && (
+          <div className="flex justify-between">
             <Button
               kind="secondary"
-              label={status === 'update-url-loading' ? 'Generating link' : 'Update link'}
-              onClick={updateSnapshotUrl}
-              endIcon={status === 'update-url-loading' ? <Spinner /> : <Icon name="redo" />}
+              label="See preview"
+              href={`${env.NEXT_PUBLIC_FRONTEND_HOSTNAME}/share/${linkId}`}
+              target="_blank"
+              endIcon="arrow-up-right"
               disabled={status === 'update-url-loading'}
               animate={false}
             />
-          )}
+            {snapshotLinksExists && (
+              <Button
+                kind="secondary"
+                label={status === 'update-url-loading' ? 'Generating link' : 'Update link'}
+                onClick={updateSnapshotUrl}
+                endIcon={status === 'update-url-loading' ? <Spinner /> : <Icon name="redo" />}
+                disabled={status === 'update-url-loading'}
+                animate={false}
+              />
+            )}
+          </div>
+        </div>
+        {status === 'update-url-error' && (
+          <Text className="text-danger-350">
+            Unable to generate a new share link. Please try again later.
+          </Text>
+        )}
+        <div className="flex flex-col gap-y-2">
+          <Text styleAs="label">Permissions & visibility</Text>
+          <Text styleAs="caption" className="text-volcanic-400">
+            Anyone with the link will see the full contents of this conversation history. You will be
+            sharing the title, messages, and citations.
+          </Text>
         </div>
       </div>
-      {status === 'update-url-error' && (
-        <Text className="text-danger-350">
-          Unable to generate a new share link. Please try again later.
-        </Text>
-      )}
-      <div className="flex flex-col gap-y-2">
-        <Text styleAs="label">Permissions & visibility</Text>
-        <Text styleAs="caption" className="text-volcanic-400">
-          Anyone with the link will see the full contents of this conversation history. You will be
-          sharing the title, messages, and citations.
-        </Text>
-      </div>
-    </div>
+    );
+  };
+
+  return (
+    <Dialog.Panel className="w-full min-w-[400px] max-w-[600px] transform overflow-hidden rounded-lg bg-marble-1000 p-6 shadow-xl transition-all">
+      <Dialog.Title className="mb-4 text-lg font-medium">
+        Share Conversation
+      </Dialog.Title>
+      {renderContent()}
+    </Dialog.Panel>
   );
 };

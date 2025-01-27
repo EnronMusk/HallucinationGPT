@@ -206,13 +206,13 @@ export const Header: React.FC<Props> = ({ isStreaming, agentId }) => {
             />
           )}
           <div className="relative">
-            <IconButton
+            {/* <IconButton
               tooltip={{ label: 'Settings', placement: 'bottom-end', size: 'md' }}
               className={cn('hidden md:flex', { 'bg-mushroom-900': isConfigDrawerOpen })}
               onClick={handleToggleConfigSettings}
               iconName="settings"
               disabled={isStreaming}
-            />
+            /> */}
             <WelcomeGuideTooltip
               step={1}
               className={cn('right-0 top-full mt-9', {

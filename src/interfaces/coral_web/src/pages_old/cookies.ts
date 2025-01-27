@@ -47,10 +47,30 @@ import { CohereClient } from '@/cohere-client';
   };
 
   export const hasAcceptedUserAgreement = () => {
-    return getLocalStorage('user-agreement-accepted') === 'true' || getCookie('user-agreement-accepted') === 'true';
+      // console.log('Checking user agreement...');
+      // console.log('Full cookie string:', document.cookie);  // Log the full cookie string
+    
+    const localValue = localStorage.getItem('user-agreement-accepted');
+    
+    // More explicit cookie parsing
+    const cookies = document.cookie.split(';').reduce((acc, curr) => {
+      const [key, value] = curr.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    
+      // console.log('All cookies:', cookies);
+      // console.log('Local storage:', localValue);
+      // console.log('Specific cookie value:', cookies['user-agreement-accepted']);
+      
+    const hasAccepted = localValue === 'true' || cookies['user-agreement-accepted'] === 'true';
+    // console.log('Final acceptance status:', hasAccepted);
+    
+    return hasAccepted;
   };
   
   export const acceptUserAgreement = () => {
-    setLocalStorage('user-agreement-accepted', 'true');
-    setCookie('user-agreement-accepted', 'true', 7); // Store for 1 year
+    localStorage.setItem('user-agreement-accepted', 'true');
+    // Set cookie with explicit path and expiry
+    document.cookie = `user-agreement-accepted=true; path=/; max-age=31536000; SameSite=Strict`;
   };

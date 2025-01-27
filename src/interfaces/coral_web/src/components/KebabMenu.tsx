@@ -53,7 +53,8 @@ export const KebabMenu: React.FC<Props> = ({ items, anchor, className = '' }) =>
             enterTo="opacity-100"
             className={cn(
               'z-menu divide-y divide-marble-950 rounded-md bg-marble-1000 p-2',
-              'min-w-menu shadow-menu',
+              'min-w-[200px] w-max',
+              'shadow-menu',
               'transition-opacity ease-in-out',
               { hidden: !open }
             )}
@@ -67,7 +68,7 @@ export const KebabMenu: React.FC<Props> = ({ items, anchor, className = '' }) =>
                       as={href ? Link : 'button'}
                       className={cn(
                         'group/menu-item flex w-full items-center gap-x-2 px-4 py-3 transition-colors ease-in-out hover:bg-mushroom-900/80',
-                        'cursor-pointer',
+                        'cursor-pointer whitespace-nowrap',
                         className,
                         {
                           'rounded-tl rounded-tr': index === 0,
@@ -91,7 +92,7 @@ export const KebabMenu: React.FC<Props> = ({ items, anchor, className = '' }) =>
                         />
                       )}
                       {!!icon && icon}
-                      <Text>{label}</Text>
+                      <Text className="whitespace-normal">{label}</Text>
                     </MenuItem>
                   )
                 );

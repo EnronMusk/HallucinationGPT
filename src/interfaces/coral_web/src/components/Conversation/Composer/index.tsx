@@ -129,15 +129,16 @@ const Composer: React.FC<Props> = ({
 
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    console.log("changed")
     if (isComposerDisabled) {
       return;
     }
-    console.log("not disabled")
 
-    onChange(e.target.value);
+    const newValue = e.target.value;
+    setValue(newValue);  // Update local state
+    onChange(newValue); // Notify parent
+
     if (textareaRef.current) {
-      const newTagQuery = getTagQuery(e.target.value, textareaRef.current.selectionStart);
+      const newTagQuery = getTagQuery(newValue, textareaRef.current.selectionStart);
       setTagQuery(newTagQuery);
 
       if (newTagQuery.length === 1 && !showDataSourceMenu) {
@@ -157,6 +158,28 @@ const Composer: React.FC<Props> = ({
 
   const handleDataSourceMenuClick = () => {
     setShowDataSourceMenu((prevShow) => !prevShow);
+  };
+
+  const handleSend = () => {
+    let cref = textareaRef.current;
+    
+    if (canSend) {
+      cref?.setAttribute('data-user', '')
+      cref?.setAttribute('data-model', '')
+      onSend(value);
+      setTagQuery('');
+      setShowDataSourceMenu(false);
+      onChange('');
+    } else if(textareaRef.current?.value != "") {  // Add fallback check
+      cref?.setAttribute('data-user', '')
+      cref?.setAttribute('data-model', '')
+      onSend(textareaRef.current?.value);
+      setTagQuery('');
+      setShowDataSourceMenu(false);
+      onChange('');
+    } else {
+      onStop();
+    }
   };
 
   useEffect(() => {
@@ -204,6 +227,18 @@ const Composer: React.FC<Props> = ({
     setChatWindowHeight(e.target.clientHeight);
   });
 
+  // Update local state when valueInit changes
+  useEffect(() => {
+    if (valueInit) {
+      setValue(valueInit);
+      if (textareaRef.current) {
+        textareaRef.current.value = valueInit;
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      }
+    }
+  }, [valueInit]);
+
   return (
     <div className="flex w-full flex-col">
       {/* {!agentId && <FirstTurnSuggestions isFirstTurn={isFirstTurn} onSuggestionClick={onSend} />} */}
@@ -232,7 +267,7 @@ const Composer: React.FC<Props> = ({
             id={CHAT_COMPOSER_TEXTAREA_ID}
             dir="auto"
             ref={textareaRef}
-            // value={value}
+            value={value}
             placeholder="Prompt Here..."
             className={cn(
               'w-full flex-1 resize-none overflow-hidden',
@@ -255,7 +290,7 @@ const Composer: React.FC<Props> = ({
             }}
             rows={1}
             onKeyDown={handleKeyDown}
-            // onChange={handleChange}
+            onChange={handleChange}
             disabled={isComposerDisabled}
           />
           <button
@@ -268,13 +303,7 @@ const Composer: React.FC<Props> = ({
               { 'text-mushroom-600': !canSend }
             )}
             type="button"
-            onClick={() => {
-              if (canSend) {
-                onSend(value);
-              } else {
-                onStop();
-              }
-            }}
+            onClick={handleSend}
           >
             {isReadyToReceiveMessage ? <Icon name="arrow-right" /> : <Square />}
           </button>

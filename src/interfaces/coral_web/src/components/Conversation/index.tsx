@@ -137,6 +137,8 @@ const Conversation: React.FC<Props> = ({
   const handlePromptSelected = (option: PromptOption) => {
     useFocusComposer();
     setUserMessage(option.prompt);
+    handleSend(option.prompt);
+    setUserMessage('');
   };
 
   const handleSend = (msg?: string, overrides?: Partial<ConfigurableParams>) => {

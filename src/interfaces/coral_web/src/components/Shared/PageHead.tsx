@@ -7,7 +7,7 @@ export const PageHead: React.FC<{ title: string; children?: React.ReactNode }> =
   title,
   children,
 }) => {
-  const fullTitle = `WildChat + Adversarial Hallucination Arena`;
+  const fullTitle = `<PlaceHolder Name>`;
   return (
     <Head>
       <title>{fullTitle}</title>

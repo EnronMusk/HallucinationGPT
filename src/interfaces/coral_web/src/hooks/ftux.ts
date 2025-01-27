@@ -49,7 +49,7 @@ export const useShowWelcomeGuide = () => {
   const pathname = usePathname();
   const { welcomeGuideState } = useWelcomeGuideState();
 
-  return pathname === '/' && welcomeGuideState !== WelcomeGuideStep.DONE;
+  return false; //override to disable
 };
 
 /**

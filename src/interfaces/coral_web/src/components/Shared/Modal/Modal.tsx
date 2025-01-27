@@ -117,47 +117,31 @@ export const Modal: React.FC<ModalProps> = ({
         </Transition.Child>
 
         {/* Full-screen container to center the panel */}
-        <div className="fixed inset-0 flex items-center justify-center overflow-auto p-4">
-          <Transition.Child
-            as='div'
-            enter="ease-out duration-300"
-            enterFrom="opacity-0 scale-90"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-90"
-          >
-            {/* Container to center the panel */}
-            <div className="absolute top-0 flex min-h-full w-full items-center justify-center overflow-auto p-4">
-              {children && (
-                <Dialog.Panel className={cn(panelStyle({ kind, className: panelClassName }))}>
-                  {!hideCloseButton && title && (
-                    <header>
-                      {!hideCloseButton && (
-                        <CloseButton className={cn(closeButtonStyle({ kind }))} onClose={onClose} />
-                      )}
-                      {title && (
-                        <Dialog.Title as="div" className="flex-0">
-                          {typeof title === 'string' ? (
-                            <Text
-                              as="h5"
-                              className={cn(titleStyle({ kind }))}
-                              styleAs={isCitation ? 'label' : 'h5'}
-                            >
-                              {title}
-                            </Text>
-                          ) : (
-                            title
-                          )}
-                        </Dialog.Title>
-                      )}
-                    </header>
-                  )}
-                  {children}
-                </Dialog.Panel>
-              )}
-            </div>
-          </Transition.Child>
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className={cn(
+            'w-full max-w-modal',  // width constraints
+            'flex flex-col',       // changed from 'flex flex-col items-center'
+            'bg-marble-1000 rounded-lg p-6 relative'  // added relative for close button positioning
+          )}>
+            {!hideCloseButton && (
+              <CloseButton 
+                className="absolute top-4 right-4" 
+                onClose={onClose}
+              />
+            )}
+            {title && (
+              <Dialog.Title className="flex-0">
+                {typeof title === 'string' ? (
+                  <Text as="h5" className={cn(titleStyle({ kind }))}>
+                    {title}
+                  </Text>
+                ) : (
+                  title
+                )}
+              </Dialog.Title>
+            )}
+            {children}
+          </Dialog.Panel>
         </div>
       </Dialog>
     </Transition.Root>

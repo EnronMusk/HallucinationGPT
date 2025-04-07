@@ -7,7 +7,7 @@ import Head from 'next/head';
  */
 export const GlobalHead: React.FC = () => {
   const description =
-    'Cohere provides access to advanced Large Language Models and NLP tools through one easy-to-use API. Get started for free.';
+    'GPT Review - Chat with GPT models with powerful annotation tools to get the best answers to your questions.';
 
   return (
     <Head>

@@ -11,6 +11,8 @@ import { IconName, Text } from '@/components/Shared';
 import { CHAT_COMPOSER_TEXTAREA_ID, TOOL_FALLBACK_ICON } from '@/constants';
 import { useParamsStore } from '@/stores';
 import { cn } from '@/utils';
+import { Tooltip } from '@/components/Shared/Tooltip';
+import { Icon } from '@/components/Shared/Icon';
 
 export const OVERVIEW_START_MAX_ITEMS = 3;
 
@@ -216,76 +218,84 @@ export const DataSourceMenu: React.FC<Props> = ({
 
   useClickOutside(buttonAndMenuRef, hideMenu);
 
-  return (
-    <div ref={buttonAndMenuRef}>
-      <IconButton
-        iconName="at"
-        tooltip={{ label: 'Use data source', size: 'sm' }}
-        onClick={onToggle}
-        size="sm"
-      />
-      {show && (
-        <div
-          role="listbox"
-          aria-multiselectable="true"
-          className={cn(
-            'absolute bottom-[85%] left-[1%] z-tag-suggestions max-h-[200px] md:w-[468px]',
-            'w-full overflow-y-scroll rounded bg-marble-1000 p-2 shadow-menu focus:outline-none'
-          )}
-        >
-          {menuMode === MenuMode.TOOLS && (
-            <ToolOptions
-              tags={tags.tools}
-              selectedTagIds={(tools ?? []).map((c) => c.name ?? '')}
-              focusedTag={focusedTag}
-              onOptionSelect={handleChange}
-            />
-          )}
+  return ( <div></div>
+    // <div ref={buttonAndMenuRef}>
+    //   <Tooltip
+    //     label="Other options"
+    //     duration={2000}
+    //     showOutline={false}
+    //     hover
+    //     icon={
+    //       <Icon 
+    //         className="flex rounded p-2 transition ease-in-out text-volcanic-300 hover:bg-mushroom-900 hover:text-mushroom-300"
+    //         name="menu"
+    //         kind="outline"
+    //         onClick={onToggle}
+    //       />
+    //     }
+    //   />
+    //   {show && (
+    //     <div
+    //       role="listbox"
+    //       aria-multiselectable="true"
+    //       className={cn(
+    //         'absolute bottom-[85%] left-[1%] z-tag-suggestions max-h-[200px] md:w-[468px]',
+    //         'w-full overflow-y-scroll rounded bg-marble-1000 p-2 shadow-menu focus:outline-none'
+    //       )}
+    //     >
+    //       {menuMode === MenuMode.TOOLS && (
+    //         <ToolOptions
+    //           tags={tags.tools}
+    //           selectedTagIds={(tools ?? []).map((c) => c.name ?? '')}
+    //           focusedTag={focusedTag}
+    //           onOptionSelect={handleChange}
+    //         />
+    //       )}
 
-          {menuMode === MenuMode.FILES && (
-            <FileOptions
-              tags={tags.fileIds}
-              selectedTagIds={fileIds ?? []}
-              focusedTag={focusedTag}
-              onOptionSelect={handleChange}
-            />
-          )}
+    //       {menuMode === MenuMode.FILES && (
+    //         <FileOptions
+    //           tags={tags.fileIds}
+    //           selectedTagIds={fileIds ?? []}
+    //           focusedTag={focusedTag}
+    //           onOptionSelect={handleChange}
+    //         />
+    //       )}
 
-          {menuMode === MenuMode.OVERVIEW && (
-            <>
-              <ToolOptions
-                isOverview
-                tags={overviewTools}
-                focusedTag={focusedTag}
-                onOptionSelect={handleChange}
-                selectedTagIds={(tools ?? []).map((c) => c.name ?? '')}
-                onSeeAll={() => {
-                  setMenuMode(MenuMode.TOOLS);
-                  setFocusedTag({ tag: tags.tools[0], type: TagType.TOOL });
-                  focusFirstTag();
-                  onSeeAll();
-                }}
-              />
+    //       {menuMode === MenuMode.OVERVIEW && (
+    //         <>
+    //           <ToolOptions
+    //             isOverview
+    //             tags={overviewTools}
+    //             focusedTag={focusedTag}
+    //             onOptionSelect={handleChange}
+    //             selectedTagIds={(tools ?? []).map((c) => c.name ?? '')}
+    //             onSeeAll={() => {
+    //               setMenuMode(MenuMode.TOOLS);
+    //               setFocusedTag({ tag: tags.tools[0], type: TagType.TOOL });
+    //               focusFirstTag();
+    //               onSeeAll();
+    //             }}
+    //           />
 
-              <FileOptions
-                isOverview
-                totalTags={totalTags.fileIds}
-                tags={overviewFiles}
-                focusedTag={focusedTag}
-                onOptionSelect={handleChange}
-                selectedTagIds={fileIds ?? []}
-                onSeeAll={() => {
-                  setMenuMode(MenuMode.FILES);
-                  setFocusedTag({ tag: tags.fileIds[0], type: TagType.FILE });
-                  focusFirstTag();
-                  onSeeAll();
-                }}
-              />
-            </>
-          )}
-        </div>
-      )}
-    </div>
+    //           <FileOptions
+    //             isOverview
+    //             totalTags={totalTags.fileIds}
+    //             tags={overviewFiles}
+    //             focusedTag={focusedTag}
+    //             onOptionSelect={handleChange}
+    //             selectedTagIds={fileIds ?? []}
+    //             onSeeAll={() => {
+    //               setMenuMode(MenuMode.FILES);
+    //               setFocusedTag({ tag: tags.fileIds[0], type: TagType.FILE });
+    //               focusFirstTag();
+    //               onSeeAll();
+    //             }}
+    //           />
+    //         </>
+    //       )}
+    //     </div>
+    //   )}
+    // </div>
   );
 };
 

@@ -624,7 +624,7 @@ export const useChat = (config?: { onSend?: (msg: string) => void }) => {
       text: message,
       files: composerFiles,
       message_id: UserMessageId, //set it to user msg for streaming messages
-      is_annotation_response: message.includes('| Annotated Text | Annotation |\n|----------|----------|\n')
+      is_annotation_response: message.includes('| Annotated Text | Row, Column | Annotation |\n|----------------|-----|------------|\n|')
     });
 
     await handleStreamConverse({

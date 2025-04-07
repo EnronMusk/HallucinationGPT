@@ -14,14 +14,16 @@ export enum MessageType {
   USER = 'user',
 }
 
-type BaseMessage = {
+export interface BaseMessage {
   type: MessageType;
   text: string;
   error?: string;
   message_id?: string; //for accessing db
   conversation_id?: string; //for submission to AHA
   annotations?: Annotation[];
-};
+  is_annotation_response?: boolean;
+  feedback?: string;  // Add feedback field
+}
 
 export type Annotation = {
   id?: string; //used for db pull and push.

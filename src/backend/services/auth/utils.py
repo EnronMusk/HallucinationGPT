@@ -36,6 +36,7 @@ def get_or_create_user(session: Session, token_user: dict[str, str]) -> dict:
     Returns:
         User: User object
     """
+    print("THIS ONE &&&&&&&&&&&&&&&&")
     email = token_user.get("email")
     fullname = token_user.get("name")
 

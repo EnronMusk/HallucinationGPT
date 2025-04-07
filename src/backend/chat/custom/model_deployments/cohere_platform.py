@@ -373,5 +373,5 @@ class CohereDeployment(BaseDeployment):
 
     def invoke_tools(self, message: str, tools: List[Any], **kwargs: Any) -> List[Any]:
         return self.client.chat(
-            message=message, tools=tools, model="command-r", **kwargs
+            message=message, tools=tools, model="command-a-03-2025", **kwargs
         )

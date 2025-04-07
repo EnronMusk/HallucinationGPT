@@ -21,12 +21,12 @@ import { env } from '@/env.mjs';
 import { useLazyRef } from '@/hooks/lazyRef';
 import { getUserId } from '@/pages_old/cookies';
 export const makeCohereClient = (authToken?: string) => {
-  const userId = getUserId();
+  let userId = getUserId();
   const apiFetch: Fetch = async (resource, config: RequestInit = {}) => {
     // Ensure headers are defined
     config.headers = {
       ...config.headers, // Preserve any existing headers
-      'User-Id': userId // Set the User-Id header
+      'User-Id': userId.userId // Set the User-Id header
     };
 
     return await fetch(resource, config);
@@ -34,7 +34,7 @@ export const makeCohereClient = (authToken?: string) => {
   return new CohereClient({
     hostname: env.NEXT_PUBLIC_API_HOSTNAME,
     fetch: apiFetch,
-    source: userId,
+    source: userId.userId,
   });
 };
 

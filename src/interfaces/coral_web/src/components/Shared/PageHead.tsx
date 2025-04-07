@@ -7,7 +7,7 @@ export const PageHead: React.FC<{ title: string; children?: React.ReactNode }> =
   title,
   children,
 }) => {
-  const fullTitle = `<PlaceHolder Name>`;
+  const fullTitle = ``;
   return (
     <Head>
       <title>{fullTitle}</title>

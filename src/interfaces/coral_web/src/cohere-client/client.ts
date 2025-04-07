@@ -19,7 +19,6 @@ import {
 } from '@/cohere-client';
 
 import { mapToChatRequest } from './mappings';
-import { getUserId } from '@/pages_old/cookies';
 
 export class CohereClient {
   private readonly hostname: string;
@@ -28,7 +27,8 @@ export class CohereClient {
 
   public cohereService: CohereClientGenerated;
   public request?: any;
-
+  
+  private authToken: string;
   constructor({
     hostname,
     fetch,
@@ -41,6 +41,7 @@ export class CohereClient {
     this.hostname = hostname;
     this.fetch = fetch;
     this.source = source;
+    this.authToken = ""
     this.cohereService = new CohereClientGenerated({
       BASE: hostname,
       HEADERS: async () => this.getHeaders(true),
@@ -219,9 +220,12 @@ export class CohereClient {
     return this.cohereService.default.getStrategiesV1AuthStrategiesGet();
   }
 
-  public createUser(requestBody: CreateUser) {
-    return this.cohereService.default.createUserV1UsersPost({
-      requestBody,
+  public async createUser(requestBody: CreateUser) {
+    const endpoint = `${this.getEndpoint('users')}/add`
+    return await this.fetch(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify(requestBody),
+        headers: this.getHeaders(),
     });
   }
 
@@ -266,7 +270,7 @@ export class CohereClient {
     });
 
     const body = await response.json();
-    this.authToken = body.token;
+    this.authToken = ""
 
     if (response.status !== 200) {
       throw new CohereNetworkError('Something went wrong', response.status);
@@ -367,11 +371,28 @@ export class CohereClient {
     return this.cohereService.default.deleteSnapshotV1SnapshotsSnapshotIdDelete({ snapshotId });
   }
 
-  private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth' | 'annotations') {
+  public async submitFeedback(
+    messageId: string,
+    feedback: string
+  ): Promise<void>  {
+    const endpoint = `${this.getEndpoint('annotations')}/feedback`;
+    const requestBody = {
+      message_id: messageId,
+      feedback: feedback
+    };
+  
+    const response = await this.fetch(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(requestBody),
+      headers: this.getHeaders(),
+    });
+  }
+
+  private getEndpoint(endpoint: 'chat-stream' | 'langchain-chat' | 'google/auth' | 'oidc/auth' | 'annotations' | 'users' | 'feedback') {
     return `${this.hostname}/v1/${endpoint}`;
   }
 
-  private getHeaders(omitContentType = false) {
+  public getHeaders = (omitContentType = false) => {
     const headers: HeadersInit = {
       ...(omitContentType ? {} : { 'Content-Type': 'application/json' }),
       ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
@@ -381,7 +402,4 @@ export class CohereClient {
     return headers;
   }
 }
-
-
-
 

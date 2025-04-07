@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, Index, PrimaryKeyConstraint, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, PrimaryKeyConstraint, String, UniqueConstraint, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database_models.base import Base
@@ -16,6 +16,7 @@ class Conversation(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     title: Mapped[str] = mapped_column(String, default="New Conversation")
     description: Mapped[str] = mapped_column(String, nullable=True, default=None)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     text_messages: Mapped[List["Message"]] = relationship()
     files: Mapped[List["File"]] = relationship()

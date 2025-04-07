@@ -113,6 +113,9 @@ class CohereDeployment(BaseDeployment):
         self, chat_request: CohereChatRequest, **kwargs: Any
     ) -> Any:
 
+        chat_request.model = "command-a-03-2025" #MODEL OVERRIDE
+
+
         stream = self.client.chat_stream(
             **chat_request.model_dump(exclude={"stream", "file_ids", "agent_id", "user_msg_id", 'bot_msg_id'}),
         )

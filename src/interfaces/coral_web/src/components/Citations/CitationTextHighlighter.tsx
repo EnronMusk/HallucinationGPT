@@ -56,17 +56,14 @@ export const CitationTextHighlighter: React.FC<Props> = ({
     );
   }, [end, selectedCitation, start, isGenerationSelected]);
 
-  const handleClick = () => {
+  const handleInteraction = () => {
     setSettings({ isConfigDrawerOpen: false });
 
-    if (
-      isGenerationSelected &&
-      selectedCitation?.start === start &&
-      selectedCitation?.end === end
-    ) {
+    if (isGenerationSelected && selectedCitation?.start === start && selectedCitation?.end === end) {
       selectCitation(null);
       return;
     }
+    
     selectCitation({
       generationId,
       start,
@@ -78,10 +75,8 @@ export const CitationTextHighlighter: React.FC<Props> = ({
       open({
         content: (
           <Citation
-            className="bg-coral-900"
+            className="text-inherit"
             generationId={generationId}
-            // Used to find the keyword to bold but since we don't have it yet here when the message is
-            // still streaming in we can just ignore it for now instead of not showing the popup at all
             message={message?.originalText ?? ''}
           />
         ),
@@ -111,20 +106,36 @@ export const CitationTextHighlighter: React.FC<Props> = ({
     }
   }
 
+  let citationText = typeof children === 'string' ? children : '';
+  const isAnnotated = citationText.startsWith('UUULLL') && citationText.endsWith('UUULLL');
+  if (isAnnotated) {
+  //console.log("Citation text:", citationText);
+  citationText = citationText.substring(6, citationText.length - 6); //remove the key
+  }
+  
   return (
     <mark
       ref={ref}
-      onClick={handleClick}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleInteraction();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleInteraction();
+      }}
+      id={'tool'+'55'}
       className={cn(
-        'bg-mushroom-600/[0.15] text-mushroom-150',
-        {
-          'bg-coral-900 text-coral-300': isHighlighted,
-          'hover:bg-mushroom-600/[0.24]': !isHighlighted,
-        },
-        'cursor-pointer rounded'
+        'border-b border-gray-400 text-inherit',
+        'cursor-pointer', 
+        isAnnotated 
+          ? 'highlight'
+          : 'bg-transparent'
       )}
     >
-      {content}
+      {citationText}
     </mark>
   );
 };

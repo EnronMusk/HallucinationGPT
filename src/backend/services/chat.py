@@ -323,7 +323,7 @@ def create_message(
         is_active=True,
         agent=agent,
         tool_plan=tool_plan,
-        is_annotation_response= True if '| Annotated Text | Annotation |\n|----------|----------|\n' in text else False
+        is_annotation_response= True if '| Annotated Text | Row, Column | Annotation |\n|----------------|-----|------------|\n|' in text else False
     )
 
     if should_store:
@@ -535,7 +535,7 @@ async def generate_chat_response(
             non_streamed_chat_response = NonStreamedChatResponse(
                 text=data.get("text", ""),
                 response_id=response_id,
-                generation_id=generation_id,
+                generation_id=generation_id,    
                 chat_history=data.get("chat_history", []),
                 finish_reason=data.get("finish_reason", ""),
                 citations=data.get("citations", []),

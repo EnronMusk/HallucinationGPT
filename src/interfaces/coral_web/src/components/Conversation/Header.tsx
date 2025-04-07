@@ -48,12 +48,13 @@ const useHeaderMenu = ({ agentId }: { agentId?: string }) => {
   const { welcomeGuideState, progressWelcomeGuideStep, finishWelcomeGuide } =
     useWelcomeGuideState();
 
-  const handleNewChat = () => {
-    const url = agentId ? `/a/${agentId}` : pathname.includes('/a') ? '/a' : '/';
-    router.push(url, undefined);
+  const handleNewChat = async () => {
+    const url = agentId ? `/a/${agentId}` : '/';
+    setEditAgentPanelOpen(false);
     resetConversation();
     resetCitations();
     resetFileParams();
+    router.push(url);
   };
 
   const handleOpenShareModal = () => {
@@ -205,21 +206,21 @@ export const Header: React.FC<Props> = ({ isStreaming, agentId }) => {
               onClick={handleOpenShareModal}
             />
           )}
-          <div className="relative">
-            {/* <IconButton
+          {/* <div className="relative">
+            <IconButton
               tooltip={{ label: 'Settings', placement: 'bottom-end', size: 'md' }}
               className={cn('hidden md:flex', { 'bg-mushroom-900': isConfigDrawerOpen })}
               onClick={handleToggleConfigSettings}
               iconName="settings"
               disabled={isStreaming}
-            /> */}
+            />
             <WelcomeGuideTooltip
               step={1}
               className={cn('right-0 top-full mt-9', {
                 'delay-1000': !welcomeGuideState || welcomeGuideState === WelcomeGuideStep.ONE,
               })}
             />
-          </div>
+          </div> */}
           <IconButton
             tooltip={{
               label: isAgentCreator ? 'Edit assistant' : 'About assistant',

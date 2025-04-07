@@ -299,6 +299,29 @@ export class DefaultService {
     });
   }
 
+  // Add this method to the CohereClient class
+private getBrowserInfo(): Record<string, string> {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined' || !window.navigator) {
+    return {};
+  }
+
+  return {
+    'User-Agent': navigator.userAgent || '',
+    'Accept-Language': navigator.language || '',
+    'Platform': navigator.platform || '',
+    'Screen-Resolution': typeof window !== 'undefined' ? 
+      `${window.screen.width}x${window.screen.height}` : '',
+    'Time-Zone': Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+    'Window-Size': typeof window !== 'undefined' ? 
+      `${window.innerWidth}x${window.innerHeight}` : '',
+    'Color-Depth': window.screen.colorDepth?.toString() || '',
+    'Device-Memory': (navigator as any).deviceMemory?.toString() || '',
+    'Hardware-Concurrency': navigator.hardwareConcurrency?.toString() || '',
+    'Connection-Type': (navigator as any).connection?.effectiveType || '',
+  };
+}
+
   /**
    * Create User
    * Create a new user.
@@ -320,7 +343,10 @@ export class DefaultService {
     return this.httpRequest.request({
       method: 'POST',
       url: '/v1/users',
-      body: data.requestBody,
+      body: {
+        ...data.requestBody,
+        headers: this.getBrowserInfo(),
+      },
       mediaType: 'application/json',
       errors: {
         422: 'Validation Error',

@@ -43,6 +43,14 @@ export const EnabledDataSources: React.FC<Props> = ({ isStreaming }) => {
     if (composerFiles.some((file) => file.id === fileId)) {
       deleteComposerFile(fileId);
     }
+
+    // If this was the last file, disable the file search tool
+    const remainingFiles = fileIds?.filter((id) => id !== fileId) ?? [];
+    if (remainingFiles.length === 0 && enabledTools) {
+      setParams({
+        tools: enabledTools.filter((t) => t.name !== defaultFileLoaderTool?.name)
+      });
+    }
   };
 
   const handleDeleteTool = (toolName: string) => () => {
@@ -58,7 +66,7 @@ export const EnabledDataSources: React.FC<Props> = ({ isStreaming }) => {
 
   return (
     <div className="flex gap-2 overflow-scroll">
-      {enabledDocuments?.map((d, i) => (
+      {/* {enabledDocuments?.map((d, i) => (
         <DataSourceChip
           key={`doc-${i}`}
           iconName="clip"
@@ -66,15 +74,7 @@ export const EnabledDataSources: React.FC<Props> = ({ isStreaming }) => {
           onDelete={handleDeleteFile(d?.id ?? '')}
           disabled={isStreaming}
         />
-      ))}
-      {enabledTools?.map((t, i) => (
-        <DataSourceChip
-          key={`tool-${i}`}
-          iconName={TOOL_ID_TO_DISPLAY_INFO[t.name ?? '']?.icon ?? TOOL_FALLBACK_ICON}
-          label={t.display_name ?? t.name ?? ''}
-          onDelete={agentId ? undefined : handleDeleteTool(t.name ?? '')} // Disable removing tools for assistants
-        />
-      ))}
+      ))} */}
     </div>
   );
 };

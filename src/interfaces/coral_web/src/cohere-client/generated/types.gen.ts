@@ -122,6 +122,7 @@ export type Citation = {
   start: number;
   end: number;
   document_ids: Array<string>;
+  highlighted?: boolean;
 };
 
 /**
@@ -229,6 +230,7 @@ export type CreateUser = {
   hashed_password?: (Blob | File) | null;
   fullname: string;
   email?: string | null;
+  headers?: Record<string, string>;
 };
 
 export type DeleteAgent = unknown;
@@ -358,6 +360,7 @@ export type Message = {
   tool_plan: string | null;
   agent: MessageAgent;
   is_annotation_response?: boolean;
+  feedback?: string | null;
 };
 
 export enum MessageAgent {

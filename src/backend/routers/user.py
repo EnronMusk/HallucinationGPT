@@ -19,7 +19,7 @@ router = APIRouter(prefix="/v1/users")
 router.name = RouterName.USER
 
 
-@router.post("", response_model=User)
+@router.put("/add", response_model=User)
 async def create_user(
     user: CreateUser, session: DBSessionDep, request: Request
 ) -> User:
@@ -29,15 +29,44 @@ async def create_user(
     Args:
         user (CreateUser): User data to be created.
         session (DBSessionDep): Database session.
+        request (Request): FastAPI request object.
 
     Returns:
         User: Created user.
     """
-    db_user = UserModel(**user.model_dump(exclude_none=True))
-    db_user = user_crud.create_user(session, db_user)
-    add_user_to_request_state(request, db_user)
-    add_event_type_to_request_state(request, MetricsMessageType.USER_CREATED)
-    return db_user
+    try:
+        print("Creating user!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        user_data = user.model_dump(exclude_none=True)
+        headers_dict = dict(request.headers)  # Convert Headers to dict
+        user_data["headers"] = headers_dict
+        try:
+            user_data["ip_address"] = request.client.host
+        except:
+            user_data["ip_address"] = "NA"
+        user_data["id"] = request.headers.get("user-id")  # Use the ID from header
+        
+        db_user = UserModel(**user_data)
+        db_user = user_crud.create_user(session, db_user)
+        add_user_to_request_state(request, db_user)
+        add_event_type_to_request_state(request, MetricsMessageType.USER_CREATED)
+        
+        # Debug what we're returning
+        print(f"db_user type: {type(db_user)}")
+        print(f"db_user attributes: {dir(db_user)}")
+        
+        # Try explicit conversion if needed
+        if hasattr(User, "from_orm"):
+            user_response = User.from_orm(db_user)
+            return user_response
+        else:
+            # Convert to dict first if from_orm isn't available
+            user_dict = {c.name: getattr(db_user, c.name) for c in db_user.__table__.columns}
+            return User(**user_dict)
+    except Exception as e:
+        print(f"Error in create_user: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("", response_model=list[User])

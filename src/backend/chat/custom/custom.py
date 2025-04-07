@@ -186,6 +186,14 @@ class CustomChat(BaseChat):
             print("invoking chat stream")
             # req = CohereChatRequest(message='tell me about onions.')
             print(deployment_model)
+            # FIXES API ERROR destroying the conversation.
+            try:
+                for msg in chat_request.chat_history:
+                    if not msg.message:  # Check if the message is None or an empty string
+                        msg.message = "Error, Please try again."
+            except Exception:
+                pass
+                    
             async for event in deployment_model.invoke_chat_stream(
                 chat_request, trace_id=trace_id, user_id=user_id, agent_id=agent_id
             ):

@@ -50,7 +50,10 @@ export const getActiveMarkdownPlugins = (
     renderTableTools,
   ];
 
-  const rehypePlugins: PluggableList = [[rehypeHighlight, { detect: true, ignoreMissing: true }]];
+  const rehypePlugins: PluggableList = [
+    [rehypeHighlight as any, { detect: true, ignoreMissing: true }]
+  ];
+
 
   if (renderLaTex) {
     // remarkMath is a plugin that adds support for math

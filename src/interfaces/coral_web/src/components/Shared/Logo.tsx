@@ -13,8 +13,11 @@ interface LogoProps {
 
 export const Logo: React.FC<LogoProps> = ({ className }) => (
   <span className={cx('flex items-center', className)}>
-    <Icon name="globe-stand" className="mr-2" /> {}
-    <span className="font-bold" style = {{ fontFamily: "Cambria", fontSize: '20px' }}>PlaceHolder Name</span>
+    <Icon name="globe-stand" className="mr-2" />
+    <>
+      <span className="font-normal" style={{ fontFamily: "Cambria", fontSize: '20px'}}>Chat</span>
+      <span className="font-extrabold" style={{ fontFamily: "Cambria", fontSize: '20px' }}>&nbsp;Annotator</span>
+    </>
   </span>
 );
 

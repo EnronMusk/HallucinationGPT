@@ -18,6 +18,7 @@ type Props = {
   generationId: string;
   message: string;
   isLastStreamed?: boolean;
+  highlighted?: boolean;
   styles?: CitationStyles;
   className?: string;
 };

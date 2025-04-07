@@ -111,6 +111,18 @@ export const Tooltip: React.FC<TooltipProps> = ({
               onClickTrigger();
             }
           }}
+          onTouchEnd={(e: React.TouchEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const floatingUIOnClick = onClick as (
+              e: any
+            ) => void;
+            floatingUIOnClick(e);
+
+            if (onClickTrigger) {
+              onClickTrigger();
+            }
+          }}
         >
           {icon || (
             <Icon

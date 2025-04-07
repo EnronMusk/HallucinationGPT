@@ -23,7 +23,7 @@ const MainLayout: NextPage<React.PropsWithChildren> = ({ children }) => {
               <AgentsList />
             </LeftSection>
             <MainSection>{children}</MainSection>
-            <TermsModal />
+            <TermsModal onAccept={() => {}} />
           </AgentsLayout>
         </ProtectedPage>
       </TermsWrapper>
@@ -38,7 +38,7 @@ const MainLayout: NextPage<React.PropsWithChildren> = ({ children }) => {
             <ConversationListPanel />
           </LeftSection>
           <MainSection>{children}</MainSection>
-          <TermsModal />
+          <TermsModal onAccept={() => {}} />
         </Layout>
       </ProtectedPage>
     </TermsWrapper>

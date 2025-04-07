@@ -122,26 +122,17 @@ async def filter_conversations(
     agent_id: str,
     trace_id: str,
 ) -> List[Conversation]:
-    """Filter conversations based on the rerank score
-
-    Args:
-        query (str): The query to filter conversations
-        conversations (List[Conversation]): List of conversations
-        rerank_documents (List[str]): List of documents to rerank
-        model_deployment: Model deployment object
-        user_id (str): User ID
-        agent_id (str): Agent ID
-        trace_id (str): Trace ID
-
-    Returns:
-        List[Conversation]: List of filtered conversations
-    """
-    # if rerank is not enabled, filter out conversations that don't contain the query
+    """Filter conversations based on the rerank score and title matches"""
+    
+    # if rerank is not enabled, filter by simple string matching
     if not model_deployment.rerank_enabled:
         filtered_conversations = []
+        query_lower = query.lower()
 
         for rerank_document, conversation in zip(rerank_documents, conversations):
-            if query.lower() in rerank_document.lower():
+            # Check both title and content
+            if (query_lower in rerank_document.lower() or 
+                (conversation.title and query_lower in conversation.title.lower())):
                 filtered_conversations.append(conversation)
 
         return filtered_conversations
@@ -165,7 +156,17 @@ async def filter_conversations(
         if r["relevance_score"] > SEARCH_RELEVANCE_THRESHOLD
     ]
 
-    return reranked_conversations
+    # Add any direct title matches that might have been missed
+    query_lower = query.lower()
+    title_matches = [
+        conv for conv in conversations 
+        if conv.title and 
+        query_lower in conv.title.lower() and 
+        conv not in reranked_conversations
+    ]
+
+    # Combine results, putting title matches first
+    return title_matches + reranked_conversations
 
 
 async def generate_conversation_title(

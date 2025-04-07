@@ -19,6 +19,7 @@ type Citation = {
   end: string;
   /** Used to scroll to highlight position */
   yPosition: number | null;
+  annotated?: boolean;
 };
 
 type CitationReferences = {

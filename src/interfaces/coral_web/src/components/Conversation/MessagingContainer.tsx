@@ -14,7 +14,7 @@ import { ReservedClasses } from '@/constants';
 import { MESSAGE_LIST_CONTAINER_ID, useCalculateCitationStyles } from '@/hooks/citations';
 import { useFixCopyBug } from '@/hooks/fixCopyBug';
 import { useAgentsStore, useCitationsStore } from '@/stores';
-import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotation} from '@/types/message';
+import { ChatMessage, MessageType, StreamingMessage, isFulfilledMessage, Annotation, BotState} from '@/types/message';
 import { cn } from '@/utils';
 
 import { makeCohereClient } from '@/app/_providers'; //for db
@@ -179,23 +179,28 @@ const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInt
   ref
 ) {
   const isConversationEmpty = messages.length === 0;
-  const isChatEmpty = messages.length === 0;
+  let isChatEmpty = messages.length === 0;
   //console.log("THE MSGS")
   //console.log(messages)
   //console.log(streamingMessage)
 
-  if (isChatEmpty) {
+  const hasUserMessage = messages.some(m => m.type === MessageType.USER);
+
+  let pathname = window.location.pathname;
+  let isNewChatUrl = !pathname.includes('/c/');
+  if (isChatEmpty || isNewChatUrl && (!hasUserMessage)) {
     return (
       // <div className="m-auto p-4">
       //   <Welcome show={isChatEmpty} agentId={agentId} />
       // </div>
       <div className="flex h-full w-full flex-col justify-center p-4">
-          <StartModes show={isConversationEmpty} onPromptSelected={onPromptSelected} />
+          <StartModes show={true} onPromptSelected={onPromptSelected} />
       </div>
     );
   }
 
   console.log("is it empty", isChatEmpty)
+  let found_user = false
 
   return (
     <div id={MESSAGE_LIST_CONTAINER_ID} className="flex h-full flex-col gap-y-4 px-4 py-6 md:gap-y-6" ref={ref}> 
@@ -208,6 +213,20 @@ const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInt
         {messages.map((m, i) => {
           const isLastInList = i === messages.length - 1;
           const is2ndLast = i === messages.length - 2;
+
+          if (m.type === MessageType.USER) {
+            found_user = true
+          } else if (m.type === MessageType.BOT && !found_user) {
+            return null; //fix bug for messages changing conversations.
+          }
+          
+          // Check if the previous message exists and contains the annotation table format
+          const isPreviousMessageAnnotationPrompt = i > 0 && 
+            messages[i-1].text.includes('| Annotated Text | Row, Column | Annotation |\n|----------------|-----|------------|\n|')
+          const shouldShowFeedback = m.type === MessageType.BOT && m.state === BotState.FULFILLED &&
+                                     isPreviousMessageAnnotationPrompt && 
+                                    ( m.feedback === undefined || m.feedback === "");
+          
           return (
             <MessageRow
               key={i}
@@ -228,16 +247,22 @@ const Messages = (forwardRef<HTMLDivElement, MessagesProps>(function MessagesInt
               })}
               onRetry={onRetry}
               client={client}
+              showFeedback={shouldShowFeedback}
             />
           );
         })}
       {/** DO NOT REMOVE key this fixes the annotaiton from jumping.*/}
       {streamingMessage && (
-        <MessageRow key={messages.length} order={messages.length}
+        <MessageRow 
+          key={messages.length} 
+          order={messages.length}
           isLast
           isStreamingToolEvents={isStreamingToolEvents}
           message={streamingMessage}
-          is2ndLast={false} onRetry={onRetry} client={client}
+          is2ndLast={false} 
+          onRetry={onRetry} 
+          client={client}
+          showFeedback={isFulfilledMessage(streamingMessage) && messages[messages.length-1].text.includes('| Annotated Text | Row, Column | Annotation |\n|----------------|-----|------------|\n|')}
         />
       )}
       </div>

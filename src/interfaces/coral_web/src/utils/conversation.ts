@@ -56,6 +56,8 @@ export const mapHistoryToMessages = (conversation_id: string, history?: Message[
           message_id: message.id,
           conversation_id: conversation_id,
           annotations: message.annotations,
+          is_annotation_response: message.is_annotation_response||false,
+          feedback: message.feedback ?? undefined,
         });
         tempToolEvents = undefined;
       } else {
@@ -82,6 +84,7 @@ export const mapHistoryToMessages = (conversation_id: string, history?: Message[
         conversation_id: conversation_id,
         annotations: message.annotations,
         is_annotation_response: message.is_annotation_response||false,
+        feedback: message.feedback ?? undefined,
       });
     }
   }

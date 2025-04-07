@@ -4,7 +4,6 @@ import { usePreviousDistinct } from '@react-hookz/web';
 import { MouseEvent, forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo, memo, useContext, createContext } from 'react';
 import React from 'react';
 import { useLongPress } from 'react-aria';
-import { Rating, Typography, Box } from '@mui/material';
 
 import { Avatar } from '@/components/Avatar';
 import { IconButton } from '@/components/IconButton';
@@ -34,7 +33,6 @@ import {
 import { cn } from '@/utils';
 
 import { useCitationsStore } from '@/stores';
-import { useConversationStore } from '@/stores';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -52,26 +50,21 @@ type Props = {
   onCopy?: VoidFunction;
   onRetry?: VoidFunction;
   client?: CohereClient;
-  showFeedback?: boolean;
 };
 
 /**
  * Renders a single message row from the user or from our models.
  */
 const MessageRow = React.memo(forwardRef<HTMLDivElement, Props>(function MessageRowInternal(
-  { message, delay = false, isLast, isStreamingToolEvents, is2ndLast, className = '', order, onCopy, onRetry, client, showFeedback },
+  { message, delay = false, isLast, isStreamingToolEvents, is2ndLast, className = '', order, onCopy, onRetry, client },
   ref
 ) {
-  console.log('MESSAGE ROW KEY!!!@**', message.message_id)
   const breakpoint = useBreakpoint();
 
   const isReadOnly = client === null;
   const [isShowing, setIsShowing] = useState(false);
   const [isLongPressMenuOpen, setIsLongPressMenuOpen] = useState(false);
   const [isStepsExpanded, setIsStepsExpanded] = useState<boolean>(true);
-  
-  //   // Get the new method
-  // const { updateMessageAnnotations } = useConversationStore();
   const {
     citations: { selectedCitation, hoveredGenerationId },
     hoverCitation,
@@ -82,8 +75,6 @@ const MessageRow = React.memo(forwardRef<HTMLDivElement, Props>(function Message
       isAbortedMessage(message)) &&
     !!message.toolEvents &&
     message.toolEvents.length > 0;
-
-    message.text = message.text.replaceAll("\n---", "");
 
   const getMessageText = () => {
     if (isFulfilledMessage(message) || isUserMessage(message)) {
@@ -110,7 +101,7 @@ const MessageRow = React.memo(forwardRef<HTMLDivElement, Props>(function Message
   const enableLongPress =
     (isFulfilledMessage(message) || isUserMessage(message)) && breakpoint === Breakpoint.sm;
   const { longPressProps } = useLongPress({
-    onLongPress: () => setIsLongPressMenuOpen(false), //dsiable due to annoation interference on mobile
+    onLongPress: () => setIsLongPressMenuOpen(true),
   });
 
   // Add conversation ID to component state
@@ -249,7 +240,6 @@ const MessageRow = React.memo(forwardRef<HTMLDivElement, Props>(function Message
   const [annotSortDict, setSortAnnotDict] = useState<AnnotDict>({});
   
   console.log("annotDict after annots", annotDict)
-  // Checks if two annotation ranges overlap (this is for the storage issue)
 
   const annotDictLength = useMemo(() => {
     return Object.keys(annotDict).length;
@@ -330,6 +320,7 @@ const MessageRow = React.memo(forwardRef<HTMLDivElement, Props>(function Message
 
     //remove visibility
     setAnnotationVisible(false)
+
     //removal
     setAnnotDict(prevDict => {
       const { [key]: _, ...newDict } = prevDict;
@@ -341,6 +332,7 @@ const MessageRow = React.memo(forwardRef<HTMLDivElement, Props>(function Message
     console.log(ad)
 
     setPreprocessedMessage(insertHighlightMarkers(message.text, newDictSorted)) //Set the preprocessed message with higlights
+
   console.log("key (removed)!!!", newDictSorted)
 
     
@@ -613,86 +605,6 @@ const filteredMappingV2 = (text:string) => {
     return regex.test(char);
   }
 
-  const submitAnnotation = (target: HTMLInputElement, inputBox: HTMLInputElement, targetElement: HTMLElement|null) => {
-
-      console.log(annotationKey);
-      console.log('text', message.text);
-
-      let final_annot = normalizeAnnotation(target.value) //remove unwatned chars.
-
-      if (final_annot.length === 0){
-        eraseAnnotation();
-        return;
-      }
-
-      setAnnotDict(prevDict => ({
-        ...prevDict,
-        [annotationKey]: { ...prevDict[annotationKey], annotation: final_annot}
-      }));
-
-      // Temporary dict for this single render.
-      let ad = {...annotDict};
-      let annotation_inst = ad[annotationKey]
-      ad[annotationKey].annotation = final_annot;
-      ad = sortAnnotDict(ad);
-
-      setSortAnnotDict(ad);
-
-
-      //add annotation to db!
-
-      const annotationRequest = { //make the request here.
-        message_id : message.message_id||"",
-        htext : annotation_inst.htext,
-        annotation : annotation_inst.annotation,
-        start : annotation_inst.start,
-        end : annotation_inst.end
-    
-      }
-      console.log("MID", message.message_id)
-      console.log("CID", message.conversation_id)
-      if (message.message_id && client){
-        console.log("SENT TO DB")
-        client.annotate(annotationKey, annotationRequest) //add it to DB
-      }
-
-      
-
-      // inputBox.textContent = "";
-      //if (tooltip){tooltip!.textContent = "";}
-      targetElement?.removeChild(inputBox)
-      let tooltip = document.getElementById('tool' + annotationKey)
-      //tooltip?.focus()
-      //tooltip!.textContent = "";
-      const ml = new Event('mouseleave')
-      tooltip?.dispatchEvent(ml)
-
-      //Fixes stupid textContent in tooltip visiblity bug.
-      if (tooltip) {
-        
-        tooltip!.textContent = "";
-        console.log("tt tc",tooltip.textContent);
-      }
-      //setPreprocessedMessage(insertHighlightMarkers(message.text, ad)) //Set the preprocessed message with higlights
-      setAnnotationVisible(false);
-      //setAnnotationKey('');
-      console.log(targetElement?.childNodes)
-      console.log('REMOVED', inputBox)
-      console.log(targetElement?.childNodes)
-    } 
-  
-      
-
-
-
-
-  //targetElement?.appendChild(inputBox)
-  // Optional clean up
-
-
-
-
-
 
 
 
@@ -701,136 +613,160 @@ const filteredMappingV2 = (text:string) => {
 
     console.log("VISIBILITY CHANGE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", annotationVisible)
 
+    //let annotationKey = annotationKey;
+
     let inputBox = document.createElement('input')
     if (annotationVisible){
-      // Add click outside handler
-      
-      inputBox.type = 'text';
-      inputBox.contentEditable = 'true';
-      inputBox.style.userSelect = 'text';
-      inputBox.style.webkitUserSelect = 'text';
-      inputBox.style.touchAction = 'manipulation';
-      inputBox.style.cursor = 'text';
-      inputBox.style.caretColor = 'auto';
-      inputBox.autocomplete = 'off';
-      inputBox.autocapitalize = 'off';
-      inputBox.spellcheck = false;
-      
-      // Handle touch events for mobile
-      inputBox.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        inputBox.blur();
-        inputBox.focus();
-      });
-      
-      inputBox.addEventListener('focus', () => {
-        // Ensure keyboard shows up
-        setTimeout(() => {
-          inputBox.click();
-        }, 100);
-      });
-      
-      // Applying inline styles
-      inputBox.style.fontSize = "14px";
-      inputBox.style.height = "2rem";
-      inputBox.style.width = "max-content";
-      inputBox.style.padding = "0.5rem";
-      inputBox.style.lineHeight = "150%";
-      inputBox.style.fontFamily = "Arial, sans-serif";
-      inputBox.style.minHeight = "1.6rem";
-      inputBox.style.maxHeight = "3.2rem";
-      inputBox.style.textOverflow = "ellipsis";
-      inputBox.style.position = "absolute";
-      inputBox.style.marginRight= '5px';
-      inputBox.style.top = '50%'
-      inputBox.style.transform = 'translateY(-50%)'
-      inputBox.style.zIndex = '2';
+          // Add click outside handler
+   
+    inputBox.type = 'text';
+    //inputBox.value= value;
+    //inputBox.onchange = (event) => handleChange(event as unknown as ChangeEvent<HTMLInputElement>);
 
-      // Applying class names
-      inputBox.className = [
-        'w-auto',
-        "self-center",
-        "rounded",
-        "border",
-        "bg-danger-50",
-        "text-lg",
-        "w-full",
-        "border-secondary-400",
-        "transition ease-in-out",
-        "focus:border-secondary-700",
-        "focus:outline-none",
-        "placeholder-base",
-        "font-family-Arial"
-      ].join(" ")
+    // Applying inline styles
+    inputBox.style.fontSize = "14px";
+    inputBox.style.height = "2rem";
+    inputBox.style.width = "max-content";
+    inputBox.style.padding = "0.5rem";
+    inputBox.style.lineHeight = "150%";
+    inputBox.style.fontFamily = "Arial, sans-serif";
+    inputBox.style.minHeight = "1.6rem";
+    inputBox.style.maxHeight = "3.2rem";
+    inputBox.style.textOverflow = "ellipsis";
+    inputBox.style.position = "absolute";
+    inputBox.style.marginRight= '5px';
+    inputBox.style.top = '50%'
+    inputBox.style.transform = 'translateY(-50%)'
+    inputBox.style.zIndex = '99999999999999';
 
-      inputBox.ariaHidden = 'true'
-      inputBox.placeholder = 'Add annotation . . .';
-      inputBox.maxLength = 100;
+    // Applying class names
+    inputBox.className = [
+      //"min-h-[1rem] md:min-h-[2rem]",
+      'w-auto',
+      "self-center",
+      "rounded",
+      //"px-1 px-2",
+      "border",
+      "bg-danger-50",
+      "text-lg",
+      "w-full",
+      "border-secondary-400",
+      "transition ease-in-out",
+      "focus:border-secondary-700",
+      "focus:outline-none",
+      "placeholder-base",
+      "font-family-Arial"
+    ].join(" ")
 
-      // FOR MOBILE DONE SUBMISSION
-      inputBox.addEventListener('blur', (e) => {
-        const target = e.target as HTMLInputElement;
-        if (target.value) { // Only submit if there's content
-          submitAnnotation(target, inputBox, targetElement)
-        } 
-      });
+    inputBox.ariaHidden = 'true'
+
+    inputBox.placeholder = 'Add annotation . . .';
+    inputBox.maxLength = 100;
+
+    // Adding event handler
+    inputBox.onkeydown = (e) => {
+      const target = e.target as HTMLInputElement;
+
+      if (e.key === 'Enter') {
+
+        console.log(annotationKey);
+        console.log('text', message.text);
+
+        let final_annot = normalizeAnnotation(target.value) //remove unwatned chars.
+
+        setAnnotDict(prevDict => ({
+          ...prevDict,
+          [annotationKey]: { ...prevDict[annotationKey], annotation: final_annot}
+        }));
+
+        // Temporary dict for this single render.
+        let ad = {...annotDict};
+        let annotation_inst = ad[annotationKey]
+        ad[annotationKey].annotation = final_annot;
+        ad = sortAnnotDict(ad);
+
+        setSortAnnotDict(ad);
+
+
+        //add annotation to db!
+
+        const annotationRequest = { //make the request here.
+          message_id : message.message_id||"",
+          htext : annotation_inst.htext,
+          annotation : annotation_inst.annotation,
+          start : annotation_inst.start,
+          end : annotation_inst.end
       
-      // Handle key events
-      inputBox.onkeydown = (e) => {
-        const target = e.target as HTMLInputElement;
-        
-        if (e.key === 'Backspace' && target.value === '') {
-          eraseAnnotation();
-          return;
+        }
+        console.log("MID", message.message_id)
+        console.log("CID", message.conversation_id)
+        if (message.message_id && client){
+          console.log("SENT TO DB")
+          client.annotate(annotationKey, annotationRequest) //add it to DB
         }
 
-        if (e.key === 'Enter' || e.key === 'Done') {
-          submitAnnotation(target, inputBox, targetElement);
-        } else {
-          let tooltip = document.getElementById('tool' + annotationKey);
+        
+
+        // inputBox.textContent = "";
+        //if (tooltip){tooltip!.textContent = "";}
+        targetElement?.removeChild(inputBox)
+        let tooltip = document.getElementById('tool' + annotationKey)
+        //tooltip?.focus()
+        //tooltip!.textContent = "";
+        const ml = new Event('mouseleave')
+        tooltip?.dispatchEvent(ml)
+
+        //Fixes stupid textContent in tooltip visiblity bug.
+        if (tooltip) {
           
-          if (e.key === ' ' || e.keyCode === 32) {
-            // Prevent default for space
-            e.preventDefault();
-            
-            // Add space to input value
-            const currentValue = inputBox.value;
-            const cursorPos = inputBox.selectionStart || currentValue.length;
-            inputBox.value = currentValue.substring(0, cursorPos) + ' ' + currentValue.substring(cursorPos);
-            
-            // Update tooltip
-            if (tooltip) {
-              tooltip.textContent = inputBox.value;
-            }
-          } else {
-            // Normal key behavior
-            const n_key = isAlphaNumericOrSymbol(e.key) ? e.key : "";
-            if (tooltip) {
-              tooltip.textContent = target.value + n_key;
-            }
-          }
+          tooltip!.textContent = "";
+          console.log("tt tc",tooltip.textContent);
         }
-      };
-
-      console.log("ADDED", inputBox);
-      targetElement?.appendChild(inputBox);
-      inputBox.focus();
-
-      // Optional clean up
-      return () => {
-        console.log("RETURN REMOVAL")
-        if (targetElement && targetElement.contains(inputBox)) {
-          targetElement.removeChild(inputBox);
-        }
+        //setPreprocessedMessage(insertHighlightMarkers(message.text, ad)) //Set the preprocessed message with higlights
+        setAnnotationVisible(false);
+        //setAnnotationKey('');
+        console.log(targetElement?.childNodes)
+        console.log('REMOVED', inputBox)
+        console.log(targetElement?.childNodes)
+      } else {
+        let tooltip = document.getElementById('tool' + annotationKey)
+        const n_key = isAlphaNumericOrSymbol(e.key) ? e.key : "" //add latest key
+        if (tooltip){tooltip.textContent = target.value + n_key;}
+      } 
         
+    
+    }
+
+    console.log("ADDED", inputBox)
+    targetElement?.appendChild(inputBox)
+    inputBox.focus();
+
+    //targetElement?.appendChild(inputBox)
+    // Optional clean up
+    return () => {
+      console.log("RETURN REMOVAL")
+      if (targetElement && targetElement.contains(inputBox)) {
+        targetElement.removeChild(inputBox);
+        let tooltip = document.getElementById('tool' + annotationKey)
+        console.log(tooltip)
+        //tooltip!.textContent = "";
+        
+        //setPreprocessedMessage(insertHighlightMarkers(message.text, annotSortDict)) //Set the preprocessed message with higlights
+        console.log('REMOVED2', inputBox)
+        console.log(targetElement?.childNodes)
+      }
+
+      if (targetElement && targetElement.contains(inputBox)) {
+        targetElement.removeChild(inputBox);
         let tooltip = document.getElementById('tool' + annotationKey);
         if (tooltip) {
           tooltip.textContent = "";
         }
-      };
-    }
-  }, [annotationVisible, annotationKey]);
+      }
+    };
+  }
+  
+  }, [annotationVisible]);
 
 
 // // Usage
@@ -993,7 +929,7 @@ const handleRemovePromptAnnotation = (key: string) => {
 // | Cell 3   | Cell 4   |
 
 function constructHeaders(): string {
-  let l1 = '| Annotated Text | Row, Column | Annotation |\n'
+  let l1 = '| Annotated Text | Position | Annotation |\n'
   let l2 = '|----------------|-----|------------|\n'
   return l1 + l2
 }
@@ -1332,25 +1268,18 @@ const findExactIndices = (messageText:string, startOffset:number, endOffset:numb
   console.log(fil)
   let f_start = 0;
   let f_end = 0;
-
   ///
 
   //Weird undefined bug for ending and starting character, handled here.
 
   ///
-
-  let couldntFind = false;
-  if (d.start === -1 || d.end === -1){
-    couldntFind = true;
-  }
-
   if (fil[d.start] !== undefined){
     f_start = Number(fil[d.start][0])
   } else {f_start=0}
   if (fil[d.end] !== undefined){
     f_end=Number(fil[d.end][0])
   } else {f_end=messageText.length;}
-  return { start: f_start, end: f_end, couldntFind: couldntFind};
+  return { start: f_start, end: f_end };
 };
 
 const localRef = useRef<HTMLDivElement|null>(null);
@@ -1365,10 +1294,6 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     }
     const selection = window.getSelection();
     if (!(selection && selection.toString() && !annotationVisible && selection.anchorNode)) { 
-      return;
-    }
-
-    if (selection.toString() === "\n" || selection.toString() === " "){
       return;
     }
 
@@ -1443,13 +1368,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     const fLen = newFinalMessage.length;
     end = start + fLen;
 
-    if (u.couldntFind){
-      return
-    }
-
-
   
-
 
     //console.log("SUBSTRING", message.text.substring(startIdxInMessage, endIdxInMessage))
     //user messages are weird so we handle them with special care (copied line breaks cause issues)
@@ -1461,22 +1380,9 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     const startIdxInMessage = clean_msg.indexOf(startContainerText) + startOffset;
     const endIdxInMessage = clean_msg.indexOf(endContainerText) + endOffset;
 
-    console.log("CLEAN MSG START", clean_msg.substring(start, end))
-    console.log("CLEAN MSG START IDX", clean_msg.substring(startIdxInMessage, endIdxInMessage))
-    console.log("SELECTED TEXT", selectedText)
-
-    let st = selectedText;
-
-    if (clean_msg.substring(start, end).includes('```')||clean_msg.substring(startIdxInMessage, endIdxInMessage).includes('```') && (range?.commonAncestorContainer?.textContent||"").includes('```') && clean_msg.indexOf(endContainerText) !== end){ //The user is trying to make a stupid highlight.
+    if (clean_msg.substring(start, end).includes('```')||clean_msg.substring(startIdxInMessage, endIdxInMessage).includes('```') && (range?.commonAncestorContainer?.textContent||"").includes('```')){ //The user is trying to make a stupid highlight.
       console.log("code detection")
-      if (!clean_msg.substring(end-1, end).includes("#")){
-        return;
-      }
-      console.log("st", st)
-      st = st.substring(0, st.length-6)
-      end = end - 9
-      console.log("st", st)
-      console.log("end", end)
+      return;
     }
 
     console.log("st", selectedText)
@@ -1486,6 +1392,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
       return;
     }
 
+    let st = selectedText;
 
     // start += offsetMap[start]
     // end += offsetMap[end]
@@ -1605,9 +1512,6 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
 
         // Focus and adjust height
         parent.focus();
-        if (isMobile()) {
-          parent.blur();
-        }
         parent.style.height = 'auto';
         parent.style.height = `${parent.scrollHeight}px`;
         if (parent.scrollHeight > parent.clientHeight + 2) {
@@ -1710,22 +1614,11 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
         if (!annotBox?.contains(target) && !tooltip?.contains(target)) {
           eraseAnnotation();
           window.getSelection()?.removeAllRanges();
-        } else{
-          e.preventDefault();
-          e.stopPropagation();
-          setTimeout(() => { // Delay focus to ensure it happens after touch events
-            annotBox?.focus();
-            target.focus();
-          }, 0);
         }
       };
 
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchend', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('touchend', handleClickOutside);
-      };
+      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [annotationVisible, annotationKey]);
 
@@ -1751,107 +1644,6 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     // ... rest of your existing handleMouseUp logic ...
   };
 
-  console.log("message.feedback &&&&&&&&&&&", message.feedback);
-  console.log("message.SHOW FEED &&&&&&&&&&&", showFeedback);
-
-  // Add a helper function to detect mobile
-  const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  };
-
-    // Finds and removes any annotations that overlap with the given range
-    const removeOverlappingAnnotations = (ad: AnnotDict) => {
-      // Only allow deletion if this is the most recent message
-      if (!isLast) {
-        return;
-      }
-  
-      const overlappingPairs: [string, string][] = [];
-  
-      // Find all pairs of overlapping annotations within the dictionary
-      const entries = Object.entries(ad);
-      
-      // Compare each annotation with every other annotation
-      for (let i = 0; i < entries.length; i++) {
-        const [keyA, annotA] = entries[i];
-        const rangeA = {
-          start: annotA.start,
-          end: annotA.end
-        };
-        
-        for (let j = i + 1; j < entries.length; j++) {
-          const [keyB, annotB] = entries[j];
-          const rangeB = {
-            start: annotB.start,
-            end: annotB.end
-          };
-          
-          if (doRangesOverlap(rangeA, rangeB)) {
-            overlappingPairs.push([keyA, keyB]);
-          }
-        }
-      }
-  
-      // Remove the newer annotation from each overlapping pair
-      overlappingPairs.forEach(([keyA, keyB]) => {
-        // Determine which annotation was added more recently
-        // (You might need a different logic here depending on how you track creation time)
-        const annotToRemove = keyB; // Assuming keyB is the newer one
-        handleAnnotationDelete(annotToRemove);
-      });
-    };
-  
-    removeOverlappingAnnotations(annotDict) //manual fix for conversation store bug.
-
-  // Add these state variables near your other state declarations
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
-
-  // Function to add debug information
-  const addDebugInfo = (info: string) => {
-    setDebugInfo(prev => {
-      const newInfo = [info, ...prev];
-      return newInfo.slice(0, 5); // Keep only the 5 most recent messages
-    });
-  };
-
-  // Add state for feedback submission
-  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
-
-  // Handle feedback submission
-  const handleFeedbackSubmit = async (value: string) => {
-    if (!message.message_id || !client) {
-      console.error("Cannot submit feedback: message_id or client is missing");
-      return;
-    }
-    
-    try {
-      setIsFeedbackSubmitting(true);
-      
-      // Use the client method we just added
-      await client.submitFeedback(message.message_id, value);
-      
-      // Update the local state
-      message.feedback = value;
-      setIsFeedbackSubmitting(false);
-      
-      // Force re-render if needed
-      forceUpdate(); // Add this function
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      setIsFeedbackSubmitting(false);
-    }
-  };
-
-  // Add a force update function using useState
-  const [, forceRender] = useState({});
-  const forceUpdate = () => forceRender({});
-
-  // Add these console logs near the top of your component
-  console.log("MessageRow for:", message.message_id);
-  console.log("showFeedback:", showFeedback);
-  console.log("message.feedback:", message.feedback);
-  console.log("Should show feedback UI:", showFeedback && message.feedback === undefined);
-
   return (
     <div
       id={
@@ -1861,8 +1653,8 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
       }
       className={cn(ReservedClasses.MESSAGE, 'flex', className)}
       onMouseUp={handleMouseUp}
-      // onTouchStart={() => setDebugStatus('Touch started')}
-      onTouchEnd={handleMouseUp}
+      onTouchStart={() => setDebugStatus('Touch started')}
+      onTouchEnd={handleTouchEnd}
       style={{
         WebkitUserSelect: 'text',
         userSelect: 'text',
@@ -1886,11 +1678,6 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                 e.preventDefault();
                 handleMessageCopy();
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                handleMessageCopy();
-                // setDebugStatus('Copied!!!');
-              }}
             />
             {hasSteps && (
               <Button
@@ -1911,6 +1698,14 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           'group flex h-fit w-full flex-col gap-2 rounded-md p-2 text-left md:flex-row',
           'transition-colors ease-in-out',
           'hover:bg-secondary-100',
+
+          // {
+          //   'bg-secondary-50':
+          //     isFulfilledOrTypingMessage(message) &&
+          //     message.generationId &&
+          //     hoveredGenerationId === message.generationId,
+          //   'bg-primary-50 hover:bg-primary-50': highlightMessage,
+          // }
         )}
         {...(enableLongPress && longPressProps)}
       >
@@ -1957,8 +1752,7 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                               lineHeight: '1.5', // Adjust the line height as needed
                               fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
                               fontWeight: 'bold'
-                            }}
-                            >
+                            }}>
                               
                             </span>
                             
@@ -1974,29 +1768,20 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                             onClick={() => handleClick(key)}
                             >{annotation.annotation}
                             </span>
-                            <Icon 
-                              size={'md'} 
-                              name='trash' 
-                              onClick={(e) => handleAnnotationDelete(key)} 
-                              onTouchEnd={(e) => {
-                                e.preventDefault();
-                                handleAnnotationDelete(key);
-                              }}
-                              className={cn(
-                                'transition ease-in-out',
-                                'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
-                                'trash' 
-                              )} 
-                              style={{                               
-                                fontSize: '10.5px',
-                                height: '1rem',
-                                width: '200px',
-                                padding: '0.3rem',
-                                marginTop: '15px',
-                                lineHeight: '1.5',
-                                fontFamily: 'Arial, sans-serif',
-                              }}
-                            />
+                            <Icon size={'md'} name='trash' kind="outline" onClick={() => handleAnnotationDelete(key)} className={cn(
+                            'transition ease-in-out',
+                            'text-volcanic-600 hover:bg-secondary-100 hover:text-volcanic-800 cursor-pointer',
+                            //'bg-secondary-200',
+                            'trash' 
+                          )} style={{                               
+                            fontSize: '10.5px', // Adjust the font size as needed
+                            height: '1rem', // Adjust the height as needed
+                            width: '200px', // Adjust the width as needed
+                            padding: '0.3rem', // Adjust the padding as needed
+                            marginTop: '15px',
+                            lineHeight: '1.5', // Adjust the line height as needed
+                            fontFamily: 'Arial, sans-serif', // Adjust the font family as needed
+                          }}/>
                           
 
                           </div>
@@ -2022,14 +1807,6 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                                     handleAddAllAnnotations();
                                   }
                                 }}
-                                onTouchEnd={(e) => {
-                                  e.preventDefault();
-                                  if (addedAnnots.size === annotDictLength) {
-                                    setAddedAnnots(new Set());
-                                  } else {
-                                    handleAddAllAnnotations();
-                                  }
-                                }}
                               />
                             }
                           />
@@ -2039,165 +1816,44 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
                   </div>
                 </div>
               )}
-              
-              {(showFeedback) && (message.feedback === undefined || message.feedback === null || message.feedback === "") ? (
-  <div className="message-feedback-container" style={{ 
-    marginTop: '12px', 
-    paddingTop: '8px', 
-    // borderTop: '1px solid #e0e0e0',
-    maxWidth: '100%'
-  }}>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <span id='annots' style={{ 
-        color: 'black', // Changed from #666 to black
-        fontSize: '14px',
-        fontWeight: 500,
-        marginBottom: '4px',
-        textDecoration: 'none'
-      }}>
-        How well did the model address your annotations?
-      </span>
-      <div style={{ 
-        display: 'flex', 
-        flexWrap: 'wrap',
-        gap: '8px' 
-      }}>
-        {[
-          { value: "1", label: "Very Bad" },
-          { value: "2", label: "Bad" },
-          { value: "3", label: "Okay" },
-          { value: "4", label: "Good" },
-          { value: "5", label: "Very Good" }
-        ].map(option => (
-          <button 
-            key={option.value}
-            onClick={() => handleFeedbackSubmit(option.value)}
-            disabled={isFeedbackSubmitting}
-            style={{ 
-              padding: '6px 12px',
-              background: '#f5f5f5',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              cursor: isFeedbackSubmitting ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              opacity: isFeedbackSubmitting ? 0.6 : 1,
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => {
-              if (!isFeedbackSubmitting) {
-                e.currentTarget.style.background = '#F6DDD5'; // primary-100 from the theme
-                e.currentTarget.style.borderColor = 'black';
-                e.currentTarget.style.color = 'black';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (!isFeedbackSubmitting) {
-                e.currentTarget.style.background = '#f5f5f5';
-                e.currentTarget.style.borderColor = '#ddd';
-                e.currentTarget.style.color = '#333';
-              }
-            }}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  </div>
-) : (message.feedback !== undefined && message.feedback !== "") ? (
-  <div className="message-feedback-container" style={{ 
-    marginTop: '12px', 
-    paddingTop: '8px', 
-    // borderTop: '1px solid #e0e0e0',
-    maxWidth: '100%',
-    fontSize: '14px'
-  }}>
-    <span 
-      id='annots'
-      style={{ 
-        color: '#4CAF50',
-        cursor: 'pointer',
-        textDecoration: 'none'
-      }}
-      onClick={() => {
-        // Reset feedback to show the prompt again
-        message.feedback = undefined;
-        forceUpdate();
-      }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.textDecoration = 'underline';
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.textDecoration = 'none';
-      }}
-    >
-      Thank you for your feedback!
-      {(() => {
-        const feedbackValue = message.feedback;
-        const feedbackLabels = {
-          "1": "Very Bad",
-          "2": "Bad", 
-          "3": "Okay",
-          "4": "Good",
-          "5": "Very Good"
-        };
-        const label = feedbackLabels[feedbackValue as keyof typeof feedbackLabels] || feedbackValue;
-        return ` (${label})`;
-      })()}
-    </span>
-  </div>
-) : null}
             </div>
-          </div>
-          <div className="flex flex-col items-center justify-center h-full">
-            <div className="flex flex-col items-center">
-              {/* Copy button */}
-              {!isLongPressMenuOpen && (
-                <CopyToClipboardIconButton 
-                  value={""} 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleMessageCopy();
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    handleMessageCopy();
-                  }}
-                />
-              )}
+            
+
             </div>
+                        <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex flex-col items-center">
+                {/* Copy button - Let's hide this on mobile */}
+                {!isLongPressMenuOpen && (
+                  <div className="hidden md:block"> {/* Hide on mobile, show on desktop */}
+                    <CopyToClipboardIconButton 
+                      value={""} 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleMessageCopy();
+                      }} 
+                    />
+                  </div>
+                )}
+              </div>
           </div>
         </div>
       </div>
-      
-      {/* Move debug info outside the message row */}
-     
-      {/* Debug information display */}
-      {debugInfo.length > 0 && (
-        <div
+      {debugStatus && (
+        <div 
           style={{
             position: 'fixed',
-            bottom: '10px',
-            left: '10px',
-            zIndex: 9999,
-            backgroundColor: 'rgba(0,0,0,0.8)',
+            bottom: '20px',
+            left: '20px',
+            background: 'black',
             color: 'white',
             padding: '10px',
             borderRadius: '5px',
-            maxWidth: '80%',
-            maxHeight: '30%',
-            overflow: 'auto',
-            fontFamily: 'monospace',
-            fontSize: '12px'
+            zIndex: 9999
           }}
         >
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Debug Info:</div>
-          {debugInfo.map((info, index) => (
-            <div key={index} style={{ marginBottom: '3px' }}>{info}</div>
-          ))}
+          {debugStatus}
         </div>
       )}
-      {/* Remove the feedback UI from here */}
     </div>
   );
 }), (prevProps, nextProps) => {
@@ -2206,19 +1862,12 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
   const nextAnnotations = isFulfilledMessage(nextProps.message) ? nextProps.message.annotations : null;
   const annotationsEqual = JSON.stringify(prevAnnotations) === JSON.stringify(nextAnnotations);
 
-  // Compare feedback values
-  const prevFeedback = prevProps.message.feedback;
-  const nextFeedback = nextProps.message.feedback;
-
   return (
-    prevProps.message.message_id === nextProps.message.message_id &&
-    prevProps.message.conversation_id === nextProps.message.conversation_id &&
     prevProps.message.text === nextProps.message.text &&
     prevProps.isLast === nextProps.isLast &&
     prevProps.is2ndLast === nextProps.is2ndLast &&
     prevProps.isStreamingToolEvents === nextProps.isStreamingToolEvents &&
     prevProps.className === nextProps.className &&
-    prevFeedback === nextFeedback && // Compare feedback values
     annotationsEqual
   );
 });

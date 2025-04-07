@@ -36,7 +36,8 @@ class TavilyInternetSearch(BaseTool):
             expanded.append(result)
 
             # Get other snippets
-            snippets = result["raw_content"].split("\n")
+            # print("here is the result from tavily", result)
+            snippets = result["raw_content"].split("\n") if result["raw_content"] is not None else [result['content']]
             for snippet in snippets:
                 if result["content"] != snippet:
                     if len(snippet.split()) <= 10:

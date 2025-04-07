@@ -1,4 +1,4 @@
-import { DEFAULT_CHAT_TOOL } from '@/cohere-client';
+import { DEFAULT_CHAT_TOOL, WEB_SEARCH_TOOL } from '@/cohere-client';
 import { IconName } from '@/components/Shared';
 import { useParamsStore } from '@/stores';
 import { ConfigurableParams } from '@/stores/slices/paramsSlice';
@@ -90,15 +90,15 @@ export const useStartModes = () => {
     {
       id: StartMode.UNGROUNDED,
       title: 'How to annotate',
-      description: 'You can annotate text (*provide comments*) to prompts and model outputs. You can utilize this to help the model produce more accurate results and provide very precise outputs. **Here is how:**\n\n\u200B\n\n1. Simply [H]+x$s^&@2fc856f8-a03d-44bf-a037-c084dd72cd5a@&^s$x+030This is an example annotation!highlight[/H] any text in the conversation, an annotation box will then appear.\n2. Type your comment into the annotation box, **only 1 comment per annotation box is reconmended**.\n3. Click the `+` button to prompt the model, you can add multiple annotations.\n4. Submit the prompt by clicking the `->` button or press `Enter`, thats it!\n\n\u200B\n\nFor the best results we recommend annotating whole sentences, bullet-points, paragraphs or code chunks for large prompts/outputs so the model can more easily identify the area of the highlighted issue.',
+      description: 'You can annotate text (*provide comments*) to model outputs. You can utilize this to help the model produce more accurate results and provide very precise outputs. **Here is how:**\n\n\u200B\n\n1. Simply [H]+x$s^&@2fc856f8-a03d-44bf-a037-c084dd72cd5a@&^s$x+030This is an example annotation!highlight[/H] any text in the conversation using your cursor or finger (mobile), an annotation box will then appear.\n2. Type your comment into the annotation box, **only 1 comment per annotation box is reconmended**.\n3. Click the `->` button to prompt the model with all your annotations. \n4. Submit the prompt by clicking the other `->` button or press `Enter`, thats it!\n\n\u200B\n\nFor the best results we recommend annotating whole sentences, bullet-points, paragraphs or code chunks for large prompts/outputs so the model can more easily identify the area of the highlighted issue.',
       params: { },
       promptOptions: OTHER,
     },
     {
       id: StartMode.WEB_SEARCH,
       title: 'How to chat',
-      description: '- Simply type prompts into the prompt container below, or select one of the prompts right here. \n- Your conversations will be automatically saved and can be viewed to the left.\n- You may also modify the titles of conversations to keep track of them, or delete them.',
-      params: { fileIds: [], tools: [{ name: DEFAULT_CHAT_TOOL }] },
+      description: '- Simply type prompts into the prompt container below, or select one of the prompts right here. \n- Your conversations will be automatically saved and can be viewed to the left.\n- You can also use various tools like websearch to enhance your conversations by clicking the button in the prompt box.',
+      params: { fileIds: [], tools: [{ name: WEB_SEARCH_TOOL }] },
       promptOptions: WEB_SEARCH_PROMPTS,
     },
   ];

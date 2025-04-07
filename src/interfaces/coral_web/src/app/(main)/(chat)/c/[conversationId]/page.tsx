@@ -12,5 +12,5 @@ type Props = {
 const Page: NextPage<Props> = ({ params }) => {
   return <Chat conversationId={params.conversationId} />;
 };
-
+  
 export default Page;

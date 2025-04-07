@@ -49,6 +49,9 @@ from backend.services.request_validators import (
     validate_user_header,
 )
 
+from fastapi import Body
+from backend.schemas.message import FeedbackRequest
+
 router = APIRouter(
     prefix="/v1/annotations",
 
@@ -234,3 +237,47 @@ async def delete_annotation(
         )
 
     annotation_crud.delete_annotation(session, annotation_id)
+
+
+@router.put("/feedback")
+async def submit_feedback(
+    session: DBSessionDep,
+    feedback_request: FeedbackRequest = Body(...),
+    request: Request = None,
+) -> dict:
+    """
+    Submit feedback for a message.
+
+    Args:
+        session (DBSessionDep): Database session.
+        feedback_request (FeedbackRequest): Feedback request with message_id and feedback.
+        request (Request): Request object.
+
+    Returns:
+        dict: Success status.
+    """
+    user_id = request.headers.get("User-Id", "")
+    
+    # Get the message to ensure it exists and belongs to the user
+    message = message_crud.get_message(session, feedback_request.message_id, user_id)
+    if not message:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Message with ID: {feedback_request.message_id} not found."
+        )
+    
+    # Update the message feedback
+    success = message_crud.update_message_feedback(
+        session, 
+        feedback_request.message_id, 
+        feedback_request.feedback
+    )
+    
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update message feedback."
+        )
+        
+    return {"status": "success"}
+

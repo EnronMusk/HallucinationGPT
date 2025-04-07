@@ -1,7 +1,7 @@
 'use client';
 
 import { Transition, TransitionChild } from '@headlessui/react';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
 import { UpdateAgent } from '@/components/Agents/UpdateAgent';
 import Composer from '@/components/Conversation/Composer';
@@ -151,7 +151,7 @@ const Conversation: React.FC<Props> = ({
     send({ suggestedMessage: msg }, overrides);
   };
 
-  const client = makeCohereClient(); //add a client to be passed for db access
+  const client = makeCohereClient();
 
   return (
     <div className="flex h-full w-full">

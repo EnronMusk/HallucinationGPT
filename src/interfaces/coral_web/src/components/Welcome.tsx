@@ -54,7 +54,7 @@ export const Welcome: React.FC<Props> = ({ show, agentId }) => {
       </div>
 
       <Text styleAs="h5" className="text-center font-bold" >
-        Welcome to WildChat
+        Welcome to Chat Annotator
       </Text>
       {isAgent && (
         <Text className="!text-p-md text-center text-volcanic-100 md:!text-p-lg">

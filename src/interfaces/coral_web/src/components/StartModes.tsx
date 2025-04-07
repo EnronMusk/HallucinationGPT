@@ -43,7 +43,7 @@ export const StartModes: React.FC<Props> = ({ show, className = '', onPromptSele
       className={cn('flex flex-col items-center gap-y-6', className)}
     >
       <Text styleAs="h5" className="text-center font-bold" >
-        Welcome to WildChat
+        Welcome to Chat Annotator
       </Text>
 
       <div className={cn('w-full max-w-[820px]', 'rounded-lg border border-marble-400 bg-white',

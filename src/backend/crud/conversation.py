@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_
+from typing import List, Optional
 
 from backend.database_models.conversation import Conversation
 from backend.schemas.conversation import UpdateConversationRequest
@@ -79,7 +81,10 @@ def get_conversations(
     Returns:
         list[Conversation]: List of conversations.
     """
-    query = db.query(Conversation).filter(Conversation.user_id == user_id)
+    query = db.query(Conversation).filter(
+        Conversation.user_id == user_id,
+        Conversation.is_active == True
+    )
     if agent_id is not None:
         query = query.filter(Conversation.agent_id == agent_id)
     if organization_id is not None:
@@ -149,7 +154,42 @@ def delete_conversation(db: Session, conversation_id: str, user_id: str) -> None
         user_id (str): User ID.
     """
     conversation = db.query(Conversation).filter(
-        Conversation.id == conversation_id, Conversation.user_id == user_id
+        Conversation.id == conversation_id, 
+        Conversation.user_id == user_id
+    ).first()
+    
+    if conversation:
+        conversation.is_active = False  # Now we can set the attribute on the instance
+        db.commit()
+
+def search_conversations(
+    db: Session,
+    user_id: str,
+    search_query: str,
+    organization_id: Optional[str] = None,
+    limit: int = 10,
+    offset: int = 0,
+) -> List[Conversation]:
+    """Search conversations by content and title."""
+    query = (
+        db.query(Conversation)
+        .join(Message, Message.conversation_id == Conversation.id)
+        .filter(
+            and_(
+                Message.is_active == True,
+                Message.user_id == user_id,
+                or_(
+                    Message.content.ilike(f"%{search_query}%"),
+                    Conversation.title.ilike(f"%{search_query}%")  # Add title search
+                ),
+            )
+        )
     )
-    conversation.delete()
-    db.commit()
+
+    if organization_id:
+        query = query.filter(Conversation.organization_id == organization_id)
+
+    # Ensure we get unique conversations even if multiple messages match
+    query = query.distinct(Conversation.id)
+    
+    return query.order_by(Conversation.updated_at.desc()).offset(offset).limit(limit).all()

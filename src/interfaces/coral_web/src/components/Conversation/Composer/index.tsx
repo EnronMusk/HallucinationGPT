@@ -15,7 +15,7 @@ import { useChatRoutes } from '@/hooks/chatRoutes';
 import { useExperimentalFeatures } from '@/hooks/experimentalFeatures';
 import { useDataSourceTags } from '@/hooks/tags';
 import { useUnauthedTools } from '@/hooks/tools';
-import { useSettingsStore } from '@/stores';
+import { useSettingsStore, useParamsStore } from '@/stores';
 import { ConfigurableParams } from '@/stores/slices/paramsSlice';
 import { ChatMessage } from '@/types/message';
 import { cn } from '@/utils';
@@ -47,6 +47,10 @@ const Composer: React.FC<Props> = ({
   const {
     settings: { isMobileConvListPanelOpen },
   } = useSettingsStore();
+  const {
+    params: { fileIds, tools },
+    setParams,
+  } = useParamsStore();
   const isDesktop = useIsDesktop();
   const breakpoint = useBreakpoint();
   const isSmallBreakpoint = breakpoint === 'sm';
@@ -62,6 +66,7 @@ const Composer: React.FC<Props> = ({
   const [chatWindowHeight, setChatWindowHeight] = useState(0);
   const [isDragDropInputActive, setIsDragDropInputActive] = useState(false);
   const [showDataSourceMenu, setShowDataSourceMenu] = useState(false);
+  const [isWebSearchEnabled, setIsWebSearchEnabled] = useState(false); //disabled by defualt
 
   const [value, setValue] = useState('');
 
@@ -98,31 +103,39 @@ const Composer: React.FC<Props> = ({
 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    console.log("key down!!!! compsoser ")
     if (e.key === 'Enter' && !isComposing) {
       // Do expected default behaviour (add a newline inside of the textarea)
       if (e.shiftKey || isSmallBreakpoint) return;
 
-      console.log(textareaRef.current?.value)
-      console.log(canSend)
-
-      let cref = textareaRef.current;
-
       e.preventDefault();
-      if (canSend) {
-        cref?.setAttribute('data-user', '')
-        cref?.setAttribute('data-model', '')
-        onSend(value);
+      let cref = textareaRef.current;
+      const currentValue = cref?.value || value;
+
+      // Only proceed if we have a value to send
+      if (currentValue.trim()) {
+        cref?.setAttribute('data-user', '');
+        cref?.setAttribute('data-model', '');
+        onSend(currentValue);
+        
+        // Clear everything
         setTagQuery('');
         setShowDataSourceMenu(false);
         onChange('');
-      } else if(textareaRef.current?.value != ""){ //manually check value in case of no update to the DOM.
-        cref?.setAttribute('data-user', '')
-        cref?.setAttribute('data-model', '')
-        onSend(textareaRef.current?.value);
-        setTagQuery('');
-        setShowDataSourceMenu(false);
-        onChange('');
+        setValue('');
+        
+        // Clear the textarea
+        if (cref) {
+          cref.value = '';
+          cref.style.height = 'auto';
+        }
+
+        // Force a re-render to ensure the UI updates
+        requestAnimationFrame(() => {
+          if (cref) {
+            cref.value = '';
+            cref.style.height = 'auto';
+          }
+        });
       }
     }
   };
@@ -162,24 +175,33 @@ const Composer: React.FC<Props> = ({
 
   const handleSend = () => {
     let cref = textareaRef.current;
+    const currentValue = cref?.value || value;
     
-    if (canSend) {
+    if (canSend || (cref && cref.value.trim() !== '')) {
       cref?.setAttribute('data-user', '')
       cref?.setAttribute('data-model', '')
-      onSend(value);
+      onSend(currentValue);
       setTagQuery('');
       setShowDataSourceMenu(false);
       onChange('');
-    } else if(textareaRef.current?.value != "") {  // Add fallback check
-      cref?.setAttribute('data-user', '')
-      cref?.setAttribute('data-model', '')
-      onSend(textareaRef.current?.value);
-      setTagQuery('');
-      setShowDataSourceMenu(false);
-      onChange('');
+      setValue('');
+      if (cref) {
+        cref.value = '';
+        cref.style.height = 'auto';
+      }
     } else {
       onStop();
     }
+  };
+
+  const handleWebSearchToggle = () => {
+    setIsWebSearchEnabled(!isWebSearchEnabled);
+    // Update params like we do in DataSourceMenu
+    setParams({
+      tools: isWebSearchEnabled 
+        ? (tools ?? []).filter(t => t.name !== 'web_search')
+        : [...(tools ?? []), { name: 'web_search' }]
+    });
   };
 
   useEffect(() => {
@@ -313,6 +335,8 @@ const Composer: React.FC<Props> = ({
           isStreaming={isStreaming}
           onUploadFile={onUploadFile}
           onDataSourceMenuToggle={handleDataSourceMenuClick}
+          isWebSearchEnabled={isWebSearchEnabled}
+          onWebSearchToggle={handleWebSearchToggle}
           menuProps={{
             show: showDataSourceMenu,
             tagQuery: tagQuery,

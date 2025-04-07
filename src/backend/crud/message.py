@@ -127,3 +127,26 @@ def delete_message(db: Session, message_id: str, user_id: str) -> None:
     )
     message.delete()
     db.commit()
+
+
+# ... existing code ...
+
+def update_message_feedback(db: Session, message_id: str, feedback: str) -> bool:
+    """
+    Update the feedback for a message.
+    
+    Args:
+        db: Database session
+        message_id: ID of the message to update
+        feedback: Feedback string
+        
+    Returns:
+        bool: True if message was updated, False if message not found
+    """
+    message = db.query(Message).filter(Message.id == message_id).first()
+    if not message:
+        return False
+    
+    message.feedback = feedback
+    db.commit()
+    return True

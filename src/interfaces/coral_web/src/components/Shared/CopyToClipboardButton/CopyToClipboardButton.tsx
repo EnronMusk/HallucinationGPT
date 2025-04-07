@@ -15,10 +15,11 @@ type CopyToClipboardButtonProps = {
   className?: string;
   iconAtStart?: boolean;
   onClick?: React.MouseEventHandler<HTMLElement>;
+  onTouchEnd?: React.TouchEventHandler<HTMLElement>;
 };
 
 type CopyToClipboardButtonHandle = {
-  triggerCopy: (e: MouseEvent<HTMLElement>) => void;
+  triggerCopy: (e: React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => void;
 };
 
 /**
@@ -37,30 +38,43 @@ export const CopyToClipboardButton = forwardRef<
     kind = 'primary',
     iconAtStart = false,
     onClick,
+    onTouchEnd,
     animate = true,
   },
   ref
 ) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async (e: MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
+  const handleClick = async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
-
+    e.stopPropagation();
     try {
       await window?.navigator?.clipboard.writeText(value ?? '');
       setCopied(true);
       setTimeout(() => setCopied(false), 1000);
+      onClick?.(e);
     } catch (e) {
       console.error(e);
-    } finally {
-      onClick?.(e);
+    }
+  };
+
+  const handleTouch = async (e: React.TouchEvent<HTMLElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await window?.navigator?.clipboard.writeText(value ?? '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+      onTouchEnd?.(e);
+    } catch (e) {
+      console.error(e);
     }
   };
 
   useImperativeHandle(ref, () => ({
-    triggerCopy(e: MouseEvent<HTMLElement>) {
-      handleCopy(e);
+    triggerCopy(e: React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) {
+      handleClick(e as React.MouseEvent<HTMLElement>);
+      handleTouch(e as React.TouchEvent<HTMLElement>);
     },
   }));
 
@@ -73,7 +87,8 @@ export const CopyToClipboardButton = forwardRef<
     <Button
       kind={kind}
       size={size}
-      onClick={handleCopy}
+      onClick={handleClick}
+      onTouchEnd={handleTouch}
       label={copied ? 'Copied!' : label}
       animate={animate}
       {...(kind === 'primary' ? { splitIcon: 'copy' } : {})}
@@ -90,6 +105,7 @@ type CopyToClipboardIconButtonProps = {
   iconName?: IconName;
   value: string;
   onClick?: React.MouseEventHandler<HTMLElement>;
+  onTouchEnd?: React.TouchEventHandler<HTMLElement>;
   disabled?: boolean;
   iconClassName?: string;
   buttonClassName?: string;
@@ -99,13 +115,14 @@ export const CopyToClipboardIconButton: React.FC<CopyToClipboardIconButtonProps>
   iconName = 'copy',
   value,
   onClick,
+  onTouchEnd,
   disabled,
   iconClassName,
   buttonClassName,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
-  const handleCopy = async (e: MouseEvent<HTMLElement>) => {
+  const handleCopy = async (e: React.MouseEvent<HTMLElement>) => {
     try {
       await window?.navigator?.clipboard.writeText(value ?? '');
       setIsCopied(true);
@@ -116,6 +133,20 @@ export const CopyToClipboardIconButton: React.FC<CopyToClipboardIconButtonProps>
         setIsCopied(false);
       }, 1000);
       onClick?.(e);
+    }
+  };
+
+  const handleCopyTouch = async (e: React.TouchEvent<HTMLElement>) => {
+    try {
+      await window?.navigator?.clipboard.writeText(value ?? '');
+      setIsCopied(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 1000);
+      onTouchEnd?.(e);
     }
   };
 
@@ -140,6 +171,7 @@ export const CopyToClipboardIconButton: React.FC<CopyToClipboardIconButtonProps>
             name={iconName}
             kind="outline"
             onClick={handleCopy}
+            onTouchEnd={handleCopyTouch}
           />
         }
       />

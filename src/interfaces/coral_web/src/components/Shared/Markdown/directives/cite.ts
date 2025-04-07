@@ -9,7 +9,7 @@ import { visit } from 'unist-util-visit';
  * ```md
  * :cite[text]{docs="https://example.com"}
  * ```
- * this will result in:
+ * this will result in :
  * ```html
  * <cite docs="https://example.com">text</cite>
  * ```

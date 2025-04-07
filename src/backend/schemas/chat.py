@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Any, ClassVar, Dict, List, Union
+from typing import Any, ClassVar, Dict, List, Union, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -56,6 +56,7 @@ class ChatMessage(BaseModel):
         title="List of tool calls generated for custom tools",
         default=None,
     )
+    feedback: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {

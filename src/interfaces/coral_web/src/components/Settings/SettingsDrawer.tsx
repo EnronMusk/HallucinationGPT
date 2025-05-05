@@ -36,8 +36,7 @@ export const SettingsDrawer: React.FC = () => {
   const { files } = useFilesInConversation();
   const { agentId } = useChatRoutes();
   const { data: agent } = useAgent({ agentId });
-  const { data: experimentalFeatures } = useExperimentalFeatures();
-  const isAgentsModeOn = experimentalFeatures?.USE_AGENTS_VIEW;
+  const isAgentsModeOn = false;
 
   const tabs = useMemo(() => {
     if (isAgentsModeOn) {

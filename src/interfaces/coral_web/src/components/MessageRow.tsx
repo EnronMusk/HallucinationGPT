@@ -4,7 +4,6 @@ import { usePreviousDistinct } from '@react-hookz/web';
 import { MouseEvent, forwardRef, useEffect, useState, useRef, useImperativeHandle, useMemo, memo, useContext, createContext } from 'react';
 import React from 'react';
 import { useLongPress } from 'react-aria';
-import { Rating, Typography, Box } from '@mui/material';
 
 import { Avatar } from '@/components/Avatar';
 import { IconButton } from '@/components/IconButton';
@@ -2048,9 +2047,9 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
     maxWidth: '100%'
   }}>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <span id='annots' style={{ 
-        color: 'black', // Changed from #666 to black
-        fontSize: '14px',
+    <span id='annots' style={{ 
+        color: 'black',
+        fontSize: '11px',
         fontWeight: 500,
         marginBottom: '4px',
         textDecoration: 'none'
@@ -2060,7 +2059,8 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
       <div style={{ 
         display: 'flex', 
         flexWrap: 'wrap',
-        gap: '8px' 
+        gap: '6px',
+        fontFamily: 'Arial, sans-serif'
       }}>
         {[
           { value: "1", label: "Very Bad" },
@@ -2072,28 +2072,33 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
           <button 
             key={option.value}
             onClick={() => handleFeedbackSubmit(option.value)}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              handleFeedbackSubmit(option.value);
+            }}
             disabled={isFeedbackSubmitting}
             style={{ 
-              padding: '6px 12px',
-              background: '#f5f5f5',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              padding: '4px 8px',
+              background: '#f0f0f0',
+              border: '1px solid #ccc',
+              borderRadius: '3px',
               cursor: isFeedbackSubmitting ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
+              fontSize: '9px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
               opacity: isFeedbackSubmitting ? 0.6 : 1,
               transition: 'all 0.2s ease',
             }}
             onMouseOver={(e) => {
               if (!isFeedbackSubmitting) {
-                e.currentTarget.style.background = '#F6DDD5'; // primary-100 from the theme
+                e.currentTarget.style.background = '#F6DDD5';
                 e.currentTarget.style.borderColor = 'black';
                 e.currentTarget.style.color = 'black';
               }
             }}
             onMouseOut={(e) => {
               if (!isFeedbackSubmitting) {
-                e.currentTarget.style.background = '#f5f5f5';
-                e.currentTarget.style.borderColor = '#ddd';
+                e.currentTarget.style.background = '#f0f0f0';
+                e.currentTarget.style.borderColor = '#ccc';
                 e.currentTarget.style.color = '#333';
               }
             }}
@@ -2121,6 +2126,11 @@ useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
       }}
       onClick={() => {
         // Reset feedback to show the prompt again
+        message.feedback = undefined;
+        forceUpdate();
+      }}
+      onTouchEnd={(e) => {
+        e.preventDefault(); // Prevent default to avoid double firing
         message.feedback = undefined;
         forceUpdate();
       }}

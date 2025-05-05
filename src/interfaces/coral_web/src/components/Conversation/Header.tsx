@@ -90,11 +90,11 @@ const useHeaderMenu = ({ agentId }: { agentId?: string }) => {
           } as KebabMenuItem,
         ]
       : []),
-    {
-      label: 'Settings',
-      iconName: 'settings',
-      onClick: handleToggleConfigSettings,
-    },
+    // {
+    //   label: 'Settings',
+    //   iconName: 'settings',
+    //   onClick: handleToggleConfigSettings,
+    // },
     {
       label: 'Share',
       iconName: 'share',

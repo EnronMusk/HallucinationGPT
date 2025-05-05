@@ -20,8 +20,7 @@ export const ComposerError: React.FC<Props> = ({ className = '' }) => {
   const {
     files: { uploadingFiles },
   } = useFilesStore();
-  const { data: experimentalFeatures } = useExperimentalFeatures();
-  const isAgentsModeOn = !!experimentalFeatures?.USE_AGENTS_VIEW;
+  const isAgentsModeOn = false;
   const { unauthedTools } = useUnauthedTools();
   const latestFile = uploadingFiles[uploadingFiles.length - 1];
   // Only use the first tool that requires auth for now since it is unclear how to handle multiple tools

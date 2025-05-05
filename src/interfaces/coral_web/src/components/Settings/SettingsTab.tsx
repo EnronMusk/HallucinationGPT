@@ -16,8 +16,7 @@ export const SettingsTab: React.FC = () => {
     setParams,
   } = useParamsStore();
   const defaults = useSettingsDefaults();
-  const { data: experimentalFeatures } = useExperimentalFeatures();
-  const isLangchainModeOn = !!experimentalFeatures?.USE_EXPERIMENTAL_LANGCHAIN;
+  const isLangchainModeOn = false;
   const { models } = useModels(deployment ?? '');
   const modelOptions = [
     {

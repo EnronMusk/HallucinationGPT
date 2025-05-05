@@ -46,4 +46,7 @@ COPY .en[v] .env
 
 EXPOSE ${PORT}
 
-CMD uvicorn backend.main:app --reload --host 0.0.0.0 --port ${PORT} --timeout-keep-alive 300
+# For production, use Gunicorn with multiple workers
+CMD uvicorn backend.main:app --workers 4 --host 0.0.0.0 --port ${PORT} --timeout-keep-alive 300
+# Development mode (comment out for production)
+# CMD uvicorn backend.main:app --reload --host 0.0.0.0 --port ${PORT} --timeout-keep-alive 300

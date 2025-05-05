@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+import traceback
+from sqlalchemy.exc import SQLAlchemyError
 
 from backend.database_models.user import User
 from backend.schemas.user import UpdateUser
@@ -15,10 +17,23 @@ def create_user(db: Session, user: User) -> User:
     Returns:
         User: Created user.
     """
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+    try:
+        print(f"Creating user in database: {user.__dict__}")
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        print(f"Created user: {user.id}, fullname: {user.fullname}")
+        return user
+    except SQLAlchemyError as e:
+        db.rollback()
+        print(f"Database error creating user: {str(e)}")
+        traceback.print_exc()
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Unexpected error creating user: {str(e)}")
+        traceback.print_exc()
+        raise
 
 
 def get_user(db: Session, user_id: str) -> User:

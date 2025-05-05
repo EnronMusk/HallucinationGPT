@@ -11,8 +11,7 @@ import { useExperimentalFeatures } from '@/hooks/experimentalFeatures';
 import { TermsModal } from '@/components/TermsModal';
 
 const MainLayout: NextPage<React.PropsWithChildren> = ({ children }) => {
-  const { data: experimentalFeatures } = useExperimentalFeatures();
-  const isAgentsModeOn = !!experimentalFeatures?.USE_AGENTS_VIEW;
+  const isAgentsModeOn = false;
 
   if (isAgentsModeOn) {
     return (

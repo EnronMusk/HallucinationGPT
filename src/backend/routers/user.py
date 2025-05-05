@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from datetime import datetime
 
 from backend.config.routers import RouterName
 from backend.crud import user as user_crud
@@ -54,14 +55,28 @@ async def create_user(
         print(f"db_user type: {type(db_user)}")
         print(f"db_user attributes: {dir(db_user)}")
         
-        # Try explicit conversion if needed
-        if hasattr(User, "from_orm"):
-            user_response = User.from_orm(db_user)
-            return user_response
-        else:
-            # Convert to dict first if from_orm isn't available
-            user_dict = {c.name: getattr(db_user, c.name) for c in db_user.__table__.columns}
+        # Simplified conversion to Pydantic model
+        try:
+            # Convert to dict using SQLAlchemy model's __dict__
+            user_dict = {}
+            for key, value in db_user.__dict__.items():
+                if not key.startswith('_'):  # Skip SQLAlchemy internal attrs
+                    user_dict[key] = value
+            
+            print(f"User dict before Pydantic conversion: {user_dict}")
+            
+            # Create and return Pydantic model
             return User(**user_dict)
+        except Exception as e:
+            print(f"Error converting to response model: {e}")
+            # Fallback direct serialization with all fields explicitly set
+            user_response = User(
+                id=db_user.id,
+                created_at=db_user.created_at or datetime.now(),
+                updated_at=db_user.updated_at or datetime.now()
+            )
+            print(f"Manual user response: {user_response}")
+            return user_response
     except Exception as e:
         print(f"Error in create_user: {e}")
         import traceback

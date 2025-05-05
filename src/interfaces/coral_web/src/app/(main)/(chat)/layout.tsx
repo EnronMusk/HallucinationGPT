@@ -12,8 +12,8 @@ import { useConversationStore, useParamsStore, useSettingsStore } from '@/stores
 import { cn } from '@/utils';
 
 const ChatLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const { data: experimentalFeatures } = useExperimentalFeatures();
-  const isAgentsModeOn = !!experimentalFeatures?.USE_AGENTS_VIEW;
+ 
+
   const {
     settings: { isConvListPanelOpen, isMobileConvListPanelOpen },
   } = useSettingsStore();
@@ -24,7 +24,6 @@ const ChatLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   } = useParamsStore();
   const { data: allDeployments } = useListAllDeployments();
 
-  const isLangchainModeOn = !!experimentalFeatures?.USE_EXPERIMENTAL_LANGCHAIN;
   const { setMessage } = useContext(BannerContext);
 
   const isDesktop = useIsDesktop();
@@ -46,12 +45,8 @@ const ChatLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
     }
   }, [deployment, allDeployments]);
 
-  useEffect(() => {
-    if (!isLangchainModeOn) return;
-    setMessage('You are using an experimental langchain multihop flow. There will be bugs.');
-  }, [isLangchainModeOn]);
 
-  if (isAgentsModeOn) {
+  if (false) {
     return (
       <div className="flex h-full">
         <Transition

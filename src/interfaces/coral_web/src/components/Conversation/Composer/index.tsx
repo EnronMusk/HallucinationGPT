@@ -60,7 +60,7 @@ const Composer: React.FC<Props> = ({
   const { suggestedTags, totalTags, setTagQuery, tagQuery, getTagQuery } = useDataSourceTags({
     requiredTools,
   });
-  const { data: experimentalFeatures } = useExperimentalFeatures();
+  const isAgentsModeOn = false;
 
   const [isComposing, setIsComposing] = useState(false);
   const [chatWindowHeight, setChatWindowHeight] = useState(0);
@@ -71,7 +71,6 @@ const Composer: React.FC<Props> = ({
   const [value, setValue] = useState('');
 
   const isReadyToReceiveMessage = !isStreaming;
-  const isAgentsModeOn = !!experimentalFeatures?.USE_AGENTS_VIEW;
   const isComposerDisabled = isToolAuthRequired && isAgentsModeOn;
   const canSend = isReadyToReceiveMessage && value.trim().length > 0 && !isComposerDisabled;
 
